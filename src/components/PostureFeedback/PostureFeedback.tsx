@@ -1,16 +1,19 @@
 'use client';
 
 import { usePoseStore } from '@/stores/poseStore';
+import { PostureAnalyzer } from '@/utils/postureAnalysis';
 
 export const PostureFeedback = () => {
   const { postureAnalysis, isProcessing, currentPose, baselinePosture, setBaselinePosture, clearBaselinePosture, resetSlouchingStats, resetScoreToFullPoints } = usePoseStore();
 
   const handleSetBaseline = () => {
     if (currentPose?.landmarks) {
+      const baselineAngles = PostureAnalyzer.calculateBaselineAngles(currentPose.landmarks);
       setBaselinePosture({
         landmarks: currentPose.landmarks,
         timestamp: Date.now(),
-        description: '基準姿勢'
+        description: '基準姿勢',
+        baselineAngles
       });
       resetSlouchingStats();
       resetScoreToFullPoints();

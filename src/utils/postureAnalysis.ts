@@ -26,6 +26,77 @@ export class PostureAnalyzer {
     );
   }
 
+  static calculateBaselineAngles(landmarks: PoseLandmark[]): {
+    neckAngle: number;
+    shoulderAngle: number;
+    backAngle: number;
+    gazeAngle: number;
+    faceAngle: number;
+  } {
+    if (landmarks.length < 33) {
+      return {
+        neckAngle: 0,
+        shoulderAngle: 0,
+        backAngle: 0,
+        gazeAngle: 0,
+        faceAngle: 0,
+      };
+    }
+
+    // ランドマークの取得
+    const nose = landmarks[0];
+    const leftEye = landmarks[1];
+    const rightEye = landmarks[2];
+    const leftShoulder = landmarks[11];
+    const rightShoulder = landmarks[12];
+    const leftHip = landmarks[23];
+    const rightHip = landmarks[24];
+
+    // 中点の計算
+    const eyeMidpoint = {
+      x: (leftEye.x + rightEye.x) / 2,
+      y: (leftEye.y + rightEye.y) / 2,
+      z: (leftEye.z + rightEye.z) / 2,
+    };
+
+    const shoulderMidpoint = {
+      x: (leftShoulder.x + rightShoulder.x) / 2,
+      y: (leftShoulder.y + rightShoulder.y) / 2,
+      z: (leftShoulder.z + rightShoulder.z) / 2,
+    };
+
+    const hipMidpoint = {
+      x: (leftHip.x + rightHip.x) / 2,
+      y: (leftHip.y + rightHip.y) / 2,
+      z: (leftHip.z + rightHip.z) / 2,
+    };
+
+    const mouthMidpoint = {
+      x: (landmarks[9].x + landmarks[10].x) / 2,
+      y: (landmarks[9].y + landmarks[10].y) / 2,
+      z: (landmarks[9].z + landmarks[10].z) / 2,
+    };
+
+    // 角度の計算
+    const headForwardDistance = Math.abs(shoulderMidpoint.z - eyeMidpoint.z);
+    const headVerticalOffset = eyeMidpoint.y - shoulderMidpoint.y;
+    const shoulderForwardDistance = Math.abs(hipMidpoint.z - shoulderMidpoint.z);
+
+    const neckAngle = Math.abs(Math.atan2(headForwardDistance, Math.abs(headVerticalOffset)) * 180 / Math.PI);
+    const backAngle = Math.abs(Math.atan2(shoulderForwardDistance, Math.abs(shoulderMidpoint.y - hipMidpoint.y)) * 180 / Math.PI);
+    const shoulderAngle = Math.abs(leftShoulder.y - rightShoulder.y) * 100;
+    const faceAngle = Math.abs(Math.atan2(nose.y - eyeMidpoint.y, Math.abs(nose.z - eyeMidpoint.z || 0.01)) * 180 / Math.PI);
+    const gazeAngle = Math.abs(Math.atan2(mouthMidpoint.y - eyeMidpoint.y, Math.abs(mouthMidpoint.z - eyeMidpoint.z || 0.01)) * 180 / Math.PI);
+
+    return {
+      neckAngle,
+      shoulderAngle,
+      backAngle,
+      gazeAngle,
+      faceAngle,
+    };
+  }
+
   static normalizeLandmarks(landmarks: PoseLandmark[]): PoseLandmark[] {
     if (landmarks.length < 33) return landmarks;
     
@@ -191,11 +262,11 @@ export class PostureAnalyzer {
     const headVerticalOffset = earMidpoint.y - shoulderMidpoint.y;
     
     // 現在の角度を計算
-    let currentNeckAngle = Math.abs(Math.atan2(headForwardDistance, Math.abs(headVerticalOffset)) * 180 / Math.PI);
-    let currentBackAngle = Math.abs(Math.atan2(shoulderForwardDistance, Math.abs(shoulderMidpoint.y - hipMidpoint.y)) * 180 / Math.PI);
-    let currentShoulderAngle = Math.abs(leftShoulder.y - rightShoulder.y) * 100;
-    let currentFaceAngle = Math.abs(Math.atan2(nose.y - eyeMidpoint.y, Math.abs(nose.z - eyeMidpoint.z || 0.01)) * 180 / Math.PI);
-    let currentGazeAngle = Math.abs(Math.atan2(mouthMidpoint.y - eyeMidpoint.y, Math.abs(mouthMidpoint.z - eyeMidpoint.z || 0.01)) * 180 / Math.PI);
+    const currentNeckAngle = Math.abs(Math.atan2(headForwardDistance, Math.abs(headVerticalOffset)) * 180 / Math.PI);
+    const currentBackAngle = Math.abs(Math.atan2(shoulderForwardDistance, Math.abs(shoulderMidpoint.y - hipMidpoint.y)) * 180 / Math.PI);
+    const currentShoulderAngle = Math.abs(leftShoulder.y - rightShoulder.y) * 100;
+    const currentFaceAngle = Math.abs(Math.atan2(nose.y - eyeMidpoint.y, Math.abs(nose.z - eyeMidpoint.z || 0.01)) * 180 / Math.PI);
+    const currentGazeAngle = Math.abs(Math.atan2(mouthMidpoint.y - eyeMidpoint.y, Math.abs(mouthMidpoint.z - eyeMidpoint.z || 0.01)) * 180 / Math.PI);
 
     // 基準姿勢がある場合は基準角度からの偏差を計算
     let neckAngle = currentNeckAngle;

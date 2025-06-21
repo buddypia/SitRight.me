@@ -28,7 +28,7 @@ export class PoseDetectionService {
       minTrackingConfidence: 0.5,
     });
 
-    this.drawingUtils = new DrawingUtils();
+    // DrawingUtilsの初期化は描画時に遅延実行する
   }
 
   detectPose(video: HTMLVideoElement, timestamp: number): PoseResults | null {
@@ -69,6 +69,14 @@ export class PoseDetectionService {
     landmarks: PoseLandmark[],
     connections?: [number, number][]
   ): void {
+    // DrawingUtilsを遅延初期化
+    if (!this.drawingUtils) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        this.drawingUtils = new DrawingUtils(ctx);
+      }
+    }
+
     if (!this.drawingUtils) return;
 
     const ctx = canvas.getContext('2d');

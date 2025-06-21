@@ -4,19 +4,37 @@ import { CameraControl } from '@/components/CameraControl';
 import { PostureFeedback } from '@/components/PostureFeedback';
 import { SlouchingMonitor } from '@/components/SlouchingMonitor';
 import { Settings } from '@/components/Settings';
+import { Onboarding } from '@/components/Onboarding';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { usePoseStore } from '@/stores/poseStore';
 import { useEffect } from 'react';
 
 export default function Home() {
-  const { loadSettings, setSettingsOpen } = useSettingsStore();
+  const { loadSettings, setSettingsOpen, isFirstTime, checkFirstTime, markOnboardingCompleted } = useSettingsStore();
   const { loadBaselineFromStorage } = usePoseStore();
 
   useEffect(() => {
     // 起動時に設定と基準姿勢を読み込み
     loadSettings();
     loadBaselineFromStorage();
-  }, [loadSettings, loadBaselineFromStorage]);
+    
+    // URL パラメータで強制表示オプションをチェック
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceOnboarding = urlParams.get('onboarding') === 'true';
+    
+    if (forceOnboarding) {
+      console.log('URL パラメータによりオンボーディングを強制表示');
+      // URL パラメータを削除してリロードを防ぐ
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return; // isFirstTime は true のまま
+    }
+    
+    checkFirstTime();
+  }, [loadSettings, loadBaselineFromStorage, checkFirstTime]);
+
+  const handleOnboardingComplete = () => {
+    markOnboardingCompleted();
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -76,6 +94,10 @@ export default function Home() {
       </div>
       
       <Settings />
+      
+      {isFirstTime && (
+        <Onboarding onComplete={handleOnboardingComplete} />
+      )}
     </main>
   );
 }

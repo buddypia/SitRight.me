@@ -6,7 +6,7 @@ import { DEFAULT_SETTINGS } from '@/types/settings';
 import { BaselineCapture } from '@/components/BaselineCapture';
 
 export const Settings = () => {
-  const { settings, updateSettings, resetSettings, isSettingsOpen, setSettingsOpen } = useSettingsStore();
+  const { settings, updateSettings, resetSettings, isSettingsOpen, setSettingsOpen, resetOnboarding } = useSettingsStore();
   const [showHelp, setShowHelp] = useState(false);
 
   if (!isSettingsOpen) return null;
@@ -382,12 +382,25 @@ export const Settings = () => {
         </div>
 
         <div className="flex justify-between mt-6">
-          <button
-            onClick={resetSettings}
-            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-          >
-            デフォルトに戻す
-          </button>
+          <div className="flex space-x-3">
+            <button
+              onClick={resetSettings}
+              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+            >
+              デフォルトに戻す
+            </button>
+            
+            <button
+              onClick={() => {
+                resetOnboarding();
+                setSettingsOpen(false);
+              }}
+              className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+              title="オンボーディングを再表示します"
+            >
+              初回案内をリセット
+            </button>
+          </div>
           
           <button
             onClick={() => setSettingsOpen(false)}
