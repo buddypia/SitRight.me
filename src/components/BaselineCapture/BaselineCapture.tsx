@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { usePoseStore } from '@/stores/poseStore';
 import { BaselinePosture } from '@/types/pose';
+import { PostureAnalyzer } from '@/utils/postureAnalysis';
 
 export const BaselineCapture = () => {
   const { currentPose, baselinePosture, setBaselinePosture, clearBaselinePosture, resetScoreToFullPoints } = usePoseStore();
@@ -23,11 +24,21 @@ export const BaselineCapture = () => {
         if (prev <= 1) {
           clearInterval(countdown);
           
+          // 現在の姿勢の角度を計算
+          const currentAnalysis = PostureAnalyzer.analyzePosture(currentPose.landmarks);
+          
           // 基準姿勢をキャプチャ
           const baseline: BaselinePosture = {
             landmarks: [...currentPose.landmarks],
             timestamp: Date.now(),
-            description: '基準姿勢'
+            description: '基準姿勢',
+            baselineAngles: {
+              neckAngle: currentAnalysis.angles.neckAngle,
+              shoulderAngle: currentAnalysis.angles.shoulderAngle,
+              backAngle: currentAnalysis.angles.backAngle,
+              gazeAngle: currentAnalysis.angles.gazeAngle,
+              faceAngle: currentAnalysis.angles.faceAngle,
+            }
           };
           
           setBaselinePosture(baseline);

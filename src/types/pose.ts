@@ -45,4 +45,11 @@ export interface BaselinePosture {
   landmarks: PoseLandmark[];
   timestamp: number;
   description?: string;
+  baselineAngles: {
+    neckAngle: number;
+    shoulderAngle: number;
+    backAngle: number;
+    gazeAngle: number;
+    faceAngle: number;
+  };
 }
