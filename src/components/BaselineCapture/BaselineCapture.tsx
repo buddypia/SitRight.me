@@ -154,8 +154,8 @@ export const BaselineCapture = () => {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <h4 className="font-medium text-gray-800 mb-2">{t('baseline.details.title')}</h4>
           <div className="text-sm text-gray-600 space-y-1">
-            <p>検出されたランドマーク数: {baselinePosture.landmarks.length}</p>
-            <p>設定日時: {formatDate(baselinePosture.timestamp)}</p>
+            <p>{t('baseline.details.landmarkCount', { count: baselinePosture.landmarks.length })}</p>
+            <p>{t('baseline.details.timestamp', { date: formatDate(baselinePosture.timestamp) })}</p>
             <div className="bg-white p-2 rounded border text-xs">
               <p className="font-medium mb-1">主要部位の座標 (正規化):</p>
               {baselinePosture.landmarks.slice(0, 5).map((landmark, index) => (
@@ -163,7 +163,7 @@ export const BaselineCapture = () => {
                   Point {index}: ({landmark.x.toFixed(3)}, {landmark.y.toFixed(3)}, {landmark.z.toFixed(3)})
                 </p>
               ))}
-              <p className="text-gray-500 mt-1">...その他 {baselinePosture.landmarks.length - 5} 点</p>
+              <p className="text-gray-500 mt-1">{t('baseline.details.additionalPoints', { count: baselinePosture.landmarks.length - 5 })}</p>
             </div>
           </div>
         </div>

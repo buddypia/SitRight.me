@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 
 export const LanguageSwitcher = () => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
   const languages = [
-    { code: 'ja', name: '日本語', flag: '🇯🇵' },
+    { code: 'ja', name: t('language.japanese'), flag: '🇯🇵' },
     { code: 'en', name: 'English', flag: '🇺🇸' }
   ];
 

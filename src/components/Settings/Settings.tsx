@@ -18,7 +18,7 @@ export const Settings = () => {
     
     for (let i = 0; i < path.length - 1; i++) {
       current[path[i]] = {};
-      current = current[path[i]];
+      current = current[path[i]] as Record<string, unknown>;
     }
     current[path[path.length - 1]] = value;
     
@@ -134,11 +134,11 @@ export const Settings = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* 顔の下向き検出閾値 */}
           <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-semibold mb-3 text-gray-800">👁️ 顔の下向き検出閾値</h3>
+            <h3 className="font-semibold mb-3 text-gray-800">{t('settings.thresholds.faceDown.title')}</h3>
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  重度 (現在: {settings.faceDownThresholds.severe})
+                  {t('settings.labels.severe', { value: settings.faceDownThresholds.severe })}
                 </label>
                 <input
                   type="range"
@@ -153,7 +153,7 @@ export const Settings = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  中度 (現在: {settings.faceDownThresholds.moderate})
+                  {t('settings.labels.moderate', { value: settings.faceDownThresholds.moderate })}
                 </label>
                 <input
                   type="range"
@@ -168,7 +168,7 @@ export const Settings = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  軽度 (現在: {settings.faceDownThresholds.mild})
+                  {t('settings.labels.mild', { value: settings.faceDownThresholds.mild })}
                 </label>
                 <input
                   type="range"
@@ -183,7 +183,7 @@ export const Settings = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  最小警告 (現在: {settings.faceDownThresholds.minimal})
+                  {t('settings.labels.minimal', { value: settings.faceDownThresholds.minimal })}
                 </label>
                 <input
                   type="range"
@@ -388,7 +388,7 @@ export const Settings = () => {
               onClick={resetSettings}
               className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
             >
-              デフォルトに戻す
+              {t('settings.buttons.resetDefaults')}
             </button>
             
             <button
@@ -397,9 +397,9 @@ export const Settings = () => {
                 setSettingsOpen(false);
               }}
               className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
-              title="オンボーディングを再表示します"
+              title={t('settings.buttons.resetOnboardingTooltip')}
             >
-              初回案内をリセット
+              {t('settings.buttons.resetOnboarding')}
             </button>
           </div>
           
@@ -407,7 +407,7 @@ export const Settings = () => {
             onClick={() => setSettingsOpen(false)}
             className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            設定を保存
+            {t('settings.buttons.saveSettings')}
           </button>
         </div>
       </div>

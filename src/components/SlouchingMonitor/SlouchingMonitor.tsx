@@ -150,7 +150,7 @@ export const SlouchingMonitor = () => {
           {postureAnalysis.gazeDirection === 'down' && (
             <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded">
               <p className="text-red-700 text-xs font-medium">
-                ⚠️ 下向き姿勢検出中：首や肩への負担が増加しています
+                {t('monitor.warnings.downwardPosture')}
               </p>
             </div>
           )}

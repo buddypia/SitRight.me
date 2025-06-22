@@ -94,9 +94,9 @@ export const usePoseStore = create<PoseStore>((set, get) => ({
     lastUpdateTime: 0,
   },
   feedbackHistory: {
-    feedback: '良い姿勢です！',
+    feedback: 'feedback.goodPosture',
     timestamp: Date.now(),
-    stabilizedFeedback: '良い姿勢です！',
+    stabilizedFeedback: 'feedback.goodPosture',
     lastUpdateTime: 0,
   },
 
@@ -135,8 +135,9 @@ export const usePoseStore = create<PoseStore>((set, get) => ({
             (!stats.lastAlertTime || now - stats.lastAlertTime > notificationInterval)) {
           stats.lastAlertTime = now;
           if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('SitSmart: 猫背アラート', {
-              body: `${notificationDelay / 1000}秒以上猫背が続いています。すぐに姿勢を正してください！`,
+            // Note: This notification text needs to be localized in the UI layer
+            new Notification('SitSmart: Slouching Alert', {
+              body: `Slouching detected for ${notificationDelay / 1000} seconds. Please correct your posture!`,
               icon: '/favicon.ico'
             });
           }
@@ -356,9 +357,9 @@ export const usePoseStore = create<PoseStore>((set, get) => ({
         lastUpdateTime: Date.now(),
       },
       feedbackHistory: {
-        feedback: '✅ 基準姿勢をキープしています！',
+        feedback: 'feedback.baselineKeeping',
         timestamp: Date.now(),
-        stabilizedFeedback: '✅ 基準姿勢をキープしています！',
+        stabilizedFeedback: 'feedback.baselineKeeping',
         lastUpdateTime: Date.now(),
       },
     }));

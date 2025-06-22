@@ -95,7 +95,17 @@
     "buttons": {
       "resetDefaults": "デフォルトに戻す",
       "resetOnboarding": "初回案内をリセット",
+      "resetOnboardingTooltip": "オンボーディングを再表示します",
       "saveSettings": "設定を保存"
+    },
+    "labels": {
+      "severe": "重度 (現在: {{value}})",
+      "moderate": "中度 (現在: {{value}})",
+      "mild": "軽度 (現在: {{value}})",
+      "minimal": "最小警告 (現在: {{value}})",
+      "notificationDelay": "通知までの時間 (現在: {{value}}秒)",
+      "notificationInterval": "通知間隔 (現在: {{value}}秒)",
+      "visualAlertDelay": "重度アラート表示時間 (現在: {{value}}秒)"
     },
     "helpContent": {
       "faceDown": {
@@ -184,6 +194,9 @@
       "tip9": "🖥️ モニターの高さを調整してください",
       "tip10": "デスクの高さや椅子の位置を調整してみてください",
       "tip11": "30分に一度、立ち上がって軽くストレッチしましょう"
+    },
+    "warnings": {
+      "downwardPosture": "⚠️ 下向き姿勢検出中：首や肩への負担が増加しています"
     }
   },
   "baseline": {
@@ -206,6 +219,10 @@
     "error": "姿勢が検出されていません。カメラを起動してから基準姿勢を設定してください。",
     "details": {
       "title": "基準姿勢の詳細",
+      "timestamp": "設定日時: {{date}}",
+      "landmarkCount": "検出されたランドマーク数: {{count}}",
+      "additionalPoints": "...その他 {{count}} 点",
+      "coordinatesTitle": "主要部位の座標 (正規化):",
       "neckAngle": "首の角度: {{angle}}°",
       "shoulderAngle": "肩の角度: {{angle}}°",
       "backAngle": "背中の角度: {{angle}}°"
@@ -214,6 +231,7 @@
   "feedback": {
     "noPose": "ポーズが検出されませんでした",
     "goodPosture": "良い姿勢です！",
+    "baselineKeeping": "✅ 基準姿勢をキープしています！",
     "baselineComparison": {
       "goodMaintenance": "✅ 基準姿勢をキープしています！",
       "neckForward": "基準姿勢と比べて首が少し前に出ています",
@@ -230,10 +248,58 @@
       "shouldersHunched": "肩の巻き込みが検出されました",
       "backRounded": "背中の丸まりが検出されました",
       "multipleIssues": "複数の姿勢の問題が検出されました"
+    },
+    "postureAnalysis": {
+      "baseline": {
+        "maintaining": "✅ 基準姿勢をキープしています！",
+        "excellent": "✅ 優秀な姿勢です！",
+        "slightDeviation": "⚠️ 基準姿勢から少しズレています。",
+        "neckAngleDeviation": "🚨 基準姿勢から首の角度が大きくずれています！",
+        "neckAngleWarning": "⚠️ 基準姿勢から首の角度がずれています。",
+        "neckAngleCorrect": "⚠️ 首の角度を基準に戻してください。",
+        "backAngleDeviation": "🚨 基準姿勢から背中の角度が大きくずれています！",
+        "backAngleWarning": "⚠️ 基準姿勢から背中の角度がずれています。",
+        "backAngleCorrect": "⚠️ 背中の角度を基準に戻してください。",
+        "complexPosturalIssue": "🚨 深刻な姿勢の崩れです！首と背中の角度が基準から大きくずれています。",
+        "complexPosturalProblem": "🚨 複合的な姿勢の問題があります。基準姿勢に戻してください。",
+        "faceAngleDeviation": "🚨 基準姿勢から顔の角度が大きくずれています！",
+        "faceAngleWarning": "⚠️ 基準姿勢から顔の角度がずれています。",
+        "faceAngleCorrect": "⚠️ 顔の角度を基準に戻してください。"
+      },
+      "slouching": {
+        "severeHeadForward": "🚨 重度の猫背です！頭が大きく前に出ています。",
+        "moderateHeadForward": "⚠️ 中度の猫背です。頭が前に出ています。",
+        "mildHeadForward": "⚠️ 軽度の猫背です。頭の位置を意識してください。",
+        "severeBackRounded": "🚨 深刻な猫背です！背中が丸まり、頭も前に出ています。",
+        "severeBackOnly": "🚨 重度の猫背：背中が大きく丸まっています。",
+        "combinedSlouchingComplex": "🚨 猫背が複合的に発生しています。姿勢を正してください。",
+        "backRounded": "⚠️ 背中が丸まっています。背筋を伸ばしてください。",
+        "mildBackRounded": "⚠️ 背中が少し丸まっています。姿勢を意識してください。",
+        "shoulderImbalance": "⚠️ 肩の高さが不均等です。バランスを整えてください。",
+        "shoulderBalance": "肩のバランスを意識してください。",
+        "complexSlouchingDetected": "🔥 複合的な猫背を検出！頭と背中の姿勢を正してください！"
+      },
+      "faceDown": {
+        "severeFaceDown": "🚨 重度の下向き猫背です！顔が大きく下を向いています。",
+        "faceDown": "⚠️ 顔が下を向いています。",
+        "gazeUp": "⚠️ 視線を上げてください。",
+        "faceDownHeadForward": "🔥 顔下向き+頭前傾を検出！",
+        "backRoundedFaceDown": "🔥 背中丸まり+下向きを検出！"
+      },
+      "general": {
+        "mildPosturalSigns": "⚠️ 軽微な猫背の兆候があります。姿勢を意識してください。",
+        "gazeDownward": "⚠️ 視線が下向きです。",
+        "emergencySlouchingDetected": "🔥 緊急：深刻な猫背を検出！すぐに姿勢を正してください！",
+        "emergencySevereFaceDown": "🔥 緊急：重度の下向き猫背！即座に姿勢と視線を正してください！",
+        "mildPosturalIssue": "⚠️ 軽度の姿勢の問題が検出されました。注意してください。"
+      }
     }
   },
   "notifications": {
-    "slouchingAlert": "⚠️ 猫背アラート - 姿勢を確認してください"
+    "slouchingAlert": "⚠️ 猫背アラート - 姿勢を確認してください",
+    "title": "SitSmart: 猫背アラート",
+    "body": "⚠️ 猫背アラート - 姿勢を確認してください",
+    "slouchingContinued": "{{seconds}}秒以上猫背が続いています。すぐに姿勢を正してください！"
   },
   "errors": {
     "cameraAccess": "カメラアクセスに失敗しました",
@@ -248,6 +314,10 @@
   "console": {
     "urlOnboarding": "URL パラメータによりオンボーディングを強制表示",
     "onboardingReset": "オンボーディングをリセットしました"
+  },
+  "language": {
+    "japanese": "日本語",
+    "tooltip": "Language / 言語"
   },
   "onboarding": {
     "steps": {

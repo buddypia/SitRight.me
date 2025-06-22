@@ -120,7 +120,7 @@ export const PostureFeedback = () => {
             </span>
           </div>
           <div className="text-sm leading-relaxed break-words min-h-[2.5rem] flex items-center">
-            {postureAnalysis.feedback}
+            {postureAnalysis.feedback.startsWith('feedback.') ? t(postureAnalysis.feedback) : postureAnalysis.feedback}
           </div>
         </div>
       </div>

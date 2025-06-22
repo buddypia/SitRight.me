@@ -95,7 +95,17 @@
     "buttons": {
       "resetDefaults": "Reset to Defaults",
       "resetOnboarding": "Reset Tutorial",
+      "resetOnboardingTooltip": "Redisplay onboarding tutorial",
       "saveSettings": "Save Settings"
+    },
+    "labels": {
+      "severe": "Severe (Current: {{value}})",
+      "moderate": "Moderate (Current: {{value}})",
+      "mild": "Mild (Current: {{value}})",
+      "minimal": "Minimal Warning (Current: {{value}})",
+      "notificationDelay": "Time to Notification (Current: {{value}}s)",
+      "notificationInterval": "Notification Interval (Current: {{value}}s)",
+      "visualAlertDelay": "Severe Alert Display Time (Current: {{value}}s)"
     },
     "helpContent": {
       "faceDown": {
@@ -124,9 +134,9 @@
       },
       "alerts": {
         "title": "🔔 Alert Settings",
-        "notificationDelay": "Time to Notification: How long bad posture persists before notification",
-        "notificationInterval": "Notification Interval: How long to wait between notifications",
-        "visualAlertDelay": "Display Time: How long to show severe warnings",
+        "notificationDelayDesc": "Time to Notification: How long bad posture persists before notification",
+        "notificationIntervalDesc": "Notification Interval: How long to wait between notifications",
+        "visualAlertDelayDesc": "Display Time: How long to show severe warnings",
         "description": "Adjust based on your work concentration. Increase interval if frequent notifications are distracting."
       },
       "tips": {
@@ -184,6 +194,9 @@
       "tip9": "🖥️ Adjust the monitor height",
       "tip10": "Adjust desk height and chair position",
       "tip11": "Stand up and stretch lightly every 30 minutes"
+    },
+    "warnings": {
+      "downwardPosture": "⚠️ Downward posture detected: Increased strain on neck and shoulders"
     }
   },
   "baseline": {
@@ -206,6 +219,10 @@
     "error": "Posture not detected. Please start the camera before setting baseline posture.",
     "details": {
       "title": "Baseline Posture Details",
+      "timestamp": "Set at: {{date}}",
+      "landmarkCount": "Detected landmarks: {{count}}",
+      "additionalPoints": "...and {{count}} other points",
+      "coordinatesTitle": "Key point coordinates (normalized):",
       "neckAngle": "Neck Angle: {{angle}}°",
       "shoulderAngle": "Shoulder Angle: {{angle}}°",
       "backAngle": "Back Angle: {{angle}}°"
@@ -214,6 +231,7 @@
   "feedback": {
     "noPose": "Pose not detected",
     "goodPosture": "Good posture!",
+    "baselineKeeping": "✅ Maintaining baseline posture!",
     "baselineComparison": {
       "goodMaintenance": "✅ Maintaining baseline posture!",
       "neckForward": "Your neck is slightly forward compared to baseline",
@@ -230,10 +248,58 @@
       "shouldersHunched": "Hunched shoulders detected",
       "backRounded": "Rounded back detected",
       "multipleIssues": "Multiple posture issues detected"
+    },
+    "postureAnalysis": {
+      "baseline": {
+        "maintaining": "✅ Maintaining baseline posture!",
+        "excellent": "✅ Excellent posture!",
+        "slightDeviation": "⚠️ Slight deviation from baseline posture.",
+        "neckAngleDeviation": "🚨 Severe neck angle deviation from baseline!",
+        "neckAngleWarning": "⚠️ Neck angle deviation from baseline.",
+        "neckAngleCorrect": "⚠️ Please return neck angle to baseline.",
+        "backAngleDeviation": "🚨 Severe back angle deviation from baseline!",
+        "backAngleWarning": "⚠️ Back angle deviation from baseline.",
+        "backAngleCorrect": "⚠️ Please return back angle to baseline.",
+        "complexPosturalIssue": "🚨 Serious postural collapse! Neck and back angles greatly deviate from baseline.",
+        "complexPosturalProblem": "🚨 Complex postural problems. Please return to baseline posture.",
+        "faceAngleDeviation": "🚨 Severe face angle deviation from baseline!",
+        "faceAngleWarning": "⚠️ Face angle deviation from baseline.",
+        "faceAngleCorrect": "⚠️ Please return face angle to baseline."
+      },
+      "slouching": {
+        "severeHeadForward": "🚨 Severe slouching! Head is significantly forward.",
+        "moderateHeadForward": "⚠️ Moderate slouching. Head is forward.",
+        "mildHeadForward": "⚠️ Mild slouching. Please be mindful of head position.",
+        "severeBackRounded": "🚨 Severe slouching! Back is rounded and head is forward.",
+        "severeBackOnly": "🚨 Severe slouching: Back is significantly rounded.",
+        "combinedSlouchingComplex": "🚨 Complex slouching detected. Please correct your posture.",
+        "backRounded": "⚠️ Back is rounded. Please straighten your spine.",
+        "mildBackRounded": "⚠️ Back is slightly rounded. Please be mindful of your posture.",
+        "shoulderImbalance": "⚠️ Shoulder height is uneven. Please balance your posture.",
+        "shoulderBalance": "Please be mindful of shoulder balance.",
+        "complexSlouchingDetected": "🔥 Complex slouching detected! Please correct head and back posture!"
+      },
+      "faceDown": {
+        "severeFaceDown": "🚨 Severe downward slouching! Face is looking significantly down.",
+        "faceDown": "⚠️ Face is looking down.",
+        "gazeUp": "⚠️ Please raise your gaze.",
+        "faceDownHeadForward": "🔥 Face down + head forward detected!",
+        "backRoundedFaceDown": "🔥 Back rounded + face down detected!"
+      },
+      "general": {
+        "mildPosturalSigns": "⚠️ Mild signs of slouching. Please be mindful of your posture.",
+        "gazeDownward": "⚠️ Gaze is downward.",
+        "emergencySlouchingDetected": "🔥 Emergency: Severe slouching detected! Please correct your posture immediately!",
+        "emergencySevereFaceDown": "🔥 Emergency: Severe downward slouching! Please correct posture and gaze immediately!",
+        "mildPosturalIssue": "⚠️ Mild postural issues detected. Please be careful."
+      }
     }
   },
   "notifications": {
-    "slouchingAlert": "⚠️ Slouching Alert - Please check your posture"
+    "slouchingAlert": "⚠️ Slouching Alert - Please check your posture",
+    "title": "SitSmart: Slouching Alert",
+    "body": "⚠️ Slouching Alert - Please check your posture",
+    "slouchingContinued": "Slouching has continued for {{seconds}} seconds. Please correct your posture immediately!"
   },
   "errors": {
     "cameraAccess": "Camera access failed",
@@ -248,6 +314,10 @@
   "console": {
     "urlOnboarding": "Forcing onboarding display via URL parameter",
     "onboardingReset": "Onboarding has been reset"
+  },
+  "language": {
+    "japanese": "Japanese",
+    "tooltip": "Language / 言語"
   },
   "onboarding": {
     "steps": {
