@@ -37,7 +37,6 @@ export const BaselineCapture = () => {
             baselineAngles: {
               neckAngle: currentAnalysis.angles.neckAngle,
               shoulderAngle: currentAnalysis.angles.shoulderAngle,
-              backAngle: currentAnalysis.angles.backAngle,
               gazeAngle: currentAnalysis.angles.gazeAngle,
               faceAngle: currentAnalysis.angles.faceAngle,
             }

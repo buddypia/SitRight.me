@@ -137,10 +137,6 @@ export const PostureFeedback = () => {
             <span className="font-mono text-gray-900">{postureAnalysis.angles.shoulderAngle}°</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-700">{t('posture.details.backAngle')}</span>
-            <span className="font-mono text-gray-900">{postureAnalysis.angles.backAngle}°</span>
-          </div>
-          <div className="flex justify-between">
             <span className="text-gray-700">{t('posture.details.faceAngle')}</span>
             <span className="font-mono text-gray-900">{postureAnalysis.angles.faceAngle}°</span>
           </div>

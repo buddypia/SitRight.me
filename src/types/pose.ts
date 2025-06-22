@@ -17,7 +17,6 @@ export interface PostureAnalysis {
   angles: {
     neckAngle: number;
     shoulderAngle: number;
-    backAngle: number;
     gazeAngle: number;
     faceAngle: number;
   };
@@ -29,7 +28,6 @@ export interface PostureAnalysis {
     keyPointDeviations: {
       head: number;
       shoulders: number;
-      spine: number;
     };
     deviationPercentage: number;
   };
@@ -48,7 +46,6 @@ export interface BaselinePosture {
   baselineAngles: {
     neckAngle: number;
     shoulderAngle: number;
-    backAngle: number;
     gazeAngle: number;
     faceAngle: number;
   };

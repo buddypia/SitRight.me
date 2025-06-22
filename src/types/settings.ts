@@ -15,13 +15,6 @@ export interface PostureSettings {
     minimal: number;     // 最小警告の閾値
   };
   
-  // 背中の丸まり検出閾値
-  backCurvatureThresholds: {
-    severe: number;      // 重度判定の閾値
-    moderate: number;    // 中度判定の閾値
-    mild: number;        // 軽度判定の閾値
-    minimal: number;     // 最小警告の閾値
-  };
   
   // アラート設定
   alertSettings: {
@@ -56,12 +49,6 @@ export const DEFAULT_SETTINGS: PostureSettings = {
     moderate: 0.08,
     mild: 0.05,
     minimal: 0.03,
-  },
-  backCurvatureThresholds: {
-    severe: 20,
-    moderate: 12,
-    mild: 8,
-    minimal: 4,
   },
   alertSettings: {
     notificationDelay: 15000,

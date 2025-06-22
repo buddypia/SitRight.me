@@ -29,7 +29,6 @@ export class PostureAnalyzer {
   static calculateBaselineAngles(landmarks: PoseLandmark[]): {
     neckAngle: number;
     shoulderAngle: number;
-    backAngle: number;
     gazeAngle: number;
     faceAngle: number;
   } {
@@ -37,7 +36,6 @@ export class PostureAnalyzer {
       return {
         neckAngle: 0,
         shoulderAngle: 0,
-        backAngle: 0,
         gazeAngle: 0,
         faceAngle: 0,
       };
@@ -80,10 +78,8 @@ export class PostureAnalyzer {
     // 角度の計算
     const headForwardDistance = Math.abs(shoulderMidpoint.z - eyeMidpoint.z);
     const headVerticalOffset = eyeMidpoint.y - shoulderMidpoint.y;
-    const shoulderForwardDistance = Math.abs(hipMidpoint.z - shoulderMidpoint.z);
 
     const neckAngle = Math.abs(Math.atan2(headForwardDistance, Math.abs(headVerticalOffset)) * 180 / Math.PI);
-    const backAngle = Math.abs(Math.atan2(shoulderForwardDistance, Math.abs(shoulderMidpoint.y - hipMidpoint.y)) * 180 / Math.PI);
     const shoulderAngle = Math.abs(leftShoulder.y - rightShoulder.y) * 100;
     const faceAngle = Math.abs(Math.atan2(nose.y - eyeMidpoint.y, Math.abs(nose.z - eyeMidpoint.z || 0.01)) * 180 / Math.PI);
     const gazeAngle = Math.abs(Math.atan2(mouthMidpoint.y - eyeMidpoint.y, Math.abs(mouthMidpoint.z - eyeMidpoint.z || 0.01)) * 180 / Math.PI);
@@ -91,7 +87,6 @@ export class PostureAnalyzer {
     return {
       neckAngle,
       shoulderAngle,
-      backAngle,
       gazeAngle,
       faceAngle,
     };
@@ -201,7 +196,7 @@ export class PostureAnalyzer {
         score: 0,
         status: 'poor',
         feedback: 'feedback.noPose',
-        angles: { neckAngle: 0, shoulderAngle: 0, backAngle: 0, gazeAngle: 0, faceAngle: 0 },
+        angles: { neckAngle: 0, shoulderAngle: 0, gazeAngle: 0, faceAngle: 0 },
         gazeDirection: 'forward'
       };
     }
@@ -216,8 +211,6 @@ export class PostureAnalyzer {
     const rightShoulder = landmarks[12];
     const leftEar = landmarks[7];
     const rightEar = landmarks[8];
-    const leftHip = landmarks[23];
-    const rightHip = landmarks[24];
     
     // 視線・顔向き検出用のランドマーク
     const leftEye = landmarks[1];
@@ -225,17 +218,11 @@ export class PostureAnalyzer {
     const leftMouth = landmarks[9];
     const rightMouth = landmarks[10];
     // const chin = landmarks[17] || landmarks[0]; // 下あご（利用可能な場合）
-
+    
     const shoulderMidpoint = {
       x: (leftShoulder.x + rightShoulder.x) / 2,
       y: (leftShoulder.y + rightShoulder.y) / 2,
       z: (leftShoulder.z + rightShoulder.z) / 2,
-    };
-
-    const hipMidpoint = {
-      x: (leftHip.x + rightHip.x) / 2,
-      y: (leftHip.y + rightHip.y) / 2,
-      z: (leftHip.z + rightHip.z) / 2,
     };
 
     const earMidpoint = {
@@ -258,19 +245,16 @@ export class PostureAnalyzer {
 
     // 猫背検出の改善されたメトリクス
     const headForwardDistance = earMidpoint.x - shoulderMidpoint.x;
-    const shoulderForwardDistance = shoulderMidpoint.x - hipMidpoint.x;
     const headVerticalOffset = earMidpoint.y - shoulderMidpoint.y;
     
     // 現在の角度を計算
     const currentNeckAngle = Math.abs(Math.atan2(headForwardDistance, Math.abs(headVerticalOffset)) * 180 / Math.PI);
-    const currentBackAngle = Math.abs(Math.atan2(shoulderForwardDistance, Math.abs(shoulderMidpoint.y - hipMidpoint.y)) * 180 / Math.PI);
     const currentShoulderAngle = Math.abs(leftShoulder.y - rightShoulder.y) * 100;
     const currentFaceAngle = Math.abs(Math.atan2(nose.y - eyeMidpoint.y, Math.abs(nose.z - eyeMidpoint.z || 0.01)) * 180 / Math.PI);
     const currentGazeAngle = Math.abs(Math.atan2(mouthMidpoint.y - eyeMidpoint.y, Math.abs(mouthMidpoint.z - eyeMidpoint.z || 0.01)) * 180 / Math.PI);
 
     // 基準姿勢がある場合は基準角度からの偏差を計算
     let neckAngle = currentNeckAngle;
-    let backCurvature = currentBackAngle;
     let shoulderImbalance = currentShoulderAngle;
     let faceVerticalAngle = currentFaceAngle;
     let gazeVerticalAngle = currentGazeAngle;
@@ -278,7 +262,6 @@ export class PostureAnalyzer {
     if (baseline?.baselineAngles) {
       // 基準角度からの偏差を計算（絶対値）
       neckAngle = Math.abs(currentNeckAngle - baseline.baselineAngles.neckAngle);
-      backCurvature = Math.abs(currentBackAngle - baseline.baselineAngles.backAngle);
       shoulderImbalance = Math.abs(currentShoulderAngle - baseline.baselineAngles.shoulderAngle);
       faceVerticalAngle = Math.abs(currentFaceAngle - baseline.baselineAngles.faceAngle);
       gazeVerticalAngle = Math.abs(currentGazeAngle - baseline.baselineAngles.gazeAngle);
@@ -381,63 +364,6 @@ export class PostureAnalyzer {
       }
     }
 
-    if (baseline?.baselineAngles) {
-      // 基準姿勢からの背中角度偏差で判定（最も厳しい閾値）
-      if (backCurvature > 3) {
-        score -= config.scoringSettings.severePenalty;
-        if (isSlouchingDetected) {
-          feedback = 'feedback.postureAnalysis.baseline.complexPosturalIssue';
-        } else {
-          feedback = 'feedback.postureAnalysis.baseline.backAngleDeviation';
-        }
-        status = 'poor';
-        isSlouchingDetected = true;
-      } else if (backCurvature > 2) {
-        score -= config.scoringSettings.moderatePenalty;
-        if (isSlouchingDetected) {
-          feedback = 'feedback.postureAnalysis.baseline.complexPosturalProblem';
-        } else {
-          feedback = 'feedback.postureAnalysis.baseline.backAngleWarning';
-        }
-        status = 'poor';
-        isSlouchingDetected = true;
-      } else if (backCurvature > 1) {
-        score -= config.scoringSettings.mildPenalty;
-        if (!isSlouchingDetected) {
-          feedback = 'feedback.postureAnalysis.baseline.backAngleCorrect';
-          status = 'warning';
-          isSlouchingDetected = true;
-        }
-      }
-    } else {
-      // 基準姿勢がない場合は従来の絶対値判定
-      if (backCurvature > config.backCurvatureThresholds.severe) {
-        score -= config.scoringSettings.severePenalty;
-        if (isSlouchingDetected) {
-          feedback = 'feedback.postureAnalysis.slouching.severeBackRounded';
-        } else {
-          feedback = 'feedback.postureAnalysis.slouching.severeBackOnly';
-        }
-        status = 'poor';
-        isSlouchingDetected = true;
-      } else if (backCurvature > config.backCurvatureThresholds.moderate) {
-        score -= config.scoringSettings.moderatePenalty;
-        if (isSlouchingDetected) {
-          feedback = '🚨 猫背が複合的に発生しています。姿勢を正してください。';
-        } else {
-          feedback = '⚠️ 背中が丸まっています。背筋を伸ばしてください。';
-        }
-        status = 'poor';
-        isSlouchingDetected = true;
-      } else if (backCurvature > config.backCurvatureThresholds.mild) {
-        score -= config.scoringSettings.mildPenalty;
-        if (!isSlouchingDetected) {
-          feedback = '⚠️ 背中が少し丸まっています。姿勢を意識してください。';
-          status = 'warning';
-          isSlouchingDetected = true;
-        }
-      }
-    }
 
     if (shoulderImbalance > 6) {
       score -= 20;
@@ -453,13 +379,6 @@ export class PostureAnalyzer {
       }
     }
 
-    // 複合的な猫背パターンの検出（より厳しい判定）
-    if (headForwardDistance > 0.02 && backCurvature > 4) {
-      score -= 20;
-      feedback = 'feedback.postureAnalysis.slouching.complexSlouchingDetected';
-      status = 'poor';
-      isSlouchingDetected = true;
-    }
 
     // 視線・顔向きによる判定（基準姿勢を考慮）
     if (gazeDirection === 'down') {
@@ -510,16 +429,9 @@ export class PostureAnalyzer {
       isSlouchingDetected = true;
     }
 
-    if (gazeDirection === 'down' && backCurvature > config.backCurvatureThresholds.moderate / 2) {
-      score -= 15;
-      feedback = 'feedback.postureAnalysis.faceDown.backRoundedFaceDown';
-      status = 'poor';
-      isSlouchingDetected = true;
-    }
 
     // 軽微な猫背でも早期警告
-    if (headForwardDistance > config.headForwardThresholds.minimal && 
-        backCurvature > config.backCurvatureThresholds.minimal) {
+    if (headForwardDistance > config.headForwardThresholds.minimal) {
       if (!isSlouchingDetected) {
         score -= 10;
         feedback = 'feedback.postureAnalysis.general.mildPosturalSigns';
@@ -539,8 +451,7 @@ export class PostureAnalyzer {
 
     // 緊急度判定（設定可能な基準）
     if (isSlouchingDetected && 
-        headForwardDistance > config.headForwardThresholds.moderate && 
-        backCurvature > config.backCurvatureThresholds.moderate) {
+        headForwardDistance > config.headForwardThresholds.moderate) {
       feedback = 'feedback.postureAnalysis.general.emergencySlouchingDetected';
       status = 'poor';
     }
@@ -548,8 +459,7 @@ export class PostureAnalyzer {
     // 視線込みの緊急判定
     if (gazeDirection === 'down' && 
         faceDownwardTilt > config.faceDownThresholds.moderate && 
-        (headForwardDistance > config.headForwardThresholds.mild || 
-         backCurvature > config.backCurvatureThresholds.mild)) {
+        headForwardDistance > config.headForwardThresholds.mild) {
       feedback = 'feedback.postureAnalysis.general.emergencySevereFaceDown';
       status = 'poor';
     }
@@ -605,7 +515,6 @@ export class PostureAnalyzer {
       angles: {
         neckAngle: Math.round(neckAngle),
         shoulderAngle: Math.round(shoulderImbalance),
-        backAngle: Math.round(backCurvature),
         gazeAngle: Math.round(gazeVerticalAngle),
         faceAngle: Math.round(faceVerticalAngle),
       },

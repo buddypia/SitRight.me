@@ -46,7 +46,6 @@
       "title": "詳細データ",
       "neckAngle": "首の角度:",
       "shoulderAngle": "肩の角度:",
-      "backAngle": "背中の角度:",
       "faceAngle": "顔の角度:"
     },
     "baseline": {
@@ -224,8 +223,7 @@
       "additionalPoints": "...その他 {{count}} 点",
       "coordinatesTitle": "主要部位の座標 (正規化):",
       "neckAngle": "首の角度: {{angle}}°",
-      "shoulderAngle": "肩の角度: {{angle}}°",
-      "backAngle": "背中の角度: {{angle}}°"
+      "shoulderAngle": "肩の角度: {{angle}}°"
     }
   },
   "feedback": {

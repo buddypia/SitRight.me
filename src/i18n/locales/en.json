@@ -46,7 +46,6 @@
       "title": "Detailed Data",
       "neckAngle": "Neck Angle:",
       "shoulderAngle": "Shoulder Angle:",
-      "backAngle": "Back Angle:",
       "faceAngle": "Face Angle:"
     },
     "baseline": {
@@ -224,8 +223,7 @@
       "additionalPoints": "...and {{count}} other points",
       "coordinatesTitle": "Key point coordinates (normalized):",
       "neckAngle": "Neck Angle: {{angle}}°",
-      "shoulderAngle": "Shoulder Angle: {{angle}}°",
-      "backAngle": "Back Angle: {{angle}}°"
+      "shoulderAngle": "Shoulder Angle: {{angle}}°"
     }
   },
   "feedback": {
