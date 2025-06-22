@@ -275,7 +275,12 @@
         "mildBackRounded": "⚠️ Back is slightly rounded. Please be mindful of your posture.",
         "shoulderImbalance": "⚠️ Shoulder height is uneven. Please balance your posture.",
         "shoulderBalance": "Please be mindful of shoulder balance.",
-        "complexSlouchingDetected": "🔥 Complex slouching detected! Please correct head and back posture!"
+        "complexSlouchingDetected": "🔥 Complex slouching detected! Please correct head and back posture!",
+        "neckAndShoulder": "🚨 Neck and shoulder slouching! Please correct your posture.",
+        "neckAndFace": "🚨 Issues with neck and face orientation!",
+        "neck": "⚠️ Neck is forward. Please tuck your chin.",
+        "shoulder": "⚠️ Shoulders are rolled forward. Please open your chest.",
+        "face": "⚠️ Face is pointing down. Please raise your gaze."
       },
       "faceDown": {
         "severeFaceDown": "🚨 Severe downward slouching! Face is looking significantly down.",

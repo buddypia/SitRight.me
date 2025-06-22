@@ -275,7 +275,12 @@
         "mildBackRounded": "⚠️ 背中が少し丸まっています。姿勢を意識してください。",
         "shoulderImbalance": "⚠️ 肩の高さが不均等です。バランスを整えてください。",
         "shoulderBalance": "肩のバランスを意識してください。",
-        "complexSlouchingDetected": "🔥 複合的な猫背を検出！頭と背中の姿勢を正してください！"
+        "complexSlouchingDetected": "🔥 複合的な猫背を検出！頭と背中の姿勢を正してください！",
+        "neckAndShoulder": "🚨 首と肩の猫背です！姿勢を正してください。",
+        "neckAndFace": "🚨 首と顔の向きに問題があります！",
+        "neck": "⚠️ 首が前に出ています。あごを引いてください。",
+        "shoulder": "⚠️ 肩が内側に入っています。胸を張ってください。",
+        "face": "⚠️ 顔が下を向いています。視線を上げてください。"
       },
       "faceDown": {
         "severeFaceDown": "🚨 重度の下向き猫背です！顔が大きく下を向いています。",

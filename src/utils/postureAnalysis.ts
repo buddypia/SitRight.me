@@ -255,15 +255,15 @@ export class PostureAnalyzer {
 
     // 基準姿勢がある場合は基準角度からの偏差を計算
     let neckAngle = currentNeckAngle;
-    let shoulderImbalance = currentShoulderAngle;
-    let faceVerticalAngle = currentFaceAngle;
+    let shoulderAngle = currentShoulderAngle;
+    let faceAngle = currentFaceAngle;
     let gazeVerticalAngle = currentGazeAngle;
 
     if (baseline?.baselineAngles) {
       // 基準角度からの偏差を計算（絶対値）
       neckAngle = Math.abs(currentNeckAngle - baseline.baselineAngles.neckAngle);
-      shoulderImbalance = Math.abs(currentShoulderAngle - baseline.baselineAngles.shoulderAngle);
-      faceVerticalAngle = Math.abs(currentFaceAngle - baseline.baselineAngles.faceAngle);
+      shoulderAngle = Math.abs(currentShoulderAngle - baseline.baselineAngles.shoulderAngle);
+      faceAngle = Math.abs(currentFaceAngle - baseline.baselineAngles.faceAngle);
       gazeVerticalAngle = Math.abs(currentGazeAngle - baseline.baselineAngles.gazeAngle);
     }
     
@@ -276,16 +276,16 @@ export class PostureAnalyzer {
     // 基準姿勢がある場合は基準からの偏差で判定（最も厳しい閾値）
     if (baseline?.baselineAngles) {
       // 基準角度からの偏差が一定以上の場合に警告
-      if (faceVerticalAngle > 2 || faceDownwardTilt > config.faceDownThresholds.mild) {
+      if (faceAngle > 2 || faceDownwardTilt > config.faceDownThresholds.mild) {
         gazeDirection = 'down';
-      } else if (faceVerticalAngle > 1) {
+      } else if (faceAngle > 1) {
         gazeDirection = 'down';
       }
     } else {
       // 基準姿勢がない場合は従来の絶対値での判定
-      if (faceVerticalAngle > 30 || faceDownwardTilt > config.faceDownThresholds.mild) {
+      if (faceAngle > 30 || faceDownwardTilt > config.faceDownThresholds.mild) {
         gazeDirection = 'down';
-      } else if (faceVerticalAngle < -20) {
+      } else if (faceAngle < -20) {
         gazeDirection = 'up';
       }
     }
@@ -293,217 +293,71 @@ export class PostureAnalyzer {
     let score = 100;
     let feedback = 'feedback.goodPosture';
     let status: 'good' | 'warning' | 'poor' = 'good';
-    let isSlouchingDetected = false;
 
-    // 基準姿勢がある場合の初期設定
-    let baselineFeedback = '';
-    let baselineStatus: 'good' | 'warning' | 'poor' = 'good';
-    
-    if (deviationFromBaseline) {
-      const deviation = deviationFromBaseline.deviationPercentage;
-      if (deviation <= 30) {
-        baselineFeedback = 'feedback.baselineKeeping';
-        baselineStatus = 'good';
-        // 基準姿勢内であれば高いスコアを保持
-        score = Math.max(score, 95);
-      } else if (deviation > 70) {
-        score -= 12;
-        baselineFeedback = 'feedback.baselineComparison.multipleConcerns';
-        baselineStatus = 'poor';
-      } else if (deviation > 55) {
-        score -= 6;
-        baselineFeedback = 'feedback.baselineComparison.neckForward';
-        baselineStatus = 'warning';
-      } else if (deviation > 45) {
-        score -= 3;
-        baselineFeedback = 'feedback.postureAnalysis.baseline.slightDeviation';
-        baselineStatus = 'warning';
-      }
-      
-      // 基準姿勢があるときの初期フィードバック設定
-      feedback = baselineFeedback;
-      status = baselineStatus;
-    }
-
-    // 猫背の詳細判定（基準姿勢がある場合は角度偏差で判定）
+    // 猫背判定（首の角度、肩の角度、顔の角度で判定）
     if (baseline?.baselineAngles) {
-      // 基準姿勢からの角度偏差で猫背判定（最も厳しい閾値）
-      if (neckAngle > 3) {
+      // 基準姿勢がある場合：偏差で判定
+      const neckIsBad = neckAngle > 3;
+      const shoulderIsBad = shoulderAngle > 4;
+      const faceIsBad = faceAngle > 2;
+
+      if (neckIsBad && shoulderIsBad) {
         score -= config.scoringSettings.severePenalty;
-        feedback = 'feedback.postureAnalysis.baseline.neckAngleDeviation';
+        feedback = 'feedback.postureAnalysis.slouching.neckAndShoulder';
         status = 'poor';
-        isSlouchingDetected = true;
-      } else if (neckAngle > 2) {
+      } else if (neckIsBad && faceIsBad) {
+        score -= config.scoringSettings.severePenalty;
+        feedback = 'feedback.postureAnalysis.slouching.neckAndFace';
+        status = 'poor';
+      } else if (neckIsBad) {
         score -= config.scoringSettings.moderatePenalty;
-        feedback = 'feedback.postureAnalysis.baseline.neckAngleWarning';
+        feedback = 'feedback.postureAnalysis.slouching.neck';
         status = 'poor';
-        isSlouchingDetected = true;
-      } else if (neckAngle > 1) {
+      } else if (shoulderIsBad) {
         score -= config.scoringSettings.mildPenalty;
-        feedback = 'feedback.postureAnalysis.baseline.neckAngleCorrect';
+        feedback = 'feedback.postureAnalysis.slouching.shoulder';
         status = 'warning';
-        isSlouchingDetected = true;
+      } else if (faceIsBad) {
+        score -= config.scoringSettings.mildPenalty;
+        feedback = 'feedback.postureAnalysis.slouching.face';
+        status = 'warning';
       }
     } else {
-      // 基準姿勢がない場合は従来の絶対値判定
-      if (headForwardDistance > config.headForwardThresholds.severe) {
+      // 基準姿勢がない場合：絶対値で判定
+      const neckIsBad = headForwardDistance > config.headForwardThresholds.moderate;
+      const shoulderIsBad = shoulderAngle > 6;
+      const faceIsBad = faceAngle > 25;
+
+      if (neckIsBad && shoulderIsBad) {
         score -= config.scoringSettings.severePenalty;
-        feedback = 'feedback.postureAnalysis.slouching.severeHeadForward';
+        feedback = 'feedback.postureAnalysis.slouching.neckAndShoulder';
         status = 'poor';
-        isSlouchingDetected = true;
-      } else if (headForwardDistance > config.headForwardThresholds.moderate) {
+      } else if (neckIsBad && faceIsBad) {
+        score -= config.scoringSettings.severePenalty;
+        feedback = 'feedback.postureAnalysis.slouching.neckAndFace';
+        status = 'poor';
+      } else if (neckIsBad) {
         score -= config.scoringSettings.moderatePenalty;
-        feedback = 'feedback.postureAnalysis.slouching.moderateHeadForward';
+        feedback = 'feedback.postureAnalysis.slouching.neck';
         status = 'poor';
-        isSlouchingDetected = true;
-      } else if (headForwardDistance > config.headForwardThresholds.mild) {
+      } else if (shoulderIsBad) {
         score -= config.scoringSettings.mildPenalty;
-        feedback = 'feedback.postureAnalysis.slouching.mildHeadForward';
+        feedback = 'feedback.postureAnalysis.slouching.shoulder';
         status = 'warning';
-        isSlouchingDetected = true;
-      }
-    }
-
-
-    if (shoulderImbalance > 6) {
-      score -= 20;
-      if (!isSlouchingDetected) {
-        feedback = '⚠️ 肩の高さが不均等です。バランスを整えてください。';
+      } else if (faceIsBad) {
+        score -= config.scoringSettings.mildPenalty;
+        feedback = 'feedback.postureAnalysis.slouching.face';
         status = 'warning';
-      }
-    } else if (shoulderImbalance > 3) {
-      score -= 10;
-      if (!isSlouchingDetected) {
-        feedback = '肩のバランスを意識してください。';
-        status = 'warning';
-      }
-    }
-
-
-    // 視線・顔向きによる判定（基準姿勢を考慮）
-    if (gazeDirection === 'down') {
-      if (baseline?.baselineAngles) {
-        // 基準姿勢からの顔角度偏差で判定（最も厳しい閾値）
-        if (faceVerticalAngle > 3) {
-          score -= config.scoringSettings.severePenalty;
-          feedback = 'feedback.postureAnalysis.baseline.faceAngleDeviation';
-          status = 'poor';
-          isSlouchingDetected = true;
-        } else if (faceVerticalAngle > 2) {
-          score -= config.scoringSettings.moderatePenalty;
-          feedback = 'feedback.postureAnalysis.baseline.faceAngleWarning';
-          status = 'poor';
-          isSlouchingDetected = true;
-        } else if (faceVerticalAngle > 1) {
-          score -= config.scoringSettings.mildPenalty;
-          feedback = 'feedback.postureAnalysis.baseline.faceAngleCorrect';
-          status = 'warning';
-          isSlouchingDetected = true;
-        }
-      } else {
-        // 基準姿勢がない場合は従来の絶対値判定
-        if (faceDownwardTilt > config.faceDownThresholds.severe) {
-          score -= config.scoringSettings.severePenalty;
-          feedback = 'feedback.postureAnalysis.faceDown.severeFaceDown';
-          status = 'poor';
-          isSlouchingDetected = true;
-        } else if (faceDownwardTilt > config.faceDownThresholds.moderate) {
-          score -= config.scoringSettings.moderatePenalty;
-          feedback = 'feedback.postureAnalysis.faceDown.faceDown';
-          status = 'poor';
-          isSlouchingDetected = true;
-        } else if (faceDownwardTilt > config.faceDownThresholds.mild) {
-          score -= config.scoringSettings.mildPenalty;
-          feedback = 'feedback.postureAnalysis.faceDown.gazeUp';
-          status = 'warning';
-          isSlouchingDetected = true;
-        }
-      }
-    }
-
-    // 複合的な視線+姿勢の猫背判定
-    if (gazeDirection === 'down' && headForwardDistance > config.headForwardThresholds.mild) {
-      score -= 20;
-      feedback = 'feedback.postureAnalysis.faceDown.faceDownHeadForward';
-      status = 'poor';
-      isSlouchingDetected = true;
-    }
-
-
-    // 軽微な猫背でも早期警告
-    if (headForwardDistance > config.headForwardThresholds.minimal) {
-      if (!isSlouchingDetected) {
-        score -= 10;
-        feedback = 'feedback.postureAnalysis.general.mildPosturalSigns';
-        status = 'warning';
-        isSlouchingDetected = true;
-      }
-    }
-
-    // 視線のみの軽微な下向きでも警告
-    if (gazeDirection === 'down' && !isSlouchingDetected && 
-        faceDownwardTilt > config.faceDownThresholds.minimal) {
-      score -= 8;
-      feedback = 'feedback.postureAnalysis.general.gazeDownward';
-      status = 'warning';
-      isSlouchingDetected = true;
-    }
-
-    // 緊急度判定（設定可能な基準）
-    if (isSlouchingDetected && 
-        headForwardDistance > config.headForwardThresholds.moderate) {
-      feedback = 'feedback.postureAnalysis.general.emergencySlouchingDetected';
-      status = 'poor';
-    }
-
-    // 視線込みの緊急判定
-    if (gazeDirection === 'down' && 
-        faceDownwardTilt > config.faceDownThresholds.moderate && 
-        headForwardDistance > config.headForwardThresholds.mild) {
-      feedback = 'feedback.postureAnalysis.general.emergencySevereFaceDown';
-      status = 'poor';
-    }
-
-    // 最終的なフィードバック決定
-    if (deviationFromBaseline) {
-      if (isSlouchingDetected) {
-        // 猫背が検出された場合は猫背の詳細を優先
-        if (status === 'poor') {
-          // すでに適切な猫背フィードバックが設定されているのでそのまま
-        } else if (status === 'warning' && baselineStatus === 'good' && score < 85) {
-          // 基準姿勢は良好だが軽度の猫背が検出され、かつスコアが85未満の場合のみ
-          feedback = 'feedback.postureAnalysis.general.mildPosturalIssue';
-        } else if (score >= 85) {
-          // スコアが85以上の場合は基準姿勢の良好フィードバックを優先
-          feedback = baselineFeedback;
-          status = baselineStatus;
-        }
-      } else {
-        // 猫背が検出されていない場合は基準姿勢の判定を使用
-        feedback = baselineFeedback;
-        status = baselineStatus;
       }
     }
 
     score = Math.max(0, score);
 
-    // スコアとフィードバックの最終整合性チェック（閾値を統一）
-    if (score >= 85 && deviationFromBaseline && !isSlouchingDetected) {
-      // 高いスコアで猫背が検出されていない場合は基準姿勢フィードバックを優先
-      if (deviationFromBaseline.deviationPercentage <= 30) {
-        feedback = 'feedback.baselineKeeping';
-        status = 'good';
-      } else {
-        feedback = 'feedback.postureAnalysis.baseline.excellent';
-        status = 'good';
-      }
-    }
-
-    // 設定可能なスコアベースのステータス調整
+    // スコアベースのステータス調整
     if (score >= config.scoringSettings.goodPostureThreshold) {
-      status = status === 'poor' ? status : 'good';
+      status = 'good';
     } else if (score >= config.scoringSettings.warningThreshold) {
-      status = status === 'poor' ? status : 'warning';
+      status = 'warning';
     } else {
       status = 'poor';
     }
@@ -514,9 +368,9 @@ export class PostureAnalyzer {
       feedback,
       angles: {
         neckAngle: Math.round(neckAngle),
-        shoulderAngle: Math.round(shoulderImbalance),
+        shoulderAngle: Math.round(shoulderAngle),
         gazeAngle: Math.round(gazeVerticalAngle),
-        faceAngle: Math.round(faceVerticalAngle),
+        faceAngle: Math.round(faceAngle),
       },
       gazeDirection,
       deviationFromBaseline,
