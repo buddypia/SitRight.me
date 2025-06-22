@@ -1,0 +1,202 @@
+{
+  "common": {
+    "settings": "設定",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "reset": "リセット",
+    "next": "次へ",
+    "back": "戻る",
+    "start": "開始",
+    "stop": "停止",
+    "error": "エラー",
+    "loading": "読み込み中...",
+    "retry": "再試行",
+    "skip": "スキップ"
+  },
+  "header": {
+    "title": "SitSmart",
+    "subtitle": "カメラを使ってリアルタイムに姿勢をチェックし、改善のアドバイスを提供します。健康的な働き方をサポートする、パーソナライズされた姿勢改善ガイダンスを提供します。",
+    "sections": {
+      "camera": "カメラ映像",
+      "analysis": "📈 姿勢分析結果",
+      "monitor": "🐱 猫背監視"
+    }
+  },
+  "footer": {
+    "copyright": "© 2024 SitSmart. プライバシーを守りながら、あなたの健康をサポートします。"
+  },
+  "camera": {
+    "startCamera": "カメラを開始",
+    "stopCamera": "カメラを停止",
+    "initializing": "初期化中...",
+    "error": "エラー: {{error}}"
+  },
+  "posture": {
+    "analyzing": "姿勢を検出中...",
+    "score": "姿勢スコア",
+    "slouchingDetected": "猫背検出",
+    "gazeDirection": {
+      "label": "視線方向:",
+      "down": "⬇️下向き",
+      "up": "⬆️上向き",
+      "forward": "➡️正面"
+    },
+    "details": {
+      "title": "詳細データ",
+      "neckAngle": "首の角度:",
+      "shoulderAngle": "肩の角度:",
+      "backAngle": "背中の角度:",
+      "faceAngle": "顔の角度:"
+    },
+    "baseline": {
+      "setBaseline": "📐 この姿勢を基準姿勢にする",
+      "baselineSet": "✅ 基準姿勢設定済み",
+      "clear": "解除",
+      "deviationTitle": "📐 基準姿勢からのズレ",
+      "totalDeviation": "総合ズレ度:",
+      "keyPoints": {
+        "head": "頭部",
+        "shoulders": "肩",
+        "spine": "背骨"
+      }
+    }
+  },
+  "settings": {
+    "title": "姿勢検出設定",
+    "help": {
+      "show": "設定ヘルプ",
+      "hide": "ヘルプを閉じる",
+      "title": "検出閾値設定ガイド"
+    },
+    "thresholds": {
+      "faceDown": {
+        "title": "👁️ 顔の下向き検出閾値",
+        "severe": "重度",
+        "moderate": "中度",
+        "mild": "軽度",
+        "minimal": "最小警告",
+        "current": "現在"
+      },
+      "headForward": {
+        "title": "🧠 頭の前傾検出閾値"
+      },
+      "backCurvature": {
+        "title": "🏃 背中の丸まり検出閾値"
+      }
+    },
+    "alerts": {
+      "title": "🔔 アラート設定",
+      "notificationDelay": "通知までの時間",
+      "notificationInterval": "通知間隔",
+      "visualAlertDelay": "重度アラート表示時間",
+      "seconds": "秒"
+    },
+    "buttons": {
+      "resetDefaults": "デフォルトに戻す",
+      "resetOnboarding": "初回案内をリセット",
+      "saveSettings": "設定を保存"
+    },
+    "helpContent": {
+      "faceDown": {
+        "title": "👁️ 顔の下向き検出閾値",
+        "severe": "重度: 15-30 (顔が大きく下を向いている)",
+        "moderate": "中度: 10-20 (明らかに下向き)",
+        "mild": "軽度: 5-12 (少し下向き)",
+        "minimal": "最小: 2-8 (わずかな下向き)",
+        "description": "数値が小さいほど敏感に検出します。作業に集中する際は軽度・最小を高めに設定すると良いでしょう。"
+      },
+      "headForward": {
+        "title": "🧠 頭の前傾検出閾値",
+        "severe": "重度: 0.08-0.2 (頭が大きく前に出ている)",
+        "moderate": "中度: 0.05-0.15 (明らかな前傾)",
+        "mild": "軽度: 0.02-0.1 (少し前傾)",
+        "minimal": "最小: 0.01-0.08 (わずかな前傾)",
+        "description": "3次元での頭の位置変化を検出。モニターとの距離に応じて調整してください。"
+      },
+      "backCurvature": {
+        "title": "🏃 背中の丸まり検出閾値",
+        "severe": "重度: 20-35° (背中が大きく丸まっている)",
+        "moderate": "中度: 12-25° (明らかな丸まり)",
+        "mild": "軽度: 6-18° (少し丸まっている)",
+        "minimal": "最小: 3-12° (わずかな丸まり)",
+        "description": "肩と腰の角度から背中の曲がりを検出。椅子の背もたれの角度に応じて調整してください。"
+      },
+      "alerts": {
+        "title": "🔔 アラート設定",
+        "notificationDelay": "通知までの時間: 悪い姿勢が何秒続いたら通知するか",
+        "notificationInterval": "通知間隔: 通知を受けた後、次の通知まで何秒待つか",
+        "visualAlertDelay": "表示時間: 重度の警告を何秒表示するか",
+        "description": "作業の集中度に応じて調整。頻繁な通知が邪魔な場合は間隔を長くしてください。"
+      },
+      "tips": {
+        "title": "💡 調整のコツ",
+        "tip1": "まず基準姿勢を正しく設定してから閾値を調整してください",
+        "tip2": "最初はデフォルト値で試し、検出が敏感すぎる場合は数値を上げてください",
+        "tip3": "検出が鈍い場合は数値を下げてください",
+        "tip4": "作業環境（椅子の高さ、モニターの位置）によって最適値は変わります",
+        "tip5": "「デフォルトに戻す」ボタンで初期値に戻すことができます"
+      }
+    }
+  },
+  "onboarding": {
+    "steps": {
+      "welcome": {
+        "title": "SitSmartへようこそ！",
+        "description": "AIを使って姿勢をリアルタイムで分析し、健康的な座り方をサポートします。",
+        "privacy": "カメラを使用してあなたの姿勢を確認します。映像はあなたのブラウザ内でのみ処理され、外部に送信されることはありません。"
+      },
+      "camera": {
+        "title": "カメラの許可が必要です",
+        "description": "姿勢を分析するために、カメラへのアクセス許可が必要です。",
+        "privacy": {
+          "title": "プライバシーについて：",
+          "point1": "映像はあなたのデバイス内でのみ処理されます",
+          "point2": "サーバーに送信されることはありません",
+          "point3": "データは保存されません"
+        },
+        "enableCamera": "📹 カメラを有効にする",
+        "cameraEnabled": "✅ カメラが有効になりました！",
+        "cameraError": "カメラへのアクセスが拒否されました。ブラウザの設定でカメラの許可を有効にしてください。"
+      },
+      "posture": {
+        "title": "正しい姿勢で座ってください",
+        "description": "まず、基準となる正しい姿勢を設定しましょう。",
+        "tips": {
+          "title": "正しい座り方：",
+          "tip1": "背筋をまっすぐ伸ばす",
+          "tip2": "肩の力を抜いてリラックス",
+          "tip3": "顎を軽く引く",
+          "tip4": "足を床にしっかりつける",
+          "tip5": "画面との距離は50-70cm"
+        },
+        "ready": "✅ カメラが有効になりました！正しい姿勢で座り、次へ進んでください。"
+      },
+      "baseline": {
+        "title": "基準姿勢を設定",
+        "description": "現在の姿勢を基準として設定します。",
+        "instruction": "カメラ画面の「基準姿勢を設定」ボタンを押して、3秒間正しい姿勢を保ってください。",
+        "success": "✅ 基準姿勢が設定されました！"
+      },
+      "complete": {
+        "title": "準備完了！",
+        "description": "SitSmartの準備が完了しました！",
+        "features": {
+          "title": "これからできること：",
+          "feature1": "リアルタイムの姿勢分析",
+          "feature2": "猫背の検出とアラート",
+          "feature3": "姿勢スコアの確認",
+          "feature4": "改善のためのフィードバック"
+        },
+        "note": "設定は後からいつでも変更できます。右上の⚙️アイコンから設定画面にアクセスできます。"
+      }
+    },
+    "navigation": {
+      "step": "ステップ {{current}} / {{total}}",
+      "next": "次へ →",
+      "back": "← 戻る",
+      "start": "開始",
+      "skip": "スキップ"
+    }
+  }
+}

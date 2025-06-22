@@ -4,8 +4,10 @@ import { useCamera } from '@/hooks/useCamera';
 import { usePoseDetection } from '@/hooks/usePoseDetection';
 import { usePostureAnalysis } from '@/hooks/usePostureAnalysis';
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export const CameraControl = () => {
+  const { t } = useTranslation();
   const { videoRef, startCamera, stopCamera, isActive, error } = useCamera();
   const { canvasRef, startDetection, stopDetection, isInitialized } = usePoseDetection(videoRef);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -74,21 +76,21 @@ export const CameraControl = () => {
             disabled={!isInitialized}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isInitialized ? 'カメラを開始' : '初期化中...'}
+            {isInitialized ? t('camera.startCamera') : t('camera.initializing')}
           </button>
         ) : (
           <button
             onClick={handleStop}
             className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
           >
-            カメラを停止
+            {t('camera.stopCamera')}
           </button>
         )}
       </div>
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          エラー: {error}
+          {t('camera.error', { error })}
         </div>
       )}
     </div>

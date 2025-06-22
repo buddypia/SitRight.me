@@ -1,0 +1,202 @@
+{
+  "common": {
+    "settings": "Settings",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "reset": "Reset",
+    "next": "Next",
+    "back": "Back",
+    "start": "Start",
+    "stop": "Stop",
+    "error": "Error",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "skip": "Skip"
+  },
+  "header": {
+    "title": "SitSmart",
+    "subtitle": "Real-time posture monitoring using your camera with personalized improvement guidance to support healthy working habits.",
+    "sections": {
+      "camera": "Camera Feed",
+      "analysis": "📈 Posture Analysis",
+      "monitor": "🐱 Slouching Monitor"
+    }
+  },
+  "footer": {
+    "copyright": "© 2024 SitSmart. Supporting your health while protecting your privacy."
+  },
+  "camera": {
+    "startCamera": "Start Camera",
+    "stopCamera": "Stop Camera",
+    "initializing": "Initializing...",
+    "error": "Error: {{error}}"
+  },
+  "posture": {
+    "analyzing": "Detecting posture...",
+    "score": "Posture Score",
+    "slouchingDetected": "Slouching Detected",
+    "gazeDirection": {
+      "label": "Gaze Direction:",
+      "down": "⬇️ Down",
+      "up": "⬆️ Up",
+      "forward": "➡️ Forward"
+    },
+    "details": {
+      "title": "Detailed Data",
+      "neckAngle": "Neck Angle:",
+      "shoulderAngle": "Shoulder Angle:",
+      "backAngle": "Back Angle:",
+      "faceAngle": "Face Angle:"
+    },
+    "baseline": {
+      "setBaseline": "📐 Set Current Posture as Baseline",
+      "baselineSet": "✅ Baseline Posture Set",
+      "clear": "Clear",
+      "deviationTitle": "📐 Deviation from Baseline",
+      "totalDeviation": "Total Deviation:",
+      "keyPoints": {
+        "head": "Head",
+        "shoulders": "Shoulders",
+        "spine": "Spine"
+      }
+    }
+  },
+  "settings": {
+    "title": "Posture Detection Settings",
+    "help": {
+      "show": "Settings Help",
+      "hide": "Hide Help",
+      "title": "Detection Threshold Guide"
+    },
+    "thresholds": {
+      "faceDown": {
+        "title": "👁️ Face Down Detection Threshold",
+        "severe": "Severe",
+        "moderate": "Moderate",
+        "mild": "Mild",
+        "minimal": "Minimal Warning",
+        "current": "Current"
+      },
+      "headForward": {
+        "title": "🧠 Head Forward Detection Threshold"
+      },
+      "backCurvature": {
+        "title": "🏃 Back Curvature Detection Threshold"
+      }
+    },
+    "alerts": {
+      "title": "🔔 Alert Settings",
+      "notificationDelay": "Time to Notification",
+      "notificationInterval": "Notification Interval",
+      "visualAlertDelay": "Severe Alert Display Time",
+      "seconds": "seconds"
+    },
+    "buttons": {
+      "resetDefaults": "Reset to Defaults",
+      "resetOnboarding": "Reset Tutorial",
+      "saveSettings": "Save Settings"
+    },
+    "helpContent": {
+      "faceDown": {
+        "title": "👁️ Face Down Detection Threshold",
+        "severe": "Severe: 15-30 (Face significantly looking down)",
+        "moderate": "Moderate: 10-20 (Clearly looking down)",
+        "mild": "Mild: 5-12 (Slightly looking down)",
+        "minimal": "Minimal: 2-8 (Barely looking down)",
+        "description": "Lower values detect more sensitively. Consider setting mild/minimal higher when focusing on work."
+      },
+      "headForward": {
+        "title": "🧠 Head Forward Detection Threshold",
+        "severe": "Severe: 0.08-0.2 (Head significantly forward)",
+        "moderate": "Moderate: 0.05-0.15 (Clearly forward)",
+        "mild": "Mild: 0.02-0.1 (Slightly forward)",
+        "minimal": "Minimal: 0.01-0.08 (Barely forward)",
+        "description": "Detects 3D head position changes. Adjust based on your distance from the monitor."
+      },
+      "backCurvature": {
+        "title": "🏃 Back Curvature Detection Threshold",
+        "severe": "Severe: 20-35° (Back significantly curved)",
+        "moderate": "Moderate: 12-25° (Clearly curved)",
+        "mild": "Mild: 6-18° (Slightly curved)",
+        "minimal": "Minimal: 3-12° (Barely curved)",
+        "description": "Detects back curvature from shoulder and hip angles. Adjust based on your chair's backrest angle."
+      },
+      "alerts": {
+        "title": "🔔 Alert Settings",
+        "notificationDelay": "Time to Notification: How long bad posture persists before notification",
+        "notificationInterval": "Notification Interval: How long to wait between notifications",
+        "visualAlertDelay": "Display Time: How long to show severe warnings",
+        "description": "Adjust based on your work concentration. Increase interval if frequent notifications are distracting."
+      },
+      "tips": {
+        "title": "💡 Adjustment Tips",
+        "tip1": "First set your baseline posture correctly, then adjust thresholds",
+        "tip2": "Start with default values. If detection is too sensitive, increase values",
+        "tip3": "If detection is too weak, decrease values",
+        "tip4": "Optimal values vary by work environment (chair height, monitor position)",
+        "tip5": "Use 'Reset to Defaults' button to restore initial values"
+      }
+    }
+  },
+  "onboarding": {
+    "steps": {
+      "welcome": {
+        "title": "Welcome to SitSmart!",
+        "description": "AI-powered real-time posture analysis to support healthy sitting habits.",
+        "privacy": "We use your camera to monitor your posture. All video processing happens locally in your browser and is never sent to external servers."
+      },
+      "camera": {
+        "title": "Camera Access Required",
+        "description": "Camera access is required for posture analysis.",
+        "privacy": {
+          "title": "Privacy Information:",
+          "point1": "Video is processed only on your device",
+          "point2": "No data is sent to servers",
+          "point3": "No data is stored"
+        },
+        "enableCamera": "📹 Enable Camera",
+        "cameraEnabled": "✅ Camera is now enabled!",
+        "cameraError": "Camera access was denied. Please enable camera permissions in your browser settings."
+      },
+      "posture": {
+        "title": "Sit with Proper Posture",
+        "description": "First, let's set your baseline proper posture.",
+        "tips": {
+          "title": "Proper Sitting Position:",
+          "tip1": "Keep your back straight",
+          "tip2": "Relax your shoulders",
+          "tip3": "Slightly tuck your chin",
+          "tip4": "Keep feet flat on the floor",
+          "tip5": "Maintain 50-70cm distance from screen"
+        },
+        "ready": "✅ Camera is enabled! Sit with proper posture and proceed to the next step."
+      },
+      "baseline": {
+        "title": "Set Baseline Posture",
+        "description": "Set your current posture as the baseline.",
+        "instruction": "Click the 'Set Baseline Posture' button in the camera view and maintain proper posture for 3 seconds.",
+        "success": "✅ Baseline posture has been set!"
+      },
+      "complete": {
+        "title": "Ready to Go!",
+        "description": "SitSmart is now ready to use!",
+        "features": {
+          "title": "What you can do now:",
+          "feature1": "Real-time posture analysis",
+          "feature2": "Slouching detection and alerts",
+          "feature3": "Posture score monitoring",
+          "feature4": "Improvement feedback"
+        },
+        "note": "Settings can be changed anytime. Access the settings panel by clicking the ⚙️ icon in the top right."
+      }
+    },
+    "navigation": {
+      "step": "Step {{current}} / {{total}}",
+      "next": "Next →",
+      "back": "← Back",
+      "start": "Start",
+      "skip": "Skip"
+    }
+  }
+}

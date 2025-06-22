@@ -2,8 +2,10 @@
 
 import { usePoseStore } from '@/stores/poseStore';
 import { PostureAnalyzer } from '@/utils/postureAnalysis';
+import { useTranslation } from 'react-i18next';
 
 export const PostureFeedback = () => {
+  const { t } = useTranslation();
   const { postureAnalysis, isProcessing, currentPose, baselinePosture, setBaselinePosture, clearBaselinePosture, resetSlouchingStats, resetScoreToFullPoints } = usePoseStore();
 
   const handleSetBaseline = () => {
@@ -12,7 +14,7 @@ export const PostureFeedback = () => {
       setBaselinePosture({
         landmarks: currentPose.landmarks,
         timestamp: Date.now(),
-        description: '基準姿勢',
+        description: t('posture.baseline.baselineSet'),
         baselineAngles
       });
       resetSlouchingStats();
@@ -34,7 +36,7 @@ export const PostureFeedback = () => {
   if (!postureAnalysis) {
     return (
       <div className="bg-gray-100 p-4 rounded-lg">
-        <p className="text-gray-600">姿勢を検出中...</p>
+        <p className="text-gray-600">{t('posture.analyzing')}</p>
       </div>
     );
   }
@@ -69,13 +71,13 @@ export const PostureFeedback = () => {
           {baselinePosture ? (
             <div className="flex items-center justify-between">
               <div className="text-sm text-green-600">
-                ✅ 基準姿勢設定済み
+                {t('posture.baseline.baselineSet')}
               </div>
               <button
                 onClick={clearBaselinePosture}
                 className="text-xs text-red-600 hover:text-red-800 underline"
               >
-                解除
+                {t('posture.baseline.clear')}
               </button>
             </div>
           ) : (
@@ -84,7 +86,7 @@ export const PostureFeedback = () => {
               disabled={!currentPose?.landmarks}
               className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
             >
-              📐 この姿勢を基準姿勢にする
+              {t('posture.baseline.setBaseline')}
             </button>
           )}
         </div>
@@ -93,10 +95,10 @@ export const PostureFeedback = () => {
       <div className={`p-4 rounded-lg border-2 ${getStatusColor(postureAnalysis.status, postureAnalysis.isSlouchingDetected)}`}>
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-semibold flex items-center">
-            姿勢スコア
+            {t('posture.score')}
             {postureAnalysis.isSlouchingDetected && (
               <span className="ml-2 text-xs bg-red-500 text-white px-2 py-1 rounded-full animate-bounce">
-                猫背検出
+                {t('posture.slouchingDetected')}
               </span>
             )}
           </h3>
@@ -106,15 +108,15 @@ export const PostureFeedback = () => {
         </div>
         <div className="space-y-3 mb-2">
           <div className="text-xs">
-            <span>視線方向:</span>
+            <span>{t('posture.gazeDirection.label')}</span>
             <span className={`ml-1 font-mono ${
               postureAnalysis.gazeDirection === 'down' ? 'text-red-600' :
               postureAnalysis.gazeDirection === 'up' ? 'text-blue-600' :
               'text-green-600'
             }`}>
-              {postureAnalysis.gazeDirection === 'down' ? '⬇️下向き' :
-               postureAnalysis.gazeDirection === 'up' ? '⬆️上向き' :
-               '➡️正面'}
+              {postureAnalysis.gazeDirection === 'down' ? t('posture.gazeDirection.down') :
+               postureAnalysis.gazeDirection === 'up' ? t('posture.gazeDirection.up') :
+               t('posture.gazeDirection.forward')}
             </span>
           </div>
           <div className="text-sm leading-relaxed break-words min-h-[2.5rem] flex items-center">
@@ -124,22 +126,22 @@ export const PostureFeedback = () => {
       </div>
 
       <div className="bg-white p-4 rounded-lg border">
-        <h4 className="font-semibold mb-3 text-gray-800">詳細データ</h4>
+        <h4 className="font-semibold mb-3 text-gray-800">{t('posture.details.title')}</h4>
         <div className="grid grid-cols-1 gap-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-700">首の角度:</span>
+            <span className="text-gray-700">{t('posture.details.neckAngle')}</span>
             <span className="font-mono text-gray-900">{postureAnalysis.angles.neckAngle}°</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-700">肩の角度:</span>
+            <span className="text-gray-700">{t('posture.details.shoulderAngle')}</span>
             <span className="font-mono text-gray-900">{postureAnalysis.angles.shoulderAngle}°</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-700">背中の角度:</span>
+            <span className="text-gray-700">{t('posture.details.backAngle')}</span>
             <span className="font-mono text-gray-900">{postureAnalysis.angles.backAngle}°</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-700">顔の角度:</span>
+            <span className="text-gray-700">{t('posture.details.faceAngle')}</span>
             <span className="font-mono text-gray-900">{postureAnalysis.angles.faceAngle}°</span>
           </div>
         </div>
@@ -147,10 +149,10 @@ export const PostureFeedback = () => {
 
       {postureAnalysis.deviationFromBaseline && baselinePosture && (
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <h4 className="font-semibold mb-3 text-blue-800">📐 基準姿勢からのズレ</h4>
+          <h4 className="font-semibold mb-3 text-blue-800">{t('posture.baseline.deviationTitle')}</h4>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between items-center">
-              <span className="text-blue-800">総合ズレ度:</span>
+              <span className="text-blue-800">{t('posture.baseline.totalDeviation')}</span>
               <div className="flex items-center">
                 <span className={`font-bold ${
                   postureAnalysis.deviationFromBaseline.deviationPercentage > 70 ? 'text-red-600' :
@@ -164,7 +166,7 @@ export const PostureFeedback = () => {
             </div>
             <div className="grid grid-cols-3 gap-2 mt-3">
               <div className="text-center">
-                <div className="text-xs text-gray-600">頭部</div>
+                <div className="text-xs text-gray-600">{t('posture.baseline.keyPoints.head')}</div>
                 <div className={`font-bold ${
                   postureAnalysis.deviationFromBaseline.keyPointDeviations.head > 0.25 ? 'text-red-600' :
                   postureAnalysis.deviationFromBaseline.keyPointDeviations.head > 0.18 ? 'text-orange-600' :
@@ -174,7 +176,7 @@ export const PostureFeedback = () => {
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-xs text-gray-600">肩</div>
+                <div className="text-xs text-gray-600">{t('posture.baseline.keyPoints.shoulders')}</div>
                 <div className={`font-bold ${
                   postureAnalysis.deviationFromBaseline.keyPointDeviations.shoulders > 0.25 ? 'text-red-600' :
                   postureAnalysis.deviationFromBaseline.keyPointDeviations.shoulders > 0.18 ? 'text-orange-600' :
@@ -184,7 +186,7 @@ export const PostureFeedback = () => {
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-xs text-gray-600">背骨</div>
+                <div className="text-xs text-gray-600">{t('posture.baseline.keyPoints.spine')}</div>
                 <div className={`font-bold ${
                   postureAnalysis.deviationFromBaseline.keyPointDeviations.spine > 0.25 ? 'text-red-600' :
                   postureAnalysis.deviationFromBaseline.keyPointDeviations.spine > 0.18 ? 'text-orange-600' :

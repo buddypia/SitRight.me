@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { DEFAULT_SETTINGS } from '@/types/settings';
 import { BaselineCapture } from '@/components/BaselineCapture';
+import { useTranslation } from 'react-i18next';
 
 export const Settings = () => {
+  const { t } = useTranslation();
   const { settings, updateSettings, resetSettings, isSettingsOpen, setSettingsOpen, resetOnboarding } = useSettingsStore();
   const [showHelp, setShowHelp] = useState(false);
 
@@ -28,7 +29,7 @@ export const Settings = () => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">姿勢検出設定</h2>
+          <h2 className="text-2xl font-bold text-gray-800">{t('settings.title')}</h2>
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setShowHelp(!showHelp)}
@@ -38,7 +39,7 @@ export const Settings = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                   d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>{showHelp ? 'ヘルプを閉じる' : '設定ヘルプ'}</span>
+              <span>{showHelp ? t('settings.help.hide') : t('settings.help.show')}</span>
             </button>
             <button
               onClick={() => setSettingsOpen(false)}
@@ -57,7 +58,7 @@ export const Settings = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              検出閾値設定ガイド
+{t('settings.help.title')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div className="bg-white p-3 rounded">
