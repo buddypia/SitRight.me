@@ -45,10 +45,10 @@ export class PostureAnalyzer {
     const nose = landmarks[0];
     const leftEye = landmarks[1];
     const rightEye = landmarks[2];
+    const leftEar = landmarks[7];
+    const rightEar = landmarks[8];
     const leftShoulder = landmarks[11];
     const rightShoulder = landmarks[12];
-    const leftHip = landmarks[23];
-    const rightHip = landmarks[24];
 
     // 中点の計算
     const eyeMidpoint = {
@@ -57,38 +57,48 @@ export class PostureAnalyzer {
       z: (leftEye.z + rightEye.z) / 2,
     };
 
+    const earMidpoint = {
+      x: (leftEar.x + rightEar.x) / 2,
+      y: (leftEar.y + rightEar.y) / 2,
+      z: (leftEar.z + rightEar.z) / 2,
+    };
+
     const shoulderMidpoint = {
       x: (leftShoulder.x + rightShoulder.x) / 2,
       y: (leftShoulder.y + rightShoulder.y) / 2,
       z: (leftShoulder.z + rightShoulder.z) / 2,
     };
 
-    const hipMidpoint = {
-      x: (leftHip.x + rightHip.x) / 2,
-      y: (leftHip.y + rightHip.y) / 2,
-      z: (leftHip.z + rightHip.z) / 2,
-    };
+    // 垂直方向の角度計算
+    // 首の角度：耳の中点から肩の中点への垂直方向の角度
+    const neckVerticalAngle = Math.atan2(
+      Math.abs(earMidpoint.y - shoulderMidpoint.y),
+      Math.abs(earMidpoint.x - shoulderMidpoint.x)
+    ) * 180 / Math.PI;
 
-    const mouthMidpoint = {
-      x: (landmarks[9].x + landmarks[10].x) / 2,
-      y: (landmarks[9].y + landmarks[10].y) / 2,
-      z: (landmarks[9].z + landmarks[10].z) / 2,
-    };
+    // 肩の角度：左右の肩の垂直方向の差
+    const shoulderVerticalAngle = Math.atan2(
+      Math.abs(leftShoulder.y - rightShoulder.y),
+      Math.abs(leftShoulder.x - rightShoulder.x)
+    ) * 180 / Math.PI;
 
-    // 角度の計算
-    const headForwardDistance = Math.abs(shoulderMidpoint.z - eyeMidpoint.z);
-    const headVerticalOffset = eyeMidpoint.y - shoulderMidpoint.y;
+    // 顔の角度：鼻から目の中点への垂直方向の角度
+    const faceVerticalAngle = Math.atan2(
+      Math.abs(nose.y - eyeMidpoint.y),
+      Math.abs(nose.x - eyeMidpoint.x)
+    ) * 180 / Math.PI;
 
-    const neckAngle = Math.abs(Math.atan2(headForwardDistance, Math.abs(headVerticalOffset)) * 180 / Math.PI);
-    const shoulderAngle = Math.abs(leftShoulder.y - rightShoulder.y) * 100;
-    const faceAngle = Math.abs(Math.atan2(nose.y - eyeMidpoint.y, Math.abs(nose.z - eyeMidpoint.z || 0.01)) * 180 / Math.PI);
-    const gazeAngle = Math.abs(Math.atan2(mouthMidpoint.y - eyeMidpoint.y, Math.abs(mouthMidpoint.z - eyeMidpoint.z || 0.01)) * 180 / Math.PI);
+    // 視線角度：目から鼻への垂直方向の角度（顔の下向き具合）
+    const gazeVerticalAngle = Math.atan2(
+      nose.y - eyeMidpoint.y,
+      Math.abs(nose.x - eyeMidpoint.x || 0.01)
+    ) * 180 / Math.PI;
 
     return {
-      neckAngle,
-      shoulderAngle,
-      gazeAngle,
-      faceAngle,
+      neckAngle: neckVerticalAngle,
+      shoulderAngle: shoulderVerticalAngle,
+      gazeAngle: gazeVerticalAngle,
+      faceAngle: faceVerticalAngle,
     };
   }
 
@@ -243,15 +253,30 @@ export class PostureAnalyzer {
       z: (leftMouth.z + rightMouth.z) / 2,
     };
 
-    // 猫背検出の改善されたメトリクス
-    const headForwardDistance = earMidpoint.x - shoulderMidpoint.x;
-    const headVerticalOffset = earMidpoint.y - shoulderMidpoint.y;
-    
-    // 現在の角度を計算
-    const currentNeckAngle = Math.abs(Math.atan2(headForwardDistance, Math.abs(headVerticalOffset)) * 180 / Math.PI);
-    const currentShoulderAngle = Math.abs(leftShoulder.y - rightShoulder.y) * 100;
-    const currentFaceAngle = Math.abs(Math.atan2(nose.y - eyeMidpoint.y, Math.abs(nose.z - eyeMidpoint.z || 0.01)) * 180 / Math.PI);
-    const currentGazeAngle = Math.abs(Math.atan2(mouthMidpoint.y - eyeMidpoint.y, Math.abs(mouthMidpoint.z - eyeMidpoint.z || 0.01)) * 180 / Math.PI);
+    // 垂直動きに基づく角度計算
+    // 首の垂直角度：耳の中点から肩の中点への垂直方向の角度
+    const currentNeckAngle = Math.atan2(
+      Math.abs(earMidpoint.y - shoulderMidpoint.y),
+      Math.abs(earMidpoint.x - shoulderMidpoint.x)
+    ) * 180 / Math.PI;
+
+    // 肩の垂直角度：左右の肩の垂直方向の差
+    const currentShoulderAngle = Math.atan2(
+      Math.abs(leftShoulder.y - rightShoulder.y),
+      Math.abs(leftShoulder.x - rightShoulder.x)
+    ) * 180 / Math.PI;
+
+    // 顔の垂直角度：鼻から目の中点への垂直方向の角度
+    const currentFaceAngle = Math.atan2(
+      Math.abs(nose.y - eyeMidpoint.y),
+      Math.abs(nose.x - eyeMidpoint.x)
+    ) * 180 / Math.PI;
+
+    // 視線の垂直角度：目から鼻への垂直方向の角度（顔の下向き具合）
+    const currentGazeAngle = Math.atan2(
+      nose.y - eyeMidpoint.y,
+      Math.abs(nose.x - eyeMidpoint.x || 0.01)
+    ) * 180 / Math.PI;
 
     // 基準姿勢がある場合は基準角度からの偏差を計算
     let neckAngle = currentNeckAngle;
@@ -268,24 +293,28 @@ export class PostureAnalyzer {
     }
     
     // 顔全体の下向き度合い（鼻が目より下にある場合）
-    const faceDownwardTilt = nose.y > eyeMidpoint.y ? (nose.y - eyeMidpoint.y) * 100 : 0;
+    const faceDownwardTilt = nose.y > eyeMidpoint.y ? (nose.y - eyeMidpoint.y) * 150 : 0;
     
-    // 視線方向の判定（基準姿勢を考慮して調整）
+    // 視線の下向きをより精密に判定
+    const eyeToNoseVerticalDistance = Math.abs(nose.y - eyeMidpoint.y);
+    const isLookingDown = nose.y > eyeMidpoint.y && eyeToNoseVerticalDistance > 0.01;
+    
+    // 視線方向の判定（より厳しい闾値）
     let gazeDirection: 'up' | 'forward' | 'down' = 'forward';
     
-    // 基準姿勢がある場合は基準からの偏差で判定（最も厳しい閾値）
+    // 基準姿勢がある場合は基準からの偏差で判定
     if (baseline?.baselineAngles) {
-      // 基準角度からの偏差が一定以上の場合に警告
-      if (faceAngle > 2 || faceDownwardTilt > config.faceDownThresholds.mild) {
+      // 基準角度からの偏差が一定以上の場合に警告（より厳しい闾値）
+      if (isLookingDown || faceAngle > 3 || faceDownwardTilt > config.faceDownThresholds.mild * 0.5) {
         gazeDirection = 'down';
-      } else if (faceAngle > 1) {
+      } else if (faceAngle > 2) {
         gazeDirection = 'down';
       }
     } else {
-      // 基準姿勢がない場合は従来の絶対値での判定
-      if (faceAngle > 30 || faceDownwardTilt > config.faceDownThresholds.mild) {
+      // 基準姿勢がない場合は絶対値での判定（より厳しい闾値）
+      if (isLookingDown || faceAngle > 8 || faceDownwardTilt > config.faceDownThresholds.mild * 0.7) {
         gazeDirection = 'down';
-      } else if (faceAngle < -20) {
+      } else if (faceAngle < -12) {
         gazeDirection = 'up';
       }
     }
@@ -294,69 +323,77 @@ export class PostureAnalyzer {
     let feedback = 'feedback.goodPosture';
     let status: 'good' | 'warning' | 'poor' = 'good';
 
-    // 猫背判定（首の角度、肩の角度、顔の角度で判定）
+    // 猫背判定（首の垂直角度、肩の垂直角度、顔の垂直角度で判定）
     if (baseline?.baselineAngles) {
-      // 基準姿勢がある場合：偏差で判定
-      const neckIsBad = neckAngle > 3;
-      const shoulderIsBad = shoulderAngle > 4;
-      const faceIsBad = faceAngle > 2;
+      // 基準姿勢がある場合：偏差で判定（より厳しい閾値）
+      const neckIsBad = neckAngle > 5;
+      const shoulderIsBad = shoulderAngle > 6;
+      const faceIsBad = faceAngle > 5;
 
       if (neckIsBad && shoulderIsBad) {
-        score -= config.scoringSettings.severePenalty;
+        score -= config.scoringSettings.severePenalty * 1.5;
         feedback = 'feedback.postureAnalysis.slouching.neckAndShoulder';
         status = 'poor';
       } else if (neckIsBad && faceIsBad) {
-        score -= config.scoringSettings.severePenalty;
+        score -= config.scoringSettings.severePenalty * 1.5;
         feedback = 'feedback.postureAnalysis.slouching.neckAndFace';
         status = 'poor';
       } else if (neckIsBad) {
-        score -= config.scoringSettings.moderatePenalty;
+        score -= config.scoringSettings.severePenalty;
         feedback = 'feedback.postureAnalysis.slouching.neck';
         status = 'poor';
       } else if (shoulderIsBad) {
-        score -= config.scoringSettings.mildPenalty;
+        score -= config.scoringSettings.moderatePenalty;
         feedback = 'feedback.postureAnalysis.slouching.shoulder';
-        status = 'warning';
+        status = 'poor';
       } else if (faceIsBad) {
-        score -= config.scoringSettings.mildPenalty;
+        score -= config.scoringSettings.moderatePenalty;
         feedback = 'feedback.postureAnalysis.slouching.face';
-        status = 'warning';
+        status = 'poor';
       }
     } else {
-      // 基準姿勢がない場合：絶対値で判定
-      const neckIsBad = headForwardDistance > config.headForwardThresholds.moderate;
-      const shoulderIsBad = shoulderAngle > 6;
-      const faceIsBad = faceAngle > 25;
+      // 基準姿勢がない場合：絶対値で判定（より厳しい閾値）
+      const neckIsBad = neckAngle < 70 || neckAngle > 110;
+      const shoulderIsBad = shoulderAngle > 10;
+      const faceIsBad = faceAngle > 12;
 
       if (neckIsBad && shoulderIsBad) {
-        score -= config.scoringSettings.severePenalty;
+        score -= config.scoringSettings.severePenalty * 1.5;
         feedback = 'feedback.postureAnalysis.slouching.neckAndShoulder';
         status = 'poor';
       } else if (neckIsBad && faceIsBad) {
-        score -= config.scoringSettings.severePenalty;
+        score -= config.scoringSettings.severePenalty * 1.5;
         feedback = 'feedback.postureAnalysis.slouching.neckAndFace';
         status = 'poor';
       } else if (neckIsBad) {
-        score -= config.scoringSettings.moderatePenalty;
+        score -= config.scoringSettings.severePenalty;
         feedback = 'feedback.postureAnalysis.slouching.neck';
         status = 'poor';
       } else if (shoulderIsBad) {
-        score -= config.scoringSettings.mildPenalty;
+        score -= config.scoringSettings.moderatePenalty;
         feedback = 'feedback.postureAnalysis.slouching.shoulder';
-        status = 'warning';
+        status = 'poor';
       } else if (faceIsBad) {
-        score -= config.scoringSettings.mildPenalty;
+        score -= config.scoringSettings.moderatePenalty;
         feedback = 'feedback.postureAnalysis.slouching.face';
-        status = 'warning';
+        status = 'poor';
       }
     }
 
     score = Math.max(0, score);
 
-    // スコアベースのステータス調整
+    // 視線が下向きの場合の追加減点
+    if (gazeDirection === 'down') {
+      score -= config.scoringSettings.mildPenalty;
+      if (status === 'good') {
+        status = 'warning';
+      }
+    }
+
+    // スコアベースのステータス調整（より厳しい闾値）
     if (score >= config.scoringSettings.goodPostureThreshold) {
       status = 'good';
-    } else if (score >= config.scoringSettings.warningThreshold) {
+    } else if (score >= config.scoringSettings.warningThreshold * 1.2) {
       status = 'warning';
     } else {
       status = 'poor';
