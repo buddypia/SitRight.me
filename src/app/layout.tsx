@@ -6,8 +6,8 @@ import { I18nProvider } from '@/components/I18nProvider';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'SitSmart - AI姿勢判定システム',
-  description: 'リアルタイムでAIが姿勢を判定し、正しい姿勢をサポートします',
+  title: 'SitSmart - AI Posture Detection System',
+  description: 'Real-time AI posture detection to support proper posture',
 };
 
 export default function RootLayout({

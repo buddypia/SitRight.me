@@ -139,6 +139,116 @@
       }
     }
   },
+  "metadata": {
+    "title": "SitSmart - AI Posture Detection System",
+    "description": "Real-time AI posture detection to support proper posture"
+  },
+  "monitor": {
+    "title": "Slouching Monitor Statistics",
+    "reset": "Reset",
+    "continuousTime": "Continuous Slouching Time",
+    "totalTime": "Total Slouching Time",
+    "count": "Slouching Occurrences",
+    "currentStatus": "Current Status",
+    "statusSlouching": "🔴 Slouching",
+    "statusNormal": "🟢 Normal",
+    "formatTime": {
+      "hours": "h",
+      "minutes": "m",
+      "seconds": "s"
+    },
+    "alerts": {
+      "emergency": {
+        "title": "Emergency Alert!",
+        "message": "Severe slouching detected. Please correct your posture immediately."
+      },
+      "warning": {
+        "title": "Warning",
+        "message": "Slouching continues. Please be mindful of your posture."
+      },
+      "mild": {
+        "title": "Mild Slouching",
+        "message": "Signs of slouching detected. Please correct your posture early."
+      }
+    },
+    "improvementTips": {
+      "title": "Improvement Tips",
+      "tip1": "Sit with your back straight against the chair",
+      "tip2": "Keep your shoulders relaxed and level",
+      "tip3": "Position your monitor at eye level",
+      "tip4": "Take regular breaks to stretch",
+      "tip5": "Keep your feet flat on the floor",
+      "tip6": "Maintain proper distance from the screen",
+      "tip7": "📱 Raise the screen to eye level",
+      "tip8": "👀 Look straight ahead, avoid looking down",
+      "tip9": "🖥️ Adjust the monitor height",
+      "tip10": "Adjust desk height and chair position",
+      "tip11": "Stand up and stretch lightly every 30 minutes"
+    }
+  },
+  "baseline": {
+    "title": "📏 Baseline Posture Setting",
+    "description": "Set your current proper posture as the baseline reference",
+    "instructions": "Sit with correct posture and press the button to set baseline",
+    "status": {
+      "noBaseline": "No baseline set",
+      "hasBaseline": "Baseline posture set"
+    },
+    "countdown": {
+      "ready": "Get ready...",
+      "count": "{{seconds}}",
+      "complete": "Baseline captured!"
+    },
+    "buttons": {
+      "capture": "📸 Capture Baseline",
+      "recapture": "🔄 Re-capture Baseline"
+    },
+    "error": "Posture not detected. Please start the camera before setting baseline posture.",
+    "details": {
+      "title": "Baseline Posture Details",
+      "neckAngle": "Neck Angle: {{angle}}°",
+      "shoulderAngle": "Shoulder Angle: {{angle}}°",
+      "backAngle": "Back Angle: {{angle}}°"
+    }
+  },
+  "feedback": {
+    "noPose": "Pose not detected",
+    "goodPosture": "Good posture!",
+    "baselineComparison": {
+      "goodMaintenance": "✅ Maintaining baseline posture!",
+      "neckForward": "Your neck is slightly forward compared to baseline",
+      "shouldersRaised": "Your shoulders are raised compared to baseline",
+      "backCurved": "Your back is curved compared to baseline",
+      "multipleConcerns": "Multiple posture concerns detected compared to baseline"
+    },
+    "generalAnalysis": {
+      "slightConcern": "Slight posture concern detected",
+      "moderateConcern": "Moderate posture issues detected",
+      "severeConcern": "Severe posture problems detected",
+      "faceDown": "Face looking down detected",
+      "headForward": "Head forward posture detected",
+      "shouldersHunched": "Hunched shoulders detected",
+      "backRounded": "Rounded back detected",
+      "multipleIssues": "Multiple posture issues detected"
+    }
+  },
+  "notifications": {
+    "slouchingAlert": "⚠️ Slouching Alert - Please check your posture"
+  },
+  "errors": {
+    "cameraAccess": "Camera access failed",
+    "poseDetection": "Failed to initialize pose detection",
+    "settingsLoad": "Failed to load settings",
+    "settingsSave": "Failed to save settings",
+    "onboardingCheck": "Failed to check onboarding status",
+    "onboardingSave": "Failed to save onboarding completion",
+    "onboardingReset": "Failed to reset onboarding",
+    "baselineLoad": "Failed to load baseline from storage"
+  },
+  "console": {
+    "urlOnboarding": "Forcing onboarding display via URL parameter",
+    "onboardingReset": "Onboarding has been reset"
+  },
   "onboarding": {
     "steps": {
       "welcome": {

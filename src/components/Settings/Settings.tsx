@@ -13,7 +13,7 @@ export const Settings = () => {
   if (!isSettingsOpen) return null;
 
   const handleNumberChange = (path: string[], value: number) => {
-    const updateObj: any = {};
+    const updateObj: Record<string, unknown> = {};
     let current = updateObj;
     
     for (let i = 0; i < path.length - 1; i++) {

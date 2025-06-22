@@ -3,10 +3,12 @@
 import { usePoseStore } from '@/stores/poseStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export const SlouchingMonitor = () => {
   const { slouchingStats, postureAnalysis, resetSlouchingStats } = usePoseStore();
   const { settings } = useSettingsStore();
+  const { t } = useTranslation();
 
   useEffect(() => {
     // 通知許可を要求
@@ -21,11 +23,11 @@ export const SlouchingMonitor = () => {
     const hours = Math.floor(minutes / 60);
     
     if (hours > 0) {
-      return `${hours}時間${minutes % 60}分`;
+      return `${hours}${t('monitor.formatTime.hours')}${minutes % 60}${t('monitor.formatTime.minutes')}`;
     } else if (minutes > 0) {
-      return `${minutes}分${seconds % 60}秒`;
+      return `${minutes}${t('monitor.formatTime.minutes')}${seconds % 60}${t('monitor.formatTime.seconds')}`;
     } else {
-      return `${seconds}秒`;
+      return `${seconds}${t('monitor.formatTime.seconds')}`;
     }
   };
 
@@ -46,8 +48,8 @@ export const SlouchingMonitor = () => {
           <div className="flex items-center">
             <span className="text-2xl mr-2">🚨</span>
             <div>
-              <p className="font-bold">緊急アラート！</p>
-              <p className="text-sm">深刻な猫背が検出されています。すぐに姿勢を正してください。</p>
+              <p className="font-bold">{t('monitor.alerts.emergency.title')}</p>
+              <p className="text-sm">{t('monitor.alerts.emergency.message')}</p>
             </div>
           </div>
         </div>
@@ -58,8 +60,8 @@ export const SlouchingMonitor = () => {
           <div className="flex items-center">
             <span className="text-2xl mr-2">⚠️</span>
             <div>
-              <p className="font-bold">注意</p>
-              <p className="text-sm">猫背が続いています。姿勢を意識してください。</p>
+              <p className="font-bold">{t('monitor.alerts.warning.title')}</p>
+              <p className="text-sm">{t('monitor.alerts.warning.message')}</p>
             </div>
           </div>
         </div>
@@ -70,8 +72,8 @@ export const SlouchingMonitor = () => {
           <div className="flex items-center">
             <span className="text-2xl mr-2">⚠️</span>
             <div>
-              <p className="font-bold">軽度の猫背</p>
-              <p className="text-sm">猫背の兆候があります。早めに姿勢を修正してください。</p>
+              <p className="font-bold">{t('monitor.alerts.mild.title')}</p>
+              <p className="text-sm">{t('monitor.alerts.mild.message')}</p>
             </div>
           </div>
         </div>
@@ -84,12 +86,12 @@ export const SlouchingMonitor = () => {
   return (
     <div className="bg-white p-4 rounded-lg border">
       <div className="flex justify-between items-center mb-4">
-        <h4 className="font-semibold text-gray-800">猫背監視統計</h4>
+        <h4 className="font-semibold text-gray-800">{t('monitor.title')}</h4>
         <button
           onClick={resetSlouchingStats}
           className="text-sm px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-600"
         >
-          リセット
+          {t('monitor.reset')}
         </button>
       </div>
 
@@ -97,52 +99,52 @@ export const SlouchingMonitor = () => {
 
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div className="bg-blue-50 p-3 rounded">
-          <p className="text-blue-600 font-medium">連続猫背時間</p>
+          <p className="text-blue-600 font-medium">{t('monitor.continuousTime')}</p>
           <p className="text-lg font-bold text-blue-800">
             {slouchingStats.consecutiveSlouchingTime > 0 
               ? formatTime(slouchingStats.consecutiveSlouchingTime)
-              : '0秒'
+              : `0${t('monitor.formatTime.seconds')}`
             }
           </p>
         </div>
         
         <div className="bg-purple-50 p-3 rounded">
-          <p className="text-purple-600 font-medium">総猫背時間</p>
+          <p className="text-purple-600 font-medium">{t('monitor.totalTime')}</p>
           <p className="text-lg font-bold text-purple-800">
             {formatTime(slouchingStats.totalSlouchingTime + slouchingStats.consecutiveSlouchingTime)}
           </p>
         </div>
         
         <div className="bg-red-50 p-3 rounded">
-          <p className="text-red-600 font-medium">猫背発生回数</p>
+          <p className="text-red-600 font-medium">{t('monitor.count')}</p>
           <p className="text-lg font-bold text-red-800">
-            {slouchingStats.slouchingEvents}回
+            {slouchingStats.slouchingEvents}
           </p>
         </div>
         
         <div className="bg-green-50 p-3 rounded">
-          <p className="text-green-600 font-medium">現在の状態</p>
+          <p className="text-green-600 font-medium">{t('monitor.currentStatus')}</p>
           <p className="text-lg font-bold text-green-800">
-            {postureAnalysis?.isSlouchingDetected ? '🔴 猫背中' : '🟢 正常'}
+            {postureAnalysis?.isSlouchingDetected ? t('monitor.statusSlouching') : t('monitor.statusNormal')}
           </p>
         </div>
       </div>
 
       {postureAnalysis?.isSlouchingDetected && (
         <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-          <h5 className="font-medium text-yellow-800 mb-2">改善のヒント</h5>
+          <h5 className="font-medium text-yellow-800 mb-2">{t('monitor.improvementTips.title')}</h5>
           <ul className="text-sm text-yellow-700 space-y-1">
-            <li>• 背筋を伸ばし、肩の力を抜きましょう</li>
-            <li>• あごを軽く引いて、頭を肩の上に乗せましょう</li>
+            <li>• {t('monitor.improvementTips.tip1')}</li>
+            <li>• {t('monitor.improvementTips.tip2')}</li>
             {postureAnalysis.gazeDirection === 'down' && (
               <>
-                <li>• 📱 画面を目線の高さまで上げてください</li>
-                <li>• 👀 視線を正面に向け、下向きを避けましょう</li>
-                <li>• 🖥️ モニターの高さを調整してください</li>
+                <li>• {t('monitor.improvementTips.tip7')}</li>
+                <li>• {t('monitor.improvementTips.tip8')}</li>
+                <li>• {t('monitor.improvementTips.tip9')}</li>
               </>
             )}
-            <li>• デスクの高さや椅子の位置を調整してみてください</li>
-            <li>• 30分に一度、立ち上がって軽くストレッチしましょう</li>
+            <li>• {t('monitor.improvementTips.tip10')}</li>
+            <li>• {t('monitor.improvementTips.tip11')}</li>
           </ul>
           
           {postureAnalysis.gazeDirection === 'down' && (

@@ -139,6 +139,116 @@
       }
     }
   },
+  "metadata": {
+    "title": "SitSmart - AI姿勢判定システム",
+    "description": "リアルタイムでAIが姿勢を判定し、正しい姿勢をサポートします"
+  },
+  "monitor": {
+    "title": "猫背監視統計",
+    "reset": "リセット",
+    "continuousTime": "連続猫背時間",
+    "totalTime": "総猫背時間",
+    "count": "猫背発生回数",
+    "currentStatus": "現在の状態",
+    "statusSlouching": "🔴 猫背中",
+    "statusNormal": "🟢 正常",
+    "formatTime": {
+      "hours": "時間",
+      "minutes": "分",
+      "seconds": "秒"
+    },
+    "alerts": {
+      "emergency": {
+        "title": "緊急アラート！",
+        "message": "深刻な猫背が検出されています。すぐに姿勢を正してください。"
+      },
+      "warning": {
+        "title": "注意",
+        "message": "猫背が続いています。姿勢を意識してください。"
+      },
+      "mild": {
+        "title": "軽度の猫背",
+        "message": "猫背の兆候があります。早めに姿勢を修正してください。"
+      }
+    },
+    "improvementTips": {
+      "title": "改善のヒント",
+      "tip1": "背もたれに背中をつけて座る",
+      "tip2": "肩の力を抜いて水平に保つ",
+      "tip3": "モニターを目線の高さに調整する",
+      "tip4": "定期的に休憩してストレッチする",
+      "tip5": "足を床にしっかりつける",
+      "tip6": "画面との適切な距離を保つ",
+      "tip7": "📱 画面を目線の高さまで上げてください",
+      "tip8": "👀 視線を正面に向け、下向きを避けましょう",
+      "tip9": "🖥️ モニターの高さを調整してください",
+      "tip10": "デスクの高さや椅子の位置を調整してみてください",
+      "tip11": "30分に一度、立ち上がって軽くストレッチしましょう"
+    }
+  },
+  "baseline": {
+    "title": "📏 基準姿勢設定",
+    "description": "現在の正しい姿勢を基準として設定します",
+    "instructions": "正しい姿勢で座り、ボタンを押して基準を設定してください",
+    "status": {
+      "noBaseline": "基準姿勢未設定",
+      "hasBaseline": "基準姿勢設定済み"
+    },
+    "countdown": {
+      "ready": "準備してください...",
+      "count": "{{seconds}}",
+      "complete": "基準姿勢をキャプチャしました！"
+    },
+    "buttons": {
+      "capture": "📸 基準姿勢をキャプチャ",
+      "recapture": "🔄 再キャプチャ"
+    },
+    "error": "姿勢が検出されていません。カメラを起動してから基準姿勢を設定してください。",
+    "details": {
+      "title": "基準姿勢の詳細",
+      "neckAngle": "首の角度: {{angle}}°",
+      "shoulderAngle": "肩の角度: {{angle}}°",
+      "backAngle": "背中の角度: {{angle}}°"
+    }
+  },
+  "feedback": {
+    "noPose": "ポーズが検出されませんでした",
+    "goodPosture": "良い姿勢です！",
+    "baselineComparison": {
+      "goodMaintenance": "✅ 基準姿勢をキープしています！",
+      "neckForward": "基準姿勢と比べて首が少し前に出ています",
+      "shouldersRaised": "基準姿勢と比べて肩が上がっています",
+      "backCurved": "基準姿勢と比べて背中が丸まっています",
+      "multipleConcerns": "基準姿勢と比べて複数の姿勢の問題が検出されています"
+    },
+    "generalAnalysis": {
+      "slightConcern": "軽微な姿勢の問題が検出されました",
+      "moderateConcern": "中程度の姿勢の問題が検出されました",
+      "severeConcern": "深刻な姿勢の問題が検出されました",
+      "faceDown": "顔の下向きが検出されました",
+      "headForward": "頭の前傾姿勢が検出されました",
+      "shouldersHunched": "肩の巻き込みが検出されました",
+      "backRounded": "背中の丸まりが検出されました",
+      "multipleIssues": "複数の姿勢の問題が検出されました"
+    }
+  },
+  "notifications": {
+    "slouchingAlert": "⚠️ 猫背アラート - 姿勢を確認してください"
+  },
+  "errors": {
+    "cameraAccess": "カメラアクセスに失敗しました",
+    "poseDetection": "姿勢検出の初期化に失敗しました",
+    "settingsLoad": "設定の読み込みに失敗しました",
+    "settingsSave": "設定の保存に失敗しました",
+    "onboardingCheck": "初回チェックに失敗しました",
+    "onboardingSave": "オンボーディング完了の保存に失敗しました",
+    "onboardingReset": "オンボーディングリセットに失敗しました",
+    "baselineLoad": "ベースラインの読み込みに失敗しました"
+  },
+  "console": {
+    "urlOnboarding": "URL パラメータによりオンボーディングを強制表示",
+    "onboardingReset": "オンボーディングをリセットしました"
+  },
   "onboarding": {
     "steps": {
       "welcome": {

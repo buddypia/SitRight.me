@@ -4,15 +4,17 @@ import { useState, useCallback } from 'react';
 import { usePoseStore } from '@/stores/poseStore';
 import { BaselinePosture } from '@/types/pose';
 import { PostureAnalyzer } from '@/utils/postureAnalysis';
+import { useTranslation } from 'react-i18next';
 
 export const BaselineCapture = () => {
   const { currentPose, baselinePosture, setBaselinePosture, clearBaselinePosture, resetScoreToFullPoints } = usePoseStore();
   const [isCapturing, setIsCapturing] = useState(false);
   const [captureCountdown, setCaptureCountdown] = useState(0);
+  const { t } = useTranslation();
 
   const handleCaptureBaseline = useCallback(() => {
     if (!currentPose?.landmarks) {
-      alert('姿勢が検出されていません。カメラを起動してから基準姿勢を設定してください。');
+      alert(t('baseline.error'));
       return;
     }
 
@@ -31,7 +33,7 @@ export const BaselineCapture = () => {
           const baseline: BaselinePosture = {
             landmarks: [...currentPose.landmarks],
             timestamp: Date.now(),
-            description: '基準姿勢',
+            description: t('baseline.status.hasBaseline'),
             baselineAngles: {
               neckAngle: currentAnalysis.angles.neckAngle,
               shoulderAngle: currentAnalysis.angles.shoulderAngle,
@@ -55,7 +57,7 @@ export const BaselineCapture = () => {
         return prev - 1;
       });
     }, 1000);
-  }, [currentPose, setBaselinePosture, resetScoreToFullPoints]);
+  }, [currentPose, setBaselinePosture, resetScoreToFullPoints, t]);
 
   const handleClearBaseline = useCallback(() => {
     clearBaselinePosture();
@@ -69,16 +71,16 @@ export const BaselineCapture = () => {
   return (
     <div className="space-y-4">
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="font-semibold text-blue-800 mb-2">📏 基準姿勢設定</h3>
+        <h3 className="font-semibold text-blue-800 mb-2">{t('baseline.title')}</h3>
         <p className="text-blue-700 text-sm mb-3">
-          正しい姿勢で座った状態で基準姿勢を設定してください。設定後は、この基準からの偏差で姿勢を判定します。
+          {t('baseline.description')}
         </p>
         
         {baselinePosture ? (
           <div className="bg-green-50 border border-green-200 rounded p-3 mb-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-800 font-medium">✅ 基準姿勢が設定済み</p>
+                <p className="text-green-800 font-medium">{t('baseline.status.hasBaseline')}</p>
                 <p className="text-green-600 text-xs">
                   設定日時: {formatDate(baselinePosture.timestamp)}
                 </p>
@@ -87,14 +89,14 @@ export const BaselineCapture = () => {
                 onClick={handleClearBaseline}
                 className="text-red-600 hover:text-red-800 text-sm font-medium"
               >
-                削除
+                {t('posture.baseline.clear')}
               </button>
             </div>
           </div>
         ) : (
           <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-3">
             <p className="text-yellow-800 text-sm">
-              ⚠️ 基準姿勢が設定されていません
+              {t('baseline.status.noBaseline')}
             </p>
           </div>
         )}
@@ -102,13 +104,13 @@ export const BaselineCapture = () => {
         {isCapturing && captureCountdown > 0 && (
           <div className="bg-orange-50 border border-orange-200 rounded p-3 mb-3 text-center">
             <p className="text-orange-800 font-bold text-lg">
-              基準姿勢をキャプチャ中...
+              {t('baseline.countdown.ready')}
             </p>
             <p className="text-orange-600 text-3xl font-bold">
               {captureCountdown}
             </p>
             <p className="text-orange-600 text-sm">
-              正しい姿勢を保ってください
+              {t('baseline.instructions')}
             </p>
           </div>
         )}
@@ -123,7 +125,7 @@ export const BaselineCapture = () => {
                 : 'bg-blue-600 hover:bg-blue-700'
             }`}
           >
-            {isCapturing ? 'キャプチャ中...' : '基準姿勢を設定'}
+            {isCapturing ? t('baseline.countdown.ready') : t('baseline.buttons.capture')}
           </button>
           
           {baselinePosture && (
@@ -136,21 +138,21 @@ export const BaselineCapture = () => {
                   : 'bg-green-600 hover:bg-green-700'
               }`}
             >
-              基準姿勢を更新
+              {t('baseline.buttons.recapture')}
             </button>
           )}
         </div>
 
         {!currentPose?.landmarks && (
           <p className="text-red-600 text-xs mt-2">
-            ⚠️ カメラを起動して姿勢を検出してから設定してください
+            {t('baseline.error')}
           </p>
         )}
       </div>
 
       {baselinePosture && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <h4 className="font-medium text-gray-800 mb-2">基準姿勢の詳細</h4>
+          <h4 className="font-medium text-gray-800 mb-2">{t('baseline.details.title')}</h4>
           <div className="text-sm text-gray-600 space-y-1">
             <p>検出されたランドマーク数: {baselinePosture.landmarks.length}</p>
             <p>設定日時: {formatDate(baselinePosture.timestamp)}</p>
