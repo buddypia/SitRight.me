@@ -10,6 +10,7 @@ const KEYS: NumericKey[] = [
   'headPitch',
   'headYaw',
   'shoulderTilt',
+  'headRoll',
   'shoulderY',
 ];
 

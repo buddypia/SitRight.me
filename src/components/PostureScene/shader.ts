@@ -28,12 +28,15 @@ uniform vec2 uAcromion;
 uniform vec2 uElbow;
 uniform vec2 uWrist;
 uniform vec4 uVert[24];
+uniform float uLean;     // 上体の側屈（ラジアン, 体の右 = +z へ倒れると正）
+uniform float uHeadRoll; // 上体に対する頭の側屈（ラジアン）
 
 uniform vec2 uGNeckBase;
 uniform vec2 uGPivot;
 uniform vec3 uGTorso;
 
 uniform vec4 uSev;      // forward, down, slump, overall
+uniform float uSevLean;
 uniform float uXray;
 uniform float uGhost;
 uniform float uBreath;
@@ -104,9 +107,23 @@ vec2 rotf(vec2 v, float a) {
   return vec2(v.x * c + v.y * s, -v.x * s + v.y * c);
 }
 
+// y-z 平面で、上方の点を +z へ a だけ倒す回転の逆
+vec2 unrollYZ(vec2 v, float a) {
+  float c = cos(a), s = sin(a);
+  return vec2(v.x * c + v.y * s, -v.x * s + v.y * c);
+}
+
+// 上体の側屈: 骨盤（座面のすぐ上）を支点に、高さに応じて徐々に倒す（腰椎〜胸椎で分担して曲がる）
+vec3 bend(vec3 p) {
+  float a = uLean * smoothstep(14.0, 62.0, p.y);
+  vec2 yz = unrollYZ(p.yz - vec2(12.0, 0.0), a);
+  return vec3(p.x, yz.x + 12.0, yz.y);
+}
+
 // ---------- body ----------
-float sdHead(vec3 p, vec2 pivot, float ang) {
+float sdHead(vec3 p, vec2 pivot, float ang, float roll) {
   vec3 h = vec3(unrot(p.xy - pivot, ang), p.z);
+  h.yz = unrollYZ(h.yz, roll);
   float bound = length(h - vec3(3.5, 3.5, 0.0)) - 17.0;
   if (bound > 5.0) return bound;
   vec3 hq = vec3(h.xy, abs(h.z));
@@ -160,6 +177,7 @@ float sdTorso(vec3 p) {
 }
 
 float sdBody(vec3 p) {
+  p = bend(p);
   vec3 q = vec3(p.xy, abs(p.z));
   float d = sdTorso(p);
   // 僧帽筋と三角筋
@@ -189,7 +207,7 @@ float sdBody(vec3 p) {
   d = smin(d, arm, 2.0);
   // 首と頭
   d = smin(d, sdNeck(p, uNeckBase, uPivot, uHeadAngle), 4.0);
-  d = smin(d, sdHead(p, uPivot, uHeadAngle), 2.8);
+  d = smin(d, sdHead(p, uPivot, uHeadAngle, uHeadRoll), 2.8);
   // 太もも（座面の上）
   d = smin(d, sdRoundCone(q, vec3(0.0, 9.5, 9.0), vec3(44.0, 10.5, 10.0), 8.6, 6.0), 6.0);
   // すね（膝から床へ）
@@ -199,7 +217,7 @@ float sdBody(vec3 p) {
 
 float sdGhost(vec3 p) {
   float d = sdNeck(p, uGNeckBase, uGPivot, 0.0);
-  d = smin(d, sdHead(p, uGPivot, 0.0), 2.8);
+  d = smin(d, sdHead(p, uGPivot, 0.0, 0.0), 2.8);
   // 首の付け根より下は描かない（胴体と重なって輪郭が読みにくくなるため）
   return max(d, uGNeckBase.y + 1.0 - p.y);
 }
@@ -238,7 +256,8 @@ vec2 map(vec3 p) {
 }
 
 // 影と環境遮蔽用の粗い形状（細部は影の形にほとんど影響しない）
-float mapCoarse(vec3 p) {
+float mapCoarse(vec3 world) {
+  vec3 p = bend(world);
   vec3 q = vec3(p.xy, abs(p.z));
   float d = sdTorso(p);
   vec3 sh = vec3(uAcromion, 16.8);
@@ -247,10 +266,13 @@ float mapCoarse(vec3 p) {
   d = min(d, sdCapsule(q, vec3(uElbow, 19.5), vec3(uWrist + vec2(9.0, 0.0), 15.5), 3.2));
   d = min(d, sdCapsule(p, vec3(uNeckBase, 0.0), vec3(uPivot, 0.0), 4.6));
   vec3 h = vec3(unrot(p.xy - uPivot, uHeadAngle), p.z);
+  h.yz = unrollYZ(h.yz, uHeadRoll);
   // 頭は内接する楕円体にして、顔の表面が自分の粗い形状に埋もれて影になるのを防ぐ
   d = min(d, sdEllipsoid(h - vec3(1.8, 6.6, 0.0), vec3(8.6, 8.0, 6.6)));
   d = min(d, sdCapsule(q, vec3(0.0, 9.5, 9.0), vec3(44.0, 10.5, 10.0), 7.5));
   d = min(d, sdCapsule(q, vec3(44.5, 9.5, 10.0), vec3(47.0, -36.0, 10.5), 3.6));
+  // ここから下は家具（側屈させない）
+  p = world;
   d = min(d, sdRoundCyl(p - vec3(6.0, -3.2, 0.0), 20.0, 3.4, 1.6));
   d = min(d, sdRoundBox(p - vec3(78.0, 26.4, 0.0), vec3(46.0, 1.6, 70.0), 0.7));
   vec3 sc = p - vec3(56.4, 29.3, -2.0);
@@ -268,6 +290,7 @@ float vertDepth(int i) {
 }
 
 vec2 sdSpine(vec3 p) {
+  p = bend(p);
   float best = 1e5;
   float id = -1.0;
   for (int i = 0; i < 24; i++) {
@@ -370,13 +393,22 @@ vec3 hemi(vec3 n) {
 
 // 頸部・上背部の負担を、首の軸と上部胸椎への距離で色付けする
 float strainAt(vec3 p) {
+  p = bend(p);
   vec3 a = vec3(uNeckBase - vec2(2.5, 0.0), 0.0);
   vec3 b = vec3(uPivot, 0.0);
   float neck = sdCapsule(p, a, b, 0.0);
   float neckW = exp(-neck * neck / 70.0) * max(uSev.x, uSev.y);
   float back = sdCapsule(p, vec3(uVert[11].xy, 0.0), vec3(uVert[16].xy, 0.0), 0.0);
   float backW = exp(-back * back / 120.0) * uSev.z;
-  return clamp(max(neckW, backW * 0.85), 0.0, 1.0);
+  // 左右の傾き: 縮んでいる側（倒れた側）の脇腹と首筋
+  float ls = uLean >= 0.0 ? 1.0 : -1.0;
+  float side = sdCapsule(p, vec3(uTorso[1].xy, ls * 12.0), vec3(uTorso[3].xy, ls * 13.5), 0.0);
+  float sideW = exp(-side * side / 60.0) * smoothstep(0.03, 0.12, abs(uLean));
+  float hs = uHeadRoll >= 0.0 ? 1.0 : -1.0;
+  float neckSide = sdCapsule(p, vec3(uNeckBase, hs * 4.5), vec3(uPivot, hs * 4.5), 0.0);
+  float neckSideW = exp(-neckSide * neckSide / 20.0) * smoothstep(0.05, 0.2, abs(uHeadRoll));
+  float latW = max(sideW, neckSideW) * uSevLean;
+  return clamp(max(max(neckW, backW * 0.85), latW * 0.85), 0.0, 1.0);
 }
 
 vec3 strainColor(float s) {
@@ -537,11 +569,12 @@ void main() {
       float alpha = sh.x > 0.0 ? mix(0.22, 0.92, fres) : 0.0;
       // 透過は背骨の周辺だけ。顔・腕・脚は不透明のまま
       // 横から見た平面上（z を無視）で背骨に近い部分
-      vec3 ps = vec3(p.xy, 0.0);
+      vec3 pb = bend(p);
+      vec3 ps = vec3(pb.xy, 0.0);
       float spineDist = sdCapsule(ps, vec3(uVert[0].xy, 0.0), vec3(uC7, 0.0), 0.0);
       spineDist = min(spineDist, sdCapsule(ps, vec3(uC7, 0.0), vec3(uPivot, 0.0), 0.0));
       float region = 1.0 - smoothstep(10.0, 18.0, spineDist);
-      region *= smoothstep(-1.0, 1.5, sdHead(p, uPivot, uHeadAngle));
+      region *= smoothstep(-1.0, 1.5, sdHead(pb, uPivot, uHeadAngle, uHeadRoll));
       col = mix(surf, mix(inner, surf, alpha), uXray * region);
     } else {
       col = surf;

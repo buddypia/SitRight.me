@@ -200,7 +200,15 @@ export const useAppStore = create<AppState>()(
         return {
           ...current,
           settings: { ...current.settings, ...(p.settings ?? {}) },
-          baseline: isValidBaseline(p.baseline) ? p.baseline : null,
+          // headRoll は後から追加した項目。古い基準は傾き 0 として扱う
+          baseline: isValidBaseline(p.baseline)
+            ? {
+                ...p.baseline,
+                headRoll: Number.isFinite(p.baseline.headRoll)
+                  ? p.baseline.headRoll
+                  : 0,
+              }
+            : null,
           history: Array.isArray(p.history) ? p.history : [],
         };
       },

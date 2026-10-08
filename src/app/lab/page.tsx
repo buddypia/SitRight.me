@@ -14,8 +14,15 @@ function Lab() {
     headPitchDeg: n('p'),
     thoracicFlexDeg: n('s'),
     shoulderProtractCm: n('r'),
+    leanDeg: n('l'),
+    headRollDeg: n('hr'),
   };
-  const sev = { forward: n('sf'), down: n('sd'), slump: n('ss'), lean: 0 };
+  const sev = {
+    forward: n('sf'),
+    down: n('sd'),
+    slump: n('ss'),
+    lean: n('sl'),
+  };
   return (
     <main
       className="h-dvh w-full p-4"

@@ -7,6 +7,8 @@ export interface RenderState {
   camera: CameraBasis;
   /** forward, down, slump, overall（0..1） */
   severity: [number, number, number, number];
+  /** 左右の傾きの深刻度（0..1） */
+  leanSeverity: number;
   xray: number;
   ghostOpacity: number;
   breath: number;
@@ -30,6 +32,9 @@ const UNIFORMS = [
   'uElbow',
   'uWrist',
   'uVert',
+  'uLean',
+  'uHeadRoll',
+  'uSevLean',
   'uGNeckBase',
   'uGPivot',
   'uGTorso',
@@ -191,6 +196,8 @@ export class SceneRenderer {
       this.vertData.set([v.x, v.y, v.angle, seg * 0.78], i * 4);
     });
     gl.uniform4fv(L.uVert, this.vertData);
+    gl.uniform1f(L.uLean, a.leanRad);
+    gl.uniform1f(L.uHeadRoll, a.headRollRad);
 
     const g = s.ghost;
     gl.uniform2f(L.uGNeckBase, g.neckBase.x, g.neckBase.y);
@@ -198,6 +205,7 @@ export class SceneRenderer {
     gl.uniform3fv(L.uGTorso, g.torso[4]);
 
     gl.uniform4fv(L.uSev, s.severity);
+    gl.uniform1f(L.uSevLean, s.leanSeverity);
     gl.uniform1f(L.uXray, s.xray);
     gl.uniform1f(L.uGhost, s.ghostOpacity);
     gl.uniform1f(L.uBreath, s.breath);

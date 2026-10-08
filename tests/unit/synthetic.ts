@@ -11,10 +11,14 @@ export interface Scene {
   pitch?: number;
   /** 頭の左右回転（度） */
   yaw?: number;
+  /** 頭の左右の傾き（度, 本人の右へ傾くと正） */
+  roll?: number;
   shoulders: { x: number; y: number; z: number };
   shoulderHalfWidth?: number;
   /** 肩の左右の前後差（cm）。体の回転を表す */
   shoulderDepthSkew?: number;
+  /** 肩のラインの傾き（度, 本人の右肩が下がると正） */
+  shoulderTilt?: number;
 }
 
 const W = 1280;
@@ -39,6 +43,8 @@ export function uprightScene(): Scene {
 export function synthFrame(s: Scene): VisionFrame {
   const pitch = ((s.pitch ?? 0) * Math.PI) / 180;
   const yaw = ((s.yaw ?? 0) * Math.PI) / 180;
+  const roll = ((s.roll ?? 0) * Math.PI) / 180;
+  const tilt = ((s.shoulderTilt ?? 0) * Math.PI) / 180;
   const half = s.shoulderHalfWidth ?? 19;
   const skew = s.shoulderDepthSkew ?? 0;
 
@@ -55,11 +61,14 @@ export function synthFrame(s: Scene): VisionFrame {
     y: 0.5,
     z: 0,
   }));
-  const rot = ([x, y, z]: [number, number, number]): [
+  const rot = ([x0, y0, z]: [number, number, number]): [
     number,
     number,
     number,
   ] => {
+    // roll: 本人の右（カメラ座標の -x）へ傾く = 頭頂が -x へ
+    const x = x0 * Math.cos(roll) - y0 * Math.sin(roll);
+    const y = x0 * Math.sin(roll) + y0 * Math.cos(roll);
     // pitch: 下向き = 顔の前方（-z）が下（-y）へ
     const y1 = y * Math.cos(pitch) + z * Math.sin(pitch);
     const z1 = -y * Math.sin(pitch) + z * Math.cos(pitch);
@@ -85,8 +94,20 @@ export function synthFrame(s: Scene): VisionFrame {
   }));
   const sz = s.shoulders.z;
   // 被写体の左肩は画像の右側（鏡像ではないカメラ）
-  pose[11] = project(s.shoulders.x + half, s.shoulders.y, sz + skew / 2, sz);
-  pose[12] = project(s.shoulders.x - half, s.shoulders.y, sz - skew / 2, sz);
+  // 本人の右肩（カメラ座標の -x 側）が下がると tilt が正
+  const dy = half * Math.sin(tilt);
+  pose[11] = project(
+    s.shoulders.x + half,
+    s.shoulders.y + dy,
+    sz + skew / 2,
+    sz
+  );
+  pose[12] = project(
+    s.shoulders.x - half,
+    s.shoulders.y - dy,
+    sz - skew / 2,
+    sz
+  );
 
   // MediaPipe の顔変換行列（column-major, y 上, カメラは -Z を向く OpenGL 系）
   // 顔の正面方向（カメラへ向く = 本テスト座標で -Z）を MediaPipe 座標（Z 反転）に変換したものが第3列

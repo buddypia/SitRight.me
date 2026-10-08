@@ -21,6 +21,7 @@ export const THRESHOLDS = {
   downDeg: [7, 25],
   slump: [0.05, 0.22],
   tiltDeg: [4, 12],
+  headTiltDeg: [8, 20],
 } as const;
 
 /** これ以上なら「注意」、POOR_AT 以上なら「要改善」 */
@@ -54,8 +55,17 @@ export function computeDeviation(m: RawMetrics, b: Baseline): PostureDeviation {
   const trunkDrop = sameSeat
     ? (m.shoulderY - b.shoulderY) / b.shoulderWidth
     : 0;
-  const tiltDeg = Math.abs(m.shoulderTilt - b.shoulderTilt);
-  return { headForwardCm, headDownDeg, compression, trunkDrop, tiltDeg };
+  // 画像は鏡像ではないため、画像の右側 = 本人の左側。本人の右へ傾くと正になるよう符号を反転する
+  const leanDeg = -(m.shoulderTilt - b.shoulderTilt);
+  const headTiltDeg = -(m.headRoll - b.headRoll);
+  return {
+    headForwardCm,
+    headDownDeg,
+    compression,
+    trunkDrop,
+    leanDeg,
+    headTiltDeg,
+  };
 }
 
 export function computeSeverities(
@@ -77,7 +87,19 @@ export function computeSeverities(
       THRESHOLDS.downDeg[1] * k
     ),
     slump: ramp(slumpIndex, THRESHOLDS.slump[0] * k, THRESHOLDS.slump[1] * k),
-    lean: ramp(d.tiltDeg, THRESHOLDS.tiltDeg[0] * k, THRESHOLDS.tiltDeg[1] * k),
+    // 上体の傾きと首のかしげのうち、大きい方
+    lean: Math.max(
+      ramp(
+        Math.abs(d.leanDeg),
+        THRESHOLDS.tiltDeg[0] * k,
+        THRESHOLDS.tiltDeg[1] * k
+      ),
+      ramp(
+        Math.abs(d.headTiltDeg),
+        THRESHOLDS.headTiltDeg[0] * k,
+        THRESHOLDS.headTiltDeg[1] * k
+      )
+    ),
   };
 }
 
