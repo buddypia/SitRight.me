@@ -100,11 +100,37 @@ describe('posture assessment (synthetic camera)', () => {
     }
   });
 
+  it('detects the trunk leaning to one side with its direction', () => {
+    for (const side of [1, -1]) {
+      const a = assessScene({ ...uprightScene(), shoulderTilt: 10 * side });
+      expect(a.pattern).toBe('lean');
+      expect(a.level).not.toBe('good');
+      expect(Math.sign(a.deviation.leanDeg)).toBe(side);
+      expect(Math.abs(a.deviation.leanDeg)).toBeCloseTo(10, 0);
+    }
+  });
+
+  it('detects the head tilting to one side with its direction', () => {
+    for (const side of [1, -1]) {
+      const a = assessScene({ ...uprightScene(), roll: 18 * side });
+      expect(a.pattern).toBe('lean');
+      expect(Math.sign(a.deviation.headTiltDeg)).toBe(side);
+      expect(Math.abs(a.deviation.headTiltDeg)).toBeCloseTo(18, 0);
+    }
+  });
+
+  it('head tilt is not confused with looking down or turning', () => {
+    const a = assessScene({ ...uprightScene(), pitch: 20, yaw: 20 });
+    expect(Math.abs(a.deviation.headTiltDeg)).toBeLessThan(1);
+  });
+
   it('small natural sway stays good', () => {
     const s = uprightScene();
     const a = assessScene({
       ...s,
       pitch: 4,
+      roll: 3,
+      shoulderTilt: 2,
       head: { ...s.head, z: s.head.z - 1, y: s.head.y - 0.5 },
     });
     expect(a.level).toBe('good');

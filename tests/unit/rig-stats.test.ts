@@ -35,6 +35,8 @@ describe('posture rig', () => {
       headForwardCm: 40,
       headPitchDeg: 90,
       shoulderProtractCm: 9,
+      leanDeg: 90,
+      headRollDeg: -90,
     });
     for (const v of s.vertebrae)
       expect(Number.isFinite(v.x + v.y + v.angle)).toBe(true);
@@ -50,7 +52,8 @@ const a = (
     headDownDeg: 0,
     compression: 0,
     trunkDrop: 0,
-    tiltDeg: 0,
+    leanDeg: 0,
+    headTiltDeg: 0,
   },
   severity: { forward: 0, down: 0, slump: 0, lean: 0 },
   score,

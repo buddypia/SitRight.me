@@ -82,6 +82,10 @@ const ja = {
   metricForward: '頭の前方突出',
   metricDown: 'うつむき',
   metricSlump: '背中の沈み込み',
+  metricLean: '左右の傾き',
+  sideLeft: '左',
+  sideRight: '右',
+  backView: '後ろから',
   metricLoad: '首への負担（目安）',
   metricLoadHint: '頭を支える首にかかる重さの目安です（Hansraj, 2014）',
   unitCm: 'cm',
@@ -183,9 +187,10 @@ const ja = {
     },
     lean: {
       name: '体の傾き',
-      short: '体が左右に傾いています',
-      detail: '肩のラインが傾き、片側に体重が乗っています。',
-      fix: '両方のお尻に均等に体重を乗せて座り直しましょう。',
+      short: '体や首が左右に傾いています',
+      detail:
+        '肩のラインや頭が片側に傾き、体重や首の負担が片側に偏っています。',
+      fix: '両方のお尻に均等に体重を乗せ、頭をまっすぐ肩の真ん中に戻しましょう。',
     },
   } satisfies Record<
     PosturePattern,
@@ -281,6 +286,10 @@ const en: Messages = {
   metricForward: 'Head forward',
   metricDown: 'Looking down',
   metricSlump: 'Back sinking',
+  metricLean: 'Side tilt',
+  sideLeft: 'L',
+  sideRight: 'R',
+  backView: 'Back view',
   metricLoad: 'Neck load (est.)',
   metricLoadHint: 'Estimated weight your neck supports (Hansraj, 2014)',
   unitCm: 'cm',
@@ -381,9 +390,10 @@ const en: Messages = {
     },
     lean: {
       name: 'Leaning',
-      short: 'You are leaning to one side',
-      detail: 'Your shoulder line is tilted and your weight is on one side.',
-      fix: 'Rebalance your weight evenly on both hips.',
+      short: 'Your body or head is tilting to one side',
+      detail:
+        'Your shoulder line or head is tilted, putting weight and neck strain on one side.',
+      fix: 'Rebalance your weight evenly on both hips and bring your head back to center.',
     },
   },
 

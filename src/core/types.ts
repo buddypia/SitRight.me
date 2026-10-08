@@ -38,8 +38,10 @@ export interface RawMetrics {
   headPitch: number;
   /** 頭の左右回転（度） */
   headYaw: number;
-  /** 肩のラインの傾き（度） */
+  /** 肩のラインの傾き（度, 画像の右側が下がると正） */
   shoulderTilt: number;
+  /** 頭の左右の傾き（度, 画像の右側が下がると正） */
+  headRoll: number;
   /** 肩の中点の画面内高さ（px） */
   shoulderY: number;
   /** カメラから頭までの推定距離（cm） */
@@ -56,6 +58,7 @@ export interface Baseline {
   neckRise: number;
   headPitch: number;
   shoulderTilt: number;
+  headRoll: number;
   shoulderY: number;
   shoulderWidth: number;
   headDistanceCm: number;
@@ -83,8 +86,10 @@ export interface PostureDeviation {
   compression: number;
   /** 上体の沈み込み（肩幅比） */
   trunkDrop: number;
-  /** 左右の傾き（度, 絶対値） */
-  tiltDeg: number;
+  /** 上体の左右の傾き（度, 本人の右へ傾くと正） */
+  leanDeg: number;
+  /** 首の左右の傾き（度, 本人の右へ傾くと正） */
+  headTiltDeg: number;
 }
 
 export interface Severities {

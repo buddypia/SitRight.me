@@ -30,6 +30,19 @@ export function Metrics({
     if (Number(text) === 0) return (0).toFixed(digits);
     return `${v > 0 ? '+' : '−'}${text}`;
   };
+  // 上体と首の傾きのうち大きい方を、本人から見た左右で示す
+  const leanValue = () => {
+    if (!a) return { value: '–', unit: t.unitDeg };
+    const { leanDeg, headTiltDeg } = a.deviation;
+    const v =
+      Math.abs(leanDeg) >= Math.abs(headTiltDeg) ? leanDeg : headTiltDeg;
+    const deg = Math.round(Math.abs(v));
+    if (deg === 0) return { value: '0', unit: t.unitDeg };
+    return {
+      value: `${v > 0 ? t.sideRight : t.sideLeft} ${deg}`,
+      unit: t.unitDeg,
+    };
+  };
   const rows: Row[] = [
     {
       key: 'forward',
@@ -51,6 +64,12 @@ export function Metrics({
       value: a ? signed(Math.max(-99, a.deviation.compression * 100), 0) : '–',
       unit: '%',
       severity: a?.severity.slump ?? 0,
+    },
+    {
+      key: 'lean',
+      label: t.metricLean,
+      ...leanValue(),
+      severity: a?.severity.lean ?? 0,
     },
     {
       key: 'load',

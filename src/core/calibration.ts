@@ -76,6 +76,7 @@ export class CalibrationCollector {
       neckRise: median(all.map((m) => m.neckRise)),
       headPitch: median(all.map((m) => m.headPitch)),
       shoulderTilt: median(all.map((m) => m.shoulderTilt)),
+      headRoll: median(all.map((m) => m.headRoll)),
       shoulderY: median(all.map((m) => m.shoulderY)),
       shoulderWidth: median(all.map((m) => m.shoulderWidth)),
       headDistanceCm: distances.length

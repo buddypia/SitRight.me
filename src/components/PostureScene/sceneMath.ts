@@ -14,6 +14,9 @@ export interface SceneAnchors {
   neckBase: Vec2;
   elbow: Vec2;
   wrist: Vec2;
+  /** 上体の側屈と、上体に対する頭の側屈（ラジアン, 体の右 = +z が正） */
+  leanRad: number;
+  headRollRad: number;
 }
 
 const add = (a: Vec2, b: Vec2): Vec2 => ({ x: a.x + b.x, y: a.y + b.y });
@@ -45,7 +48,34 @@ export function buildAnchors(rig: RigParams): SceneAnchors {
   const neckBase = add(s.c7, local(v[16].angle, 2.6, 0.4));
   const elbow = { x: s.acromion.x + 5.5 + rig.shoulderProtractCm, y: 23.5 };
   const wrist = { x: 33.5, y: 31.2 };
-  return { skeleton: s, torso, neckBase, elbow, wrist };
+  return {
+    skeleton: s,
+    torso,
+    neckBase,
+    elbow,
+    wrist,
+    leanRad: (rig.leanDeg * Math.PI) / 180,
+    headRollRad: (rig.headRollDeg * Math.PI) / 180,
+  };
+}
+
+const smoothstep = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
+
+/** シェーダーの bend() の順変換（上方の点を +z へ倒す）。オーバーレイの位置合わせ用 */
+export function bendPoint(
+  p: [number, number, number],
+  leanRad: number
+): [number, number, number] {
+  const a = leanRad * smoothstep(14, 62, p[1]);
+  const y = p[1] - 12;
+  return [
+    p[0],
+    y * Math.cos(a) - p[2] * Math.sin(a) + 12,
+    y * Math.sin(a) + p[2] * Math.cos(a),
+  ];
 }
 
 export const IDEAL_ANCHORS = buildAnchors(IDEAL_RIG);

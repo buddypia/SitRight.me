@@ -8,6 +8,7 @@ import { SceneRenderer } from './renderer';
 import {
   DEFAULT_CAMERA,
   IDEAL_ANCHORS,
+  bendPoint,
   buildAnchors,
   cameraBasis,
   projectPoint,
@@ -35,9 +36,16 @@ const RIG_KEYS: (keyof RigParams)[] = [
   'headForwardCm',
   'headPitchDeg',
   'shoulderProtractCm',
+  'leanDeg',
+  'headRollDeg',
 ];
 
-export type DemoPattern = 'ideal' | 'straight_neck' | 'text_neck' | 'slouch';
+export type DemoPattern =
+  | 'ideal'
+  | 'straight_neck'
+  | 'text_neck'
+  | 'slouch'
+  | 'lean';
 
 const IDEAL_SEV: Severities = { forward: 0, down: 0, slump: 0, lean: 0 };
 const DEMO_FRAMES: { pattern: DemoPattern; rig: RigParams; sev: Severities }[] =
@@ -50,6 +58,8 @@ const DEMO_FRAMES: { pattern: DemoPattern; rig: RigParams; sev: Severities }[] =
         headForwardCm: 6.5,
         headPitchDeg: -6,
         shoulderProtractCm: 0.6,
+        leanDeg: 0,
+        headRollDeg: 0,
       },
       sev: { forward: 0.9, down: 0, slump: 0.1, lean: 0 },
     },
@@ -61,6 +71,8 @@ const DEMO_FRAMES: { pattern: DemoPattern; rig: RigParams; sev: Severities }[] =
         headForwardCm: 3.5,
         headPitchDeg: 32,
         shoulderProtractCm: 1,
+        leanDeg: 0,
+        headRollDeg: 0,
       },
       sev: { forward: 0.4, down: 0.95, slump: 0.2, lean: 0 },
     },
@@ -72,8 +84,20 @@ const DEMO_FRAMES: { pattern: DemoPattern; rig: RigParams; sev: Severities }[] =
         headForwardCm: 4.5,
         headPitchDeg: 8,
         shoulderProtractCm: 3.2,
+        leanDeg: 0,
+        headRollDeg: 0,
       },
       sev: { forward: 0.5, down: 0.1, slump: 0.95, lean: 0 },
+    },
+    { pattern: 'ideal', rig: IDEAL_RIG, sev: IDEAL_SEV },
+    {
+      pattern: 'lean',
+      rig: {
+        ...IDEAL_RIG,
+        leanDeg: -11,
+        headRollDeg: -6,
+      },
+      sev: { forward: 0, down: 0, slump: 0, lean: 0.85 },
     },
   ];
 const DEMO_HOLD_MS = 2600;
@@ -98,6 +122,7 @@ export function PostureScene({
   const overlayRef = useRef<SVGSVGElement>(null);
   const offsetLabelRef = useRef<HTMLDivElement>(null);
   const idealLabelRef = useRef<HTMLDivElement>(null);
+  const gaugeRef = useRef<SVGSVGElement>(null);
   const [failed, setFailed] = useState(false);
   const [dragging, setDragging] = useState(false);
 
@@ -107,6 +132,8 @@ export function PostureScene({
   const cam = useRef<OrbitCamera>({ ...DEFAULT_CAMERA });
   const camTarget = useRef<OrbitCamera>({ ...DEFAULT_CAMERA });
   const resetViewRef = useRef<() => void>(() => undefined);
+  const tRef = useRef(t);
+  tRef.current = t;
   const demoCallback = useRef(onDemoPattern);
   demoCallback.current = onDemoPattern;
 
@@ -132,6 +159,7 @@ export function PostureScene({
 
     const cur: RigParams = { ...IDEAL_RIG };
     const sev = [0, 0, 0, 0] as [number, number, number, number];
+    let sevLean = 0;
     let xrayCur = target.current.xray ? 1 : 0;
     let ghostCur = target.current.guides ? 1 : 0;
     let raf = 0;
@@ -184,11 +212,23 @@ export function PostureScene({
       svg.style.opacity = show;
       const p = (x: number, y: number, z: number) =>
         projectPoint(basis, [x, y, z], cssW, cssH);
-      const ear = p(sk.ear.x, sk.ear.y, 7.8);
-      const acr = p(sk.acromion.x, sk.acromion.y, 17);
-      const plumbTop = p(sk.acromion.x, sk.ear.y + 9, 7.8);
-      const plumbBottom = p(sk.acromion.x, sk.acromion.y, 17);
-      const plumbAtEar = p(sk.acromion.x, sk.ear.y, 7.8);
+      // 左右の傾きはシェーダーと同じ変形をかけて、マーカーを体に追従させる
+      const lean = anchors.leanRad;
+      const roll = anchors.headRollRad;
+      const earLocal: [number, number, number] = [
+        sk.ear.x,
+        sk.skullPivot.y +
+          (sk.ear.y - sk.skullPivot.y) * Math.cos(roll) -
+          7.8 * Math.sin(roll),
+        (sk.ear.y - sk.skullPivot.y) * Math.sin(roll) + 7.8 * Math.cos(roll),
+      ];
+      const earW = bendPoint(earLocal, lean);
+      const acrW = bendPoint([sk.acromion.x, sk.acromion.y, 17], lean);
+      const ear = p(...earW);
+      const acr = p(...acrW);
+      const plumbTop = p(acrW[0], earW[1] + 9, earW[2]);
+      const plumbBottom = acr;
+      const plumbAtEar = p(acrW[0], earW[1], earW[2]);
       const set = (id: string, attrs: Record<string, number | string>) => {
         const el = svg.querySelector(`[data-id="${id}"]`);
         if (el)
@@ -224,6 +264,40 @@ export function PostureScene({
         idealLabel.style.transform = `translate(${top.x}px, ${top.y}px) translate(-100%, -50%)`;
         idealLabel.style.opacity = ghostCur > 0.5 ? '1' : '0';
       }
+      updateGauge(anchors);
+    };
+
+    // 横からの3Dでは見えにくい左右の傾きを、後ろから見た模式図で示す
+    const updateGauge = (anchors: ReturnType<typeof buildAnchors>) => {
+      const g = gaugeRef.current;
+      if (!g) return;
+      g.style.opacity = ghostCur > 0.5 ? '1' : '0';
+      const leanDeg = (anchors.leanRad * 180) / Math.PI;
+      const rollDeg = (anchors.headRollRad * 180) / Math.PI;
+      const headDeg = leanDeg + rollDeg;
+      // 後ろから見るので、本人の右（正）は画面でも右（時計回り）
+      g
+        .querySelector('[data-id="trunk"]')
+        ?.setAttribute('transform', `rotate(${leanDeg.toFixed(2)} 48 72)`);
+      g
+        .querySelector('[data-id="head"]')
+        ?.setAttribute('transform', `rotate(${rollDeg.toFixed(2)} 48 42)`);
+      g.style.setProperty(
+        '--gauge',
+        sevLean >= 0.6
+          ? 'var(--poor)'
+          : sevLean >= 0.3
+            ? 'var(--fair)'
+            : 'var(--good)'
+      );
+      const label = g.querySelector('[data-id="value"]');
+      const main = Math.abs(leanDeg) >= Math.abs(headDeg) ? leanDeg : headDeg;
+      const deg = Math.round(Math.abs(main));
+      const text =
+        deg === 0
+          ? '0°'
+          : `${main > 0 ? tRef.current.sideRight : tRef.current.sideLeft} ${deg}°`;
+      if (label && label.textContent !== text) label.textContent = text;
     };
 
     const loop = (now: number) => {
@@ -264,6 +338,9 @@ export function PostureScene({
       sevGoal.forEach((g, i) => {
         sev[i] += (g - sev[i]) * k;
       });
+      sevLean += (goalSev.lean - sevLean) * k;
+      // 発光（警告の脈動）は左右の傾きでも出す。総合評価と同じく重みを下げる
+      sev[3] = Math.max(sev[3], sevLean * 0.6);
       xrayCur += ((tgt.xray ? 1 : 0) - xrayCur) * (1 - Math.exp(-dt * 6));
       ghostCur += ((tgt.guides ? 1 : 0) - ghostCur) * (1 - Math.exp(-dt * 6));
 
@@ -320,6 +397,7 @@ export function PostureScene({
         ghost: IDEAL_ANCHORS,
         camera: basis,
         severity: sev,
+        leanSeverity: sevLean,
         xray: xrayCur,
         ghostOpacity: ghostCur,
         breath: Math.sin((time * Math.PI * 2) / 4.6),
@@ -422,6 +500,92 @@ export function PostureScene({
       >
         {t.ideal}
       </div>
+      <svg
+        ref={gaugeRef}
+        viewBox="0 0 96 96"
+        className="pointer-events-none absolute bottom-12 right-3 h-24 w-24 rounded-2xl border border-white/10 bg-black/35 backdrop-blur transition-opacity duration-500"
+        style={{ '--gauge': 'var(--good)' } as React.CSSProperties}
+        role="img"
+        aria-label={t.backView}
+      >
+        <text
+          x="8"
+          y="14"
+          fontSize="9"
+          fill="rgba(255,255,255,0.55)"
+          className="tracking-wide"
+        >
+          {t.backView}
+        </text>
+        <text
+          data-id="value"
+          x="88"
+          y="14"
+          fontSize="9"
+          textAnchor="end"
+          fill="var(--gauge)"
+          className="font-mono font-semibold"
+        >
+          0°
+        </text>
+        {/* 理想の正中線 */}
+        <line
+          x1="48"
+          y1="20"
+          x2="48"
+          y2="82"
+          stroke="rgba(77,234,196,0.6)"
+          strokeWidth="1"
+          strokeDasharray="3 3"
+        />
+        {/* 骨盤（座面） */}
+        <path
+          d="M30 78 Q48 70 66 78"
+          fill="none"
+          stroke="rgba(255,255,255,0.35)"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+        <g data-id="trunk">
+          <line
+            x1="48"
+            y1="72"
+            x2="48"
+            y2="42"
+            stroke="var(--gauge)"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          />
+          <line
+            x1="30"
+            y1="44"
+            x2="66"
+            y2="44"
+            stroke="var(--gauge)"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          />
+          <g data-id="head">
+            <line
+              x1="48"
+              y1="42"
+              x2="48"
+              y2="36"
+              stroke="var(--gauge)"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+            <circle
+              cx="48"
+              cy="28"
+              r="7"
+              fill="none"
+              stroke="var(--gauge)"
+              strokeWidth="2"
+            />
+          </g>
+        </g>
+      </svg>
       <button
         type="button"
         onClick={() => resetViewRef.current()}

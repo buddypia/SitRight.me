@@ -14,6 +14,10 @@ export interface RigParams {
   headPitchDeg: number;
   /** 肩の巻き込み（cm） */
   shoulderProtractCm: number;
+  /** 上体の左右の傾き（度, 本人の右が正）。骨盤から上を側屈させる */
+  leanDeg: number;
+  /** 上体に対する頭の左右の傾き（度, 本人の右が正） */
+  headRollDeg: number;
 }
 
 export const IDEAL_RIG: RigParams = {
@@ -21,6 +25,8 @@ export const IDEAL_RIG: RigParams = {
   headForwardCm: 0,
   headPitchDeg: 0,
   shoulderProtractCm: 0,
+  leanDeg: 0,
+  headRollDeg: 0,
 };
 
 const clamp = (v: number, lo: number, hi: number) =>
@@ -33,11 +39,15 @@ export function rigFromDeviation(d: PostureDeviation): RigParams {
     -0.3,
     1.2
   );
+  const leanDeg = clamp(d.leanDeg, -25, 25);
   return {
     thoracicFlexDeg: slump * 30,
     headForwardCm: clamp(d.headForwardCm, -4, 10),
     headPitchDeg: clamp(d.headDownDeg, -30, 55),
     shoulderProtractCm: clamp(slump, 0, 1) * 3.2,
+    leanDeg,
+    // 計測した頭の傾きは画面に対する角度なので、上体の傾き分を差し引く
+    headRollDeg: clamp(d.headTiltDeg, -35, 35) - leanDeg,
   };
 }
 

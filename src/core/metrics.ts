@@ -25,6 +25,8 @@ const MAX_HEAD_YAW_DEG = 32;
 const MAX_SHOULDER_DEPTH_RATIO = 0.75;
 
 const RAD = 180 / Math.PI;
+/** 一般的な Web カメラ（水平画角 60° 前後）の焦点距離 / 画像幅 */
+const FOCAL_RATIO = 0.87;
 
 const isFiniteLandmark = (p: Landmark | undefined): p is Landmark =>
   !!p && Number.isFinite(p.x) && Number.isFinite(p.y) && Number.isFinite(p.z);
@@ -163,6 +165,14 @@ export function extractMetrics(frame: VisionFrame): FrameResult {
   const [left, right] = ls.x < rs.x ? [ls, rs] : [rs, ls];
   const shoulderTilt =
     Math.atan2((right.y - left.y) * height, (right.x - left.x) * width) * RAD;
+  // 頭の傾きは耳の高さの顔輪郭2点で測る（うつむき・首振りでは高さの差が生じない）。
+  // 首を振るとカメラに近い側が大きく写って傾いて見えるため、奥行きで透視を打ち消す
+  const unproject = (p: Landmark) => {
+    const s = 1 + p.z / FOCAL_RATIO;
+    return { x: (p.x - 0.5) * width * s, y: (p.y - 0.5) * height * s };
+  };
+  const [faceL, faceR] = (fa.x < fb.x ? [fa, fb] : [fb, fa]).map(unproject);
+  const headRoll = Math.atan2(faceR.y - faceL.y, faceR.x - faceL.x) * RAD;
 
   return {
     ok: true,
@@ -174,6 +184,7 @@ export function extractMetrics(frame: VisionFrame): FrameResult {
       headPitch: head.pitch,
       headYaw: head.yaw,
       shoulderTilt,
+      headRoll,
       shoulderY: shoulderMidY,
       headDistanceCm: head.distanceCm,
     },
