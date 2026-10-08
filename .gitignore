@@ -36,3 +36,14 @@ next-env.d.ts
 
 # ClaudPoint checkpoint system
 .checkpoints/
+
+# local test media / scratch
+/public/dev/
+/.tmp/
+/tmp/
+/test-results/
+/playwright-report/
+/.playwright-cli/
+/.agents/
+/tests/e2e/fixtures/*.mjpeg
+/tests/e2e/fixtures/portrait.jpg
