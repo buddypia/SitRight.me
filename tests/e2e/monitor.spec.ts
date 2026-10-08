@@ -29,6 +29,26 @@ const seedSettings = async (page: Page) => {
   });
 };
 
+const calibrate = async (page: Page) => {
+  await page.getByRole('button', { name: 'はじめる' }).click();
+  const enable = page.getByRole('button', { name: 'カメラを有効にする' });
+  if (await enable.isVisible().catch(() => false)) await enable.click();
+
+  // 顔・両肩・正面のチェックがそろうと次へ進める
+  const next = page.getByRole('button', { name: '次へ：基準姿勢を記録' });
+  const record = page.getByRole('button', { name: '記録を開始' });
+  // 推定が遅い環境ではチェックが一瞬外れてクリックが空振りすることがあるので、進むまで押し直す
+  await expect(async () => {
+    await expect(next).toBeEnabled();
+    await next.click();
+    await expect(record).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 120_000 });
+  await record.click();
+  await expect(page.getByText('基準姿勢を記録しました')).toBeVisible({
+    timeout: 30_000,
+  });
+};
+
 test('onboarding → calibration → monitoring detects bad posture and recovery', async ({
   page,
 }) => {
@@ -39,24 +59,12 @@ test('onboarding → calibration → monitoring detects bad posture and recovery
   await seedSettings(page);
   await page.goto('/');
 
-  await page.getByRole('button', { name: 'はじめる' }).click();
-  const enable = page.getByRole('button', { name: 'カメラを有効にする' });
-  if (await enable.isVisible().catch(() => false)) await enable.click();
-
-  // 顔・両肩・正面のチェックがそろうと次へ進める
-  const next = page.getByRole('button', { name: '次へ：基準姿勢を記録' });
-  await expect(next).toBeEnabled({ timeout: 120_000 });
-  console.log(`[e2e] setup ready at ${elapsed()}s`);
-  await next.click();
-
-  await page.getByRole('button', { name: '記録を開始' }).click();
-  await expect(page.getByText('基準姿勢を記録しました')).toBeVisible({
-    timeout: 30_000,
-  });
+  await calibrate(page);
   console.log(`[e2e] calibrated at ${elapsed()}s`);
 
-  const status = page.locator('section[aria-live="polite"]').first();
-  await expect(status).toContainText('良い姿勢', { timeout: 20_000 });
+  await expect(page.getByRole('heading', { name: '良い姿勢' })).toBeVisible({
+    timeout: 20_000,
+  });
 
   const baseline = JSON.parse(
     (await page.evaluate(() => localStorage.getItem('sitsmart.v2'))) ?? '{}'
