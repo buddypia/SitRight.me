@@ -114,9 +114,12 @@ export function PostureScene({
     const canvas = canvasRef.current;
     const wrap = wrapRef.current;
     if (!canvas || !wrap) return;
+    // 小窓（Document PiP）に描画するときは、そちらの window の rAF と表示状態に従う
+    const doc = wrap.ownerDocument;
+    const win = (doc.defaultView ?? window) as typeof window;
     let renderer: SceneRenderer;
     try {
-      const strip = new URLSearchParams(window.location.search).get('strip');
+      const strip = new URLSearchParams(win.location.search).get('strip');
       renderer = new SceneRenderer(
         canvas,
         strip ? strip.split(',').map((d) => `NO_${d.toUpperCase()}`) : []
@@ -132,7 +135,8 @@ export function PostureScene({
     let xrayCur = target.current.xray ? 1 : 0;
     let ghostCur = target.current.guides ? 1 : 0;
     let raf = 0;
-    let last = performance.now();
+    // rAF の時刻は描画先 window の時間軸なので、基準もそちらの performance から取る
+    let last = win.performance.now();
     let lastRender = 0;
     let visible = true;
     // ソフトウェア描画の環境では解像度とフレームレートを大きく下げる
@@ -143,7 +147,7 @@ export function PostureScene({
     let cssW = 0;
     let cssH = 0;
     let demoIdx = -1;
-    const start = performance.now();
+    const start = win.performance.now();
 
     const resize = () => {
       const r = wrap.getBoundingClientRect();
@@ -151,17 +155,16 @@ export function PostureScene({
       cssH = r.height;
       // 画素数の上限を設けて、高解像度ディスプレイでも負荷を一定に保つ
       const budget = Math.sqrt(PIXEL_BUDGET / Math.max(1, cssW * cssH));
-      const scale =
-        Math.min(window.devicePixelRatio || 1, 1.5, budget) * quality;
+      const scale = Math.min(win.devicePixelRatio || 1, 1.5, budget) * quality;
       renderer.resize(
         Math.max(1, Math.round(cssW * scale)),
         Math.max(1, Math.round(cssH * scale))
       );
     };
-    const ro = new ResizeObserver(resize);
+    const ro = new win.ResizeObserver(resize);
     ro.observe(wrap);
     resize();
-    const io = new IntersectionObserver(([entry]) => {
+    const io = new win.IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
     });
     io.observe(wrap);
@@ -224,10 +227,10 @@ export function PostureScene({
     };
 
     const loop = (now: number) => {
-      raf = requestAnimationFrame(loop);
-      const dt = Math.min(0.1, (now - last) / 1000);
+      raf = win.requestAnimationFrame(loop);
+      const dt = clamp((now - last) / 1000, 0, 0.1);
       last = now;
-      if (!visible || document.hidden) return;
+      if (!visible || doc.hidden) return;
 
       const tgt = target.current;
       let goalRig = tgt.rig;
@@ -328,10 +331,10 @@ export function PostureScene({
       }
       updateOverlay(anchors, basis);
     };
-    raf = requestAnimationFrame(loop);
+    raf = win.requestAnimationFrame(loop);
 
     return () => {
-      cancelAnimationFrame(raf);
+      win.cancelAnimationFrame(raf);
       ro.disconnect();
       io.disconnect();
       renderer.dispose();

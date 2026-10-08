@@ -1,17 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { getController } from '@/engine/controller';
 import {
   notificationsSupported,
   requestNotificationPermission,
 } from '@/engine/notifier';
+import { useDocumentPip } from '@/hooks/useDocumentPip';
 import { useT } from '@/hooks/useT';
 import { useAppStore } from '@/stores/appStore';
 import { CameraPreview } from '../CameraPreview';
 import { PostureScene } from '../PostureScene';
 import { Button, Toggle } from '../ui';
 import { Metrics } from './Metrics';
+import { MiniMonitor } from './MiniMonitor';
 import { StatusCard, displayStatus } from './StatusCard';
 import { TodayPanel } from './TodayPanel';
 
@@ -23,6 +26,7 @@ export function Monitor() {
   const history = useAppStore((s) => s.history);
   const updateSettings = useAppStore((s) => s.updateSettings);
   const setPhase = useAppStore((s) => s.setPhase);
+  const pip = useDocumentPip();
 
   useEffect(() => {
     if (live.camera === 'off') void controller.startCamera();
@@ -56,27 +60,54 @@ export function Monitor() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.65fr)_minmax(320px,1fr)]">
         <section className="relative h-[min(64dvh,640px)] min-h-[420px] overflow-hidden rounded-[24px] border border-line lg:h-auto lg:min-h-[560px]">
-          <PostureScene
-            rig={live.rig}
-            severity={measuring ? (live.assessment?.severity ?? null) : null}
-            xray={settings.xray}
-            lowPower={settings.powerSaver}
-            t={t}
-            className="h-full w-full"
-          />
+          {pip.pipWindow ? (
+            <div className="grid h-full w-full place-items-center bg-[#14171c]">
+              <div className="flex flex-col items-center gap-3">
+                <p className="text-sm text-ink-3">{t.pipActive}</p>
+                <Button size="sm" onClick={pip.close}>
+                  {t.pipClose}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <PostureScene
+              rig={live.rig}
+              severity={measuring ? (live.assessment?.severity ?? null) : null}
+              xray={settings.xray}
+              lowPower={settings.powerSaver}
+              t={t}
+              className="h-full w-full"
+            />
+          )}
           <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 bg-gradient-to-b from-black/50 to-transparent p-5">
             <div>
               <h2 className="text-sm font-semibold text-ink-1">{t.sideView}</h2>
               <p className="mt-0.5 text-[11px] text-ink-3">{t.sideViewHint}</p>
             </div>
-            <label className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/10 bg-black/35 py-1 pl-3 pr-1 text-xs text-ink-2 backdrop-blur">
-              {t.xray}
-              <Toggle
-                checked={settings.xray}
-                onChange={(v) => updateSettings({ xray: v })}
-                label={t.xray}
-              />
-            </label>
+            <div className="flex items-center gap-2">
+              {pip.supported && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    pip.pipWindow
+                      ? pip.close()
+                      : void pip.open({ width: 340, height: 400 })
+                  }
+                  className="pointer-events-auto flex h-8 items-center gap-1.5 rounded-full border border-[rgba(77,234,196,0.4)] bg-[rgba(77,234,196,0.15)] px-3 text-xs font-medium text-good backdrop-blur hover:bg-[rgba(77,234,196,0.25)]"
+                >
+                  <PipIcon />
+                  {pip.pipWindow ? t.pipClose : t.pipOpen}
+                </button>
+              )}
+              <label className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/10 bg-black/35 py-1 pl-3 pr-1 text-xs text-ink-2 backdrop-blur">
+                {t.xray}
+                <Toggle
+                  checked={settings.xray}
+                  onChange={(v) => updateSettings({ xray: v })}
+                  label={t.xray}
+                />
+              </label>
+            </div>
           </div>
           <Legend t={t} />
         </section>
@@ -126,7 +157,34 @@ export function Monitor() {
         />
       </div>
       <p className="mt-6 text-center text-[11px] text-ink-3">{t.disclaimer}</p>
+      {pip.pipWindow &&
+        createPortal(
+          <MiniMonitor
+            live={live}
+            t={t}
+            xray={settings.xray}
+            lowPower={settings.powerSaver}
+          />,
+          pip.pipWindow.document.body
+        )}
     </div>
+  );
+}
+
+function PipIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect
+        x="3"
+        y="5"
+        width="18"
+        height="14"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+      <rect x="12" y="11" width="7" height="6" rx="1" fill="currentColor" />
+    </svg>
   );
 }
 
