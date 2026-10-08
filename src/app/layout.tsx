@@ -1,13 +1,17 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import { I18nProvider } from '@/components/I18nProvider';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'SitSmart - AI Posture Detection System',
-  description: 'Real-time AI posture detection to support proper posture',
+  title: 'SitSmart',
+  description:
+    'Webカメラだけでストレートネック・スマホ首・猫背を計測し、横からの姿勢を3Dで可視化。悪い姿勢が続いたときだけ知らせる姿勢モニター。',
+  icons: { icon: '/icon.svg' },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0b0d10',
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -17,11 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body className={inter.className}>
-        <I18nProvider>
-          {children}
-        </I18nProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

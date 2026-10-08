@@ -3,25 +3,64 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  color-scheme: dark;
+  --bg: #0b0d10;
+  --surface-1: #111419;
+  --surface-2: #171b21;
+  --surface-3: #1f242c;
+  --line: rgba(255, 255, 255, 0.08);
+  --ink-1: #eef0f2;
+  --ink-2: #b3b9c2;
+  --ink-3: #7b838e;
+  --good: #4deac4;
+  --fair: #ffbe5c;
+  --poor: #ff6b5b;
+  --font-sans:
+    'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP',
+    'Yu Gothic UI', 'Meiryo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display:
+    'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', 'Times New Roman',
+    serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+html,
+body {
+  background: var(--bg);
+  color: var(--ink-1);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  min-height: 100dvh;
+}
+
+::selection {
+  background: rgba(77, 234, 196, 0.3);
+}
+
+:focus-visible {
+  outline: 2px solid var(--good);
+  outline-offset: 2px;
+}
+
+.panel {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
 }
