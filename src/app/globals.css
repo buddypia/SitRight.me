@@ -71,6 +71,11 @@
   --poor: #ff6b5b;
 }
 
+/* 韓国語は単語（語節）の途中で改行しない */
+:lang(ko) {
+  word-break: keep-all;
+}
+
 html,
 body {
   background: var(--bg);
