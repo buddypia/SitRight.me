@@ -73,7 +73,7 @@ export async function requestNotificationPermission(): Promise<
 export function showDesktopNotification(
   title: string,
   body: string,
-  tag = 'sitsmart-posture'
+  tag = 'sitright-posture'
 ): void {
   if (!notificationsSupported() || Notification.permission !== 'granted')
     return;
@@ -94,7 +94,7 @@ export function showDesktopNotification(
   }
 }
 
-const BASE_TITLE = 'SitSmart';
+const BASE_TITLE = 'SitRight';
 
 export function setTitleState(prefix: string | null): void {
   if (typeof document === 'undefined') return;

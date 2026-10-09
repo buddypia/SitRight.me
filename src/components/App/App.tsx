@@ -26,7 +26,7 @@ export function App() {
   useEffect(() => {
     // 開発時のみ、検証用に状態を参照できるようにする
     if (process.env.NODE_ENV !== 'production') {
-      (window as unknown as Record<string, unknown>).__sitsmart = {
+      (window as unknown as Record<string, unknown>).__sitright = {
         store: useAppStore,
         controller: getController(),
       };
@@ -91,11 +91,11 @@ function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
           type="button"
           onClick={() => phase !== 'monitor' && setPhase('welcome')}
           className="flex items-center gap-2.5"
-          aria-label="SitSmart"
+          aria-label="SitRight"
         >
           <Logo />
           <span className="text-[15px] font-semibold tracking-tight">
-            SitSmart
+            SitRight
           </span>
           <span className="hidden text-xs text-ink-3 md:inline">
             {t.appTagline}

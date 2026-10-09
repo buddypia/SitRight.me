@@ -1,6 +1,6 @@
 # Security Policy
 
-SitSmart runs entirely in the browser. Camera frames are processed locally by MediaPipe and are never uploaded, stored, or sent anywhere. The production build enforces this with a Content Security Policy (`connect-src 'self'`), so the browser itself blocks any request to another origin.
+SitRight runs entirely in the browser. Camera frames are processed locally by MediaPipe and are never uploaded, stored, or sent anywhere. The production build enforces this with a Content Security Policy (`connect-src 'self'`), so the browser itself blocks any request to another origin.
 
 ## Supported versions
 

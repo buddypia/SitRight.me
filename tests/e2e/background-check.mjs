@@ -65,7 +65,7 @@ async function waitForDevtools() {
   throw new Error('Chrome DevTools endpoint did not start');
 }
 
-const profile = mkdtempSync(path.join(tmpdir(), 'sitsmart-bg-'));
+const profile = mkdtempSync(path.join(tmpdir(), 'sitright-bg-'));
 const chrome = spawn(
   chromium.executablePath(),
   [
@@ -89,9 +89,9 @@ try {
   const pw = await chromium.connectOverCDP(`http://127.0.0.1:${PORT}`);
   const page = pw.contexts()[0].pages()[0];
   await page.addInitScript(() => {
-    if (localStorage.getItem('sitsmart.v2')) return;
+    if (localStorage.getItem('sitright.v2')) return;
     localStorage.setItem(
-      'sitsmart.v2',
+      'sitright.v2',
       JSON.stringify({
         version: 1,
         state: {
@@ -142,7 +142,7 @@ try {
   const today = async () =>
     JSON.parse(
       await evaluate(
-        `JSON.stringify(JSON.parse(localStorage.getItem('sitsmart.v2')).state.history[0] ?? {monitoredSec:0,alerts:0,fairSec:0,poorSec:0})`
+        `JSON.stringify(JSON.parse(localStorage.getItem('sitright.v2')).state.history[0] ?? {monitoredSec:0,alerts:0,fairSec:0,poorSec:0})`
       )
     );
   const cpuTime = async () => {
