@@ -1,72 +1,107 @@
 # SitSmart
 
-ノートPCのWebカメラだけで **ストレートネック・スマホ首・首猫背・猫背** の姿勢を計測し、
-正面カメラでは見えない「横から見た姿勢」を3Dで可視化して、悪い姿勢が続いたときだけ通知するWebアプリです。
-映像はブラウザの外に出ません（MediaPipe をブラウザ内で実行）。
+**English** | [日本語](README.ja.md) | [한국어](README.ko.md)
 
-> 医療機器ではなく、診断を行うものではありません。
+SitSmart uses nothing but your laptop webcam to measure **forward head, text neck, hunched neck and slouching**.
+It shows the side view of your posture that a front-facing camera cannot see, in 3D, and nudges you only when bad posture persists.
+Video never leaves your browser: pose estimation runs locally with MediaPipe.
 
-## 使い方
+**Try it:** https://sitright.pages.dev
 
-1. **カメラ位置の確認** — 顔・両肩・正面向きの3項目がそろうまでガイド
-2. **基準姿勢の記録（3秒）** — 良い姿勢を保ってもらい、その中央値を「あなたの基準」にする
-3. **モニタリング** — 基準からのずれを cm・角度で表示。崩れが設定秒数（既定20秒）続いたら通知
+> SitSmart is not a medical device and does not diagnose anything.
 
-## 判定の仕組み
+![Monitoring screen with a hunched-neck alert](docs/screenshots/en-monitor.webp)
 
-正面カメラの1フレームから次の量を取り出し（`src/core/metrics.ts`）、本人の基準姿勢と比較します（`src/core/assessment.ts`）。
+| Welcome | Settings |
+| --- | --- |
+| ![Welcome screen](docs/screenshots/en-welcome.webp) | ![Settings](docs/screenshots/en-settings.webp) |
 
-| 計測値 | 求め方 | 主に表す姿勢 |
+The UI is available in English, Japanese and Korean (picked from your browser language; change it in Settings).
+
+| 日本語 | 한국어 |
+| --- | --- |
+| ![Welcome screen in Japanese](docs/screenshots/ja-welcome.webp) | ![Welcome screen in Korean](docs/screenshots/ko-welcome.webp) |
+
+## How it works
+
+1. **Camera check** — guides you until your face, both shoulders and a frontal view are visible
+2. **Baseline (3 s)** — you hold a good posture; the median becomes *your* baseline
+3. **Monitoring** — shows the deviation from your baseline in cm and degrees, and alerts you when it lasts longer than the configured delay (20 s by default)
+
+Each camera frame is reduced to the following measurements (`src/core/metrics.ts`) and compared with your baseline (`src/core/assessment.ts`).
+
+| Measurement | How it is computed | Mainly indicates |
 | --- | --- | --- |
-| 頭の前方突出（cm） | 顔幅/肩幅の比の変化と、顔の変換行列から得た頭までの距離 D から `D·(1 − r0/r)` | ストレートネック・首猫背 |
-| うつむき（°） | 顔のメトリック変換行列のピッチ | スマホ首 |
-| 背中の沈み込み（%） | 肩〜耳の高さ/肩幅の縮み（うつむき分を補正）＋肩の下降 | 猫背・首猫背 |
-| 左右の傾き（°） | 肩のラインの角度 | 体の傾き |
+| Head forward (cm) | From the change in the face-width / shoulder-width ratio and the head distance D from the facial transformation matrix: `D·(1 − r0/r)` | Forward head, hunched neck |
+| Looking down (°) | Pitch of the facial transformation matrix | Text neck |
+| Back sinking (%) | Shrinking of the shoulder-to-ear height relative to shoulder width (corrected for looking down) plus shoulder drop | Slouching, hunched neck |
+| Side tilt (°) | Angle of the shoulder line | Leaning |
 
-- 体ごと前後に動いても比は変わらないため、**画面に近づいただけでは誤判定しません**
-- 両肩が映っていない・横を向いている・体が斜め、などの**信頼できないフレームは判定に使いません**
-- 一瞬の前かがみでは鳴らないよう、蓄積（減衰つき）・ヒステリシス・クールダウンで通知を制御（`src/core/alerts.ts`）
-- 首への負担（kg）は首の前傾角から Hansraj (2014) の値を補間した目安です
+- Ratios do not change when your whole body moves closer, so **leaning towards the screen alone is not flagged**
+- Unreliable frames (shoulders out of view, head turned, body at an angle) are ignored
+- Alerts use a decaying accumulator, hysteresis and a cooldown so that a brief lean does not trigger them (`src/core/alerts.ts`)
+- Neck load (kg) is an estimate interpolated from the neck flexion angle using Hansraj (2014)
 
-## 構成
+## Privacy and security
+
+- All processing happens in the browser. Nothing is recorded or uploaded; settings, baseline and daily stats stay in `localStorage`.
+- The production build is a static export served with a strict Content Security Policy (`connect-src 'self'`, hashed inline scripts, `frame-ancestors 'none'`) plus HSTS, `Permissions-Policy`, `Referrer-Policy: no-referrer` and COOP (`scripts/postbuild.mjs` writes `out/_headers`).
+  MediaPipe 1.x sends usage telemetry to Google every 60 s; the CSP blocks it, and the E2E test asserts that no request leaves the origin.
+- After the page has loaded, monitoring keeps working without a network connection (covered by `tests/e2e/offline.spec.ts`).
+- CI runs CodeQL, gitleaks (secret scanning), dependency review and `npm audit`; Dependabot keeps dependencies and pinned GitHub Actions up to date.
+- The app needs no API keys or secrets.
+
+See [SECURITY.md](SECURITY.md) to report a vulnerability.
+
+## Project layout
 
 ```
 src/
-  core/        判定ロジック（純粋関数・単体テスト対象）
-  engine/      MediaPipe・カメラ・通知・ループ制御（controller.ts が全体を統括）
-  stores/      Zustand（設定・基準姿勢・日次統計は localStorage に保存）
-  components/  画面（Welcome / Setup / Calibrate / Monitor）と 3D シーン
-    PostureScene/  SDF レイマーチングによる人体・背骨（X線表示）・理想姿勢ゴースト
-  i18n/        日本語・英語・韓国語の文言（ja, en, ko）
+  core/        posture logic (pure functions, unit tested)
+  engine/      MediaPipe, camera, notifications and the main loop (controller.ts)
+  stores/      Zustand (settings, baseline and daily stats persisted to localStorage)
+  components/  screens (Welcome / Setup / Calibrate / Monitor) and the 3D scene
+    PostureScene/  SDF ray-marched body, spine (X-ray view) and ideal-posture ghost
+  i18n/        UI strings (en, ja, ko)
 ```
 
-## 開発
+## Development
+
+Requires Node.js 22.
 
 ```bash
 npm install
 npm run dev          # http://localhost:3000
-npm test             # 単体テスト（Vitest）
+npm test             # unit tests (Vitest)
 npm run lint && npm run type-check
+npm run build        # static export to out/ (with _headers)
+npm run preview      # serve out/ with Cloudflare Pages locally (http://localhost:3011)
 ```
 
-- `public/mediapipe/` に MediaPipe の wasm とモデル（pose_landmarker_full / face_landmarker）が必要です
-- `/lab?f=6&p=10&s=20` で 3D シーンを単体確認できます（開発時のみ）
-- 録画した映像で通し確認する場合は `tests/e2e/fixtures/generate.sh` で動画を作り、
-  開発サーバーで `/?source=/dev/posture.mp4` を開くとカメラの代わりに使われます（開発時のみ）
-- E2E: `tests/e2e/fixtures/generate.sh` の後に `npm run test:e2e`（Playwright が偽カメラ付きの Chromium を起動します）
-- バックグラウンド動作: `npx next start -p 3011` を起動した状態で `node tests/e2e/background-check.mjs [秒数]`。
-  偽カメラで基準姿勢を記録したあと、別タブを前面に出して非表示中の計測量・通知数・CPU 使用率を出力します
-  （Playwright のページは常に表示状態に固定されるため、非表示部分は生の CDP で操作しています）
+- The MediaPipe wasm files are copied from `node_modules` into `public/mediapipe/wasm` before `dev` and `build`. The models live in `public/mediapipe/models`.
+- `/lab?f=6&p=10&s=20` shows the 3D scene on its own (development only).
+- To use a recorded video instead of the camera, generate one with `tests/e2e/fixtures/generate.sh` and open `/?source=/dev/posture.mp4` on the dev server (development only).
+- E2E: run `tests/e2e/fixtures/generate.sh`, then `npm run test:e2e`. Playwright builds the app and starts Chromium with a fake camera.
+- Background tabs: with `node tests/e2e/serve-out.mjs 3011` running, `node tests/e2e/background-check.mjs [seconds]` records a baseline with the fake camera, moves another tab to the front and reports measured time, alerts and CPU usage while hidden.
 
-## ブラウザ
+## Deployment
 
-Chrome / Edge / Safari / Firefox の最新版（WebGL2 必須）。デスクトップ通知はブラウザの許可が必要です。
-タブを裏に回したときは Worker タイマーとカメラトラックからの直接取得（Chrome の ImageCapture）で計測を続けます。
-偽カメラ＋新ヘッドレス Chromium では、非表示の 180 秒間で 180 秒分を計測し通知も届くこと、CPU 使用率が表示中の約 1/4 になることを確認済みです
-（実カメラでの長時間動作と、Safari・Firefox〔ImageCapture 非対応〕での非表示時の動作は未検証）。
+`main` is deployed to Cloudflare Pages:
 
-ブラウザのメニューから「アプリとしてインストール」すると（PWA）、独立したウィンドウで常駐できます。
+```bash
+npx wrangler login
+npm run deploy       # build + wrangler pages deploy out --project-name sitright --branch main
+```
 
-## ライセンス
+## Browser support
 
-MIT（[LICENSE](LICENSE)）。同梱している MediaPipe の wasm とモデルは Apache-2.0 です（[THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)）。
+Latest Chrome, Edge, Safari and Firefox (WebGL2 required). Desktop notifications need browser permission.
+When the tab is in the background, measuring continues using a Worker timer and frames grabbed directly from the camera track (Chrome's ImageCapture).
+With a fake camera in headless Chromium, 180 s of hidden time produced 180 s of measurements and alerts, at about a quarter of the visible CPU usage
+(long sessions with a real camera, and hidden tabs in Safari and Firefox, which lack ImageCapture, are not yet verified).
+
+Install it from the browser menu ("Install app", PWA) to keep it in its own window.
+
+## License
+
+MIT ([LICENSE](LICENSE)). The bundled MediaPipe wasm and models are Apache-2.0 ([THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)).
