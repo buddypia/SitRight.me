@@ -4,7 +4,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'SitSmart',
   description:
-    'Webカメラだけでストレートネック・スマホ首・猫背を計測し、横からの姿勢を3Dで可視化。悪い姿勢が続いたときだけ知らせる姿勢モニター。',
+    'A posture monitor that uses only your webcam to measure forward head posture, text neck, and slouching, shows your side view in 3D, and alerts you only when bad posture persists. Runs entirely in your browser.',
   icons: { icon: '/icon.svg', apple: '/icon-192x192.png' },
 };
 
@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ja">
+    <html lang="en">
       <body>{children}</body>
     </html>
   );

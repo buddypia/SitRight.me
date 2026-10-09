@@ -1,6 +1,6 @@
 import type { FrameIssue, PosturePattern } from '@/core/types';
 
-export type Locale = 'ja' | 'en';
+export type Locale = 'en' | 'ja' | 'ko';
 
 const ja = {
   appTagline: '首と背中の姿勢を、横から見える形に。',
@@ -421,7 +421,221 @@ const en: Messages = {
   },
 };
 
-export const MESSAGES: Record<Locale, Messages> = { ja, en };
+const ko: Messages = {
+  appTagline: '목과 등 자세를, 옆에서 본 모습으로.',
+  loading: '준비하고 있어요…',
+
+  // welcome
+  welcomeEyebrow: '일자목·스마트폰 목·굽은 등 예방에',
+  welcomeTitle: '당신의 목,\n옆에서 보면 이래요.',
+  welcomeBody:
+    '노트북 카메라만으로 머리가 앞으로 나온 정도, 고개 숙임, 등이 굽은 정도를 측정해요. 정면 카메라로는 보이지 않는 "옆모습 자세"를 3D로 보여 주고, 나쁜 자세가 이어질 때만 살짝 알려 드려요.',
+  welcomeStart: '시작하기',
+  welcomeResume: '모니터링 재개',
+  welcomeRecalibrate: '기준 자세 다시 잡기',
+  privacyTitle: '영상은 이 기기를 벗어나지 않아요',
+  privacyBody:
+    '골격 추정은 모두 브라우저 안에서 이루어져요. 영상을 저장하거나 전송하지 않아요.',
+  featureMeasure: 'cm와 각도로 측정',
+  featureMeasureBody:
+    '머리가 몇 cm 앞으로 나왔는지, 몇 도 숙였는지를 수치로 표시해요',
+  featureSide: '옆모습 자세를 3D로',
+  featureSideBody:
+    '이상적인 위치(고스트)와 지금 머리·척추의 차이를 한눈에 확인해요',
+  featureQuiet: '필요할 때만 알림',
+  featureQuietBody:
+    '나쁜 자세가 이어질 때만 알려요. 잠깐 숙인 정도로는 울리지 않아요',
+  demoLabel: '데모 표시',
+  disclaimer:
+    '이 앱은 의료기기가 아니며 진단을 하지 않아요. 통증이나 저림이 있으면 의료기관에 상담하세요.',
+
+  // setup
+  setupStep: '단계 {n} / 2',
+  setupTitle: '카메라 위치를 맞춰 볼까요',
+  setupBody: '화면 정면에 앉아 머리와 양쪽 어깨가 카메라에 보이게 해 주세요.',
+  setupCameraButton: '카메라 켜기',
+  setupCameraStarting: '카메라를 시작하고 있어요…',
+  setupModelLoading: '자세 추정 모델을 불러오는 중…',
+  checkFace: '얼굴이 보여요',
+  checkShoulders: '양쪽 어깨가 보여요',
+  checkFacing: '화면 정면을 보고 있어요',
+  checkReady: '준비 완료',
+  setupNext: '다음: 기준 자세 기록',
+  setupTip: '노트북이라면 화면을 조금 뒤로 젖히면 어깨까지 잘 나와요.',
+  cameraSelect: '카메라',
+
+  // camera errors
+  cameraError_denied:
+    '카메라 사용이 허용되지 않았어요. 주소창의 카메라 아이콘에서 허용해 주세요.',
+  cameraError_not_found: '카메라를 찾을 수 없어요. 연결을 확인해 주세요.',
+  cameraError_in_use:
+    '다른 앱에서 카메라를 사용 중이에요. 화상 회의 앱 등을 닫고 다시 시도해 주세요.',
+  cameraError_insecure:
+    '이 환경에서는 카메라를 사용할 수 없어요 (HTTPS로 접속해 주세요).',
+  cameraError_unknown: '카메라를 시작하지 못했어요.',
+  engineError:
+    '자세 추정 모델을 불러오지 못했어요. 페이지를 새로고침해 주세요.',
+  retry: '다시 시도',
+
+  // calibrate
+  calibrateTitle: '좋은 자세를 3초간 유지하세요',
+  calibrateBody:
+    '이 자세가 당신의 "기준 자세"가 돼요. 이후에는 이 자세에서 벗어난 정도를 측정해요.',
+  calibrateTip1: '골반을 세우고 깊숙이 앉기',
+  calibrateTip2: '귀가 어깨 바로 위에 오도록 턱을 살짝 당기기',
+  calibrateTip3: '시선은 화면으로, 어깨 힘은 빼기',
+  calibrateStart: '기록 시작',
+  calibrateHold: '그대로 멈춰 주세요…',
+  calibrateUnstable: '움직임이 감지됐어요. 멈추면 다시 시작해요',
+  calibrateWaiting: '머리와 양쪽 어깨가 보이기를 기다리고 있어요',
+  calibrateDone: '기준 자세를 기록했어요',
+  back: '뒤로',
+
+  // monitor
+  statusGood: '좋은 자세',
+  statusFair: '조금 흐트러졌어요',
+  statusPoor: '자세가 무너졌어요',
+  statusPaused: '일시 정지 중',
+  statusAway: '자리 비움',
+  statusChecking: '측정할 수 없음',
+  scoreLabel: '자세 점수',
+  alertIn: '{s}초 이어지면 알림',
+  metricForward: '머리 앞쪽 돌출',
+  metricDown: '고개 숙임',
+  metricSlump: '등 처짐',
+  metricLean: '좌우 기울기',
+  sideLeft: '왼쪽',
+  sideRight: '오른쪽',
+  backView: '뒤에서',
+  metricLoad: '목 부담 (추정)',
+  metricLoadHint:
+    '머리를 지탱하는 목에 걸리는 무게의 추정치예요 (Hansraj, 2014)',
+  unitCm: 'cm',
+  unitDeg: '°',
+  unitKg: 'kg',
+  ideal: '이상',
+  you: '나',
+  plumbLine: '귀와 어깨를 잇는 선',
+  sideView: '옆에서 본 내 자세',
+  sideViewHint: '드래그로 회전',
+  resetView: '시점 초기화',
+  xray: '골격',
+  avatar: '3D 모델',
+  avatar_buddy: '캐릭터',
+  avatar_cat: '고양이',
+  avatar_bear: '곰',
+  avatar_wood: '데생 인형',
+  avatar_clay: '클레이',
+  avatar_mannequin: '리얼',
+  pipOpen: '작은 창으로 보기',
+  pipClose: '작은 창 닫기',
+  pipActive: '작은 창으로 표시 중',
+  pause: '일시 정지',
+  resume: '재개',
+  recalibrate: '기준 다시 잡기',
+  settings: '설정',
+  hideCamera: '카메라 영상 숨기기',
+  showCamera: '카메라 영상 표시',
+  cameraHidden: '카메라 영상은 숨겨져 있어요 (측정은 계속 중)',
+  sitting: '연속 착석',
+  minutes: '{n}분',
+  baselineSuspect:
+    '기준 자세보다 많이 뒤로 물러나 있어요. 기준을 다시 잡으면 정확도가 올라가요.',
+
+  // today
+  todayTitle: '오늘의 기록',
+  goodRatio: '좋은 자세 비율',
+  monitored: '측정 시간',
+  alertsCount: '알림',
+  times: '{n}회',
+  timelineTitle: '최근 60분',
+  breakdownTitle: '자주 무너진 자세',
+  noBreakdown: '아직 무너진 기록이 없어요',
+  weekTitle: '지난 7일',
+  noData: '데이터 없음',
+
+  // alerts
+  alertTitle: '자세를 확인하세요',
+  recoveredToast: '좋은 자세로 돌아왔어요',
+  breakTitle: '잠깐 쉬어요',
+  breakBody: '{n}분째 앉아 있어요. 일어나서 목과 어깨를 돌려 보세요.',
+  enableNotifications: '데스크톱 알림 켜기',
+  notificationsHint:
+    '다른 앱에서 작업 중에도 자세가 계속 무너지면 알려 드려요.',
+  notificationsDenied:
+    '알림이 차단되어 있어요. 브라우저 설정에서 허용해 주세요.',
+  notificationsOn: '데스크톱 알림: 켜짐',
+  dismiss: '닫기',
+
+  // settings
+  settingsTitle: '설정',
+  sensitivity: '판정 엄격도',
+  sensitivity_gentle: '느슨하게',
+  sensitivity_standard: '표준',
+  sensitivity_strict: '엄격하게',
+  alertDelay: '알림까지 지속 시간',
+  cooldown: '알림 최소 간격',
+  seconds: '{n}초',
+  minutesShort: '{n}분',
+  sound: '효과음',
+  desktopNotify: '데스크톱 알림',
+  breakReminder: '휴식 알림',
+  off: '끔',
+  powerSaver: '절전 모드 (측정 빈도 낮춤)',
+  language: '언어',
+  resetData: '기록과 기준 모두 삭제',
+  resetConfirm: '한 번 더 누르면 삭제해요',
+  close: '닫기',
+  testNotification: '알림 테스트',
+
+  pattern: {
+    straight_neck: {
+      name: '일자목 자세',
+      short: '머리가 앞으로 나왔어요',
+      detail:
+        '머리가 어깨보다 앞으로 튀어나와 목의 자연스러운 커브가 사라지기 쉬운 상태예요.',
+      fix: '턱을 살짝 당기고 귀를 어깨 바로 위로 되돌려 주세요.',
+    },
+    text_neck: {
+      name: '스마트폰 목',
+      short: '고개가 아래를 향해 있어요',
+      detail:
+        '고개를 숙여 목이 앞으로 굽으면서 목 뒤쪽에 큰 부담이 걸리고 있어요.',
+      fix: '시선만 내리고 머리는 세우세요. 화면은 눈높이로 올려 주세요.',
+    },
+    neck_hunch: {
+      name: '거북목',
+      short: '머리가 앞으로 떨어져 있어요',
+      detail:
+        '등 윗부분부터 목이 앞으로 기울어 머리가 앞쪽 아래로 처져 있어요.',
+      fix: '가슴을 살짝 펴고, 정수리를 천장 쪽으로 끌어올리듯 세워 주세요.',
+    },
+    slouch: {
+      name: '굽은 등',
+      short: '등이 굽어 있어요',
+      detail: '등이 굽고 상체가 아래로 처져 있어요.',
+      fix: '골반을 세워 다시 앉고, 어깨를 뒤로 돌려 내려 주세요.',
+    },
+    lean: {
+      name: '몸의 기울어짐',
+      short: '몸이나 목이 좌우로 기울어 있어요',
+      detail:
+        '어깨선이나 머리가 한쪽으로 기울어 체중과 목의 부담이 한쪽에 쏠려 있어요.',
+      fix: '양쪽 엉덩이에 체중을 고르게 싣고, 머리를 어깨 한가운데로 바로 되돌려 주세요.',
+    },
+  },
+
+  issue: {
+    no_person: '카메라 앞에 사람이 보이지 않아요',
+    no_face: '얼굴이 보이지 않아요. 밝기와 위치를 확인해 주세요',
+    shoulders_hidden:
+      '양쪽 어깨가 보이지 않아요. 조금 떨어지거나 카메라 각도를 조정해 주세요',
+    turned_away: '옆을 보는 동안에는 측정을 멈춰요',
+    body_rotated: '몸이 비스듬히 돌아가 있어요. 화면을 정면으로 봐 주세요',
+  },
+};
+
+export const MESSAGES: Record<Locale, Messages> = { en, ja, ko };
 
 export function format(
   template: string,

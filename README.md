@@ -37,7 +37,7 @@ src/
   stores/      Zustand（設定・基準姿勢・日次統計は localStorage に保存）
   components/  画面（Welcome / Setup / Calibrate / Monitor）と 3D シーン
     PostureScene/  SDF レイマーチングによる人体・背骨（X線表示）・理想姿勢ゴースト
-  i18n/        日本語・英語の文言
+  i18n/        日本語・英語・韓国語の文言（ja, en, ko）
 ```
 
 ## 開発

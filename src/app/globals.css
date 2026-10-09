@@ -15,10 +15,11 @@
 
   --font-sans:
     'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP',
-    'Yu Gothic UI', 'Meiryo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    'Yu Gothic UI', 'Meiryo', 'Apple SD Gothic Neo', 'Malgun Gothic',
+    'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display:
-    'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', 'Times New Roman',
-    serif;
+    'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', 'AppleMyungjo',
+    'Nanum Myeongjo', 'Noto Serif KR', 'Batang', 'Times New Roman', serif;
   --font-mono: ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
 
   --radius-panel: 20px;

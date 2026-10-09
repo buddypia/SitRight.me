@@ -87,11 +87,14 @@ interface AppState extends PersistedState {
   markHydrated: () => void;
 }
 
-const defaultLocale = (): Locale =>
-  typeof navigator !== 'undefined' &&
-  !navigator.language.toLowerCase().startsWith('ja')
-    ? 'en'
-    : 'ja';
+/** ブラウザの言語が日本語・韓国語ならそれを、それ以外は英語を使う */
+const defaultLocale = (): Locale => {
+  if (typeof navigator === 'undefined') return 'en';
+  const lang = navigator.language.toLowerCase();
+  if (lang.startsWith('ja')) return 'ja';
+  if (lang.startsWith('ko')) return 'ko';
+  return 'en';
+};
 
 export const DEFAULT_SETTINGS: Settings = {
   sensitivity: 'standard',
@@ -104,7 +107,7 @@ export const DEFAULT_SETTINGS: Settings = {
   showCamera: true,
   xray: true,
   avatar: DEFAULT_AVATAR,
-  locale: 'ja',
+  locale: 'en',
   cameraId: null,
 };
 
