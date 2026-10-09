@@ -74,6 +74,7 @@ export function Monitor() {
               rig={live.rig}
               severity={measuring ? (live.assessment?.severity ?? null) : null}
               xray={settings.xray}
+              avatar={settings.avatar}
               lowPower={settings.powerSaver}
               t={t}
               className="h-full w-full"
@@ -163,6 +164,7 @@ export function Monitor() {
             live={live}
             t={t}
             xray={settings.xray}
+            avatar={settings.avatar}
             lowPower={settings.powerSaver}
           />,
           pip.pipWindow.document.body

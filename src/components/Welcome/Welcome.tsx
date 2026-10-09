@@ -13,6 +13,7 @@ export function Welcome() {
   const t = useT();
   const hasBaseline = useAppStore((s) => s.baseline !== null);
   const setPhase = useAppStore((s) => s.setPhase);
+  const avatar = useAppStore((s) => s.settings.avatar);
   const [demo, setDemo] = useState<DemoPattern>('ideal');
 
   const go = (phase: 'setup' | 'monitor') => {
@@ -88,6 +89,7 @@ export function Welcome() {
           rig={IDEAL_RIG}
           severity={null}
           xray
+          avatar={avatar}
           t={t}
           demo
           onDemoPattern={setDemo}

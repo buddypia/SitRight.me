@@ -13,6 +13,7 @@ import { useT } from '@/hooks/useT';
 import { format, type Locale } from '@/i18n/messages';
 import { useAppStore } from '@/stores/appStore';
 import { Button, Segmented, Toggle } from '../ui';
+import { AvatarPicker } from './AvatarPicker';
 
 export function SettingsSheet({
   open,
@@ -191,6 +192,14 @@ export function SettingsSheet({
               </Button>
             )}
           </div>
+
+          <Field label={t.avatar}>
+            <AvatarPicker
+              value={settings.avatar}
+              onChange={(v) => update({ avatar: v })}
+              t={t}
+            />
+          </Field>
 
           <Field label={t.language}>
             <Segmented<Locale>

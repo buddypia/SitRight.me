@@ -16,6 +16,11 @@ import type {
   PosturePattern,
   Sensitivity,
 } from '@/core/types';
+import {
+  DEFAULT_AVATAR,
+  isAvatar,
+  type Avatar,
+} from '@/components/PostureScene/models';
 import type { CameraErrorKind } from '@/engine/camera';
 import type { Locale } from '@/i18n/messages';
 
@@ -31,6 +36,8 @@ export interface Settings {
   powerSaver: boolean;
   showCamera: boolean;
   xray: boolean;
+  /** 3D シーンに表示するモデル */
+  avatar: Avatar;
   locale: Locale;
   cameraId: string | null;
 }
@@ -96,6 +103,7 @@ export const DEFAULT_SETTINGS: Settings = {
   powerSaver: false,
   showCamera: true,
   xray: true,
+  avatar: DEFAULT_AVATAR,
   locale: 'ja',
   cameraId: null,
 };
@@ -197,9 +205,12 @@ export const useAppStore = create<AppState>()(
       }),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<PersistedState>;
+        const settings = { ...current.settings, ...(p.settings ?? {}) };
+        // 削除されたモデルなど、知らない値は既定のモデルに戻す
+        if (!isAvatar(settings.avatar)) settings.avatar = DEFAULT_AVATAR;
         return {
           ...current,
-          settings: { ...current.settings, ...(p.settings ?? {}) },
+          settings,
           // headRoll は後から追加した項目。古い基準は傾き 0 として扱う
           baseline: isValidBaseline(p.baseline)
             ? {
