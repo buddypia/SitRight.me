@@ -24,7 +24,7 @@ def bad(scale, drop):
     return im
 
 fps = 15
-segments = [(base, 45), (bad(1.13, 0.05), 30), (base, 25)]
+segments = [(base, 75), (bad(1.13, 0.05), 30), (base, 25)]
 out = os.path.join(D, 'frames'); os.makedirs(out, exist_ok=True)
 i = 0
 for im, secs in segments:

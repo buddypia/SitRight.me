@@ -2,7 +2,8 @@ import { expect, test, type Page } from '@playwright/test';
 
 /**
  * 偽カメラ映像（tests/e2e/fixtures/generate.sh で生成）を使った通しテスト。
- * 映像: 0-45s 基準姿勢 → 45-75s 頭が前下方へ（首猫背）→ 75-100s 基準姿勢 のループ。
+ * 映像: 0-75s 基準姿勢 → 75-105s 頭が前下方へ（首猫背）→ 105-130s 基準姿勢 のループ。
+ * 読み込みが遅い環境でも基準姿勢の記録が悪い姿勢の区間に重ならないよう、最初の区間を長めにしている。
  * GPU の無い環境（SwiftShader）では推定が遅いため、時間に余裕を持たせている。
  */
 
@@ -32,14 +33,16 @@ const seedSettings = async (page: Page) => {
 const calibrate = async (page: Page) => {
   await page.getByRole('button', { name: 'はじめる' }).click();
   const enable = page.getByRole('button', { name: 'カメラを有効にする' });
-  if (await enable.isVisible().catch(() => false)) await enable.click();
 
   // 顔・両肩・正面のチェックがそろうと次へ進める
   const next = page.getByRole('button', { name: '次へ：基準姿勢を記録' });
   const record = page.getByRole('button', { name: '記録を開始' });
-  // 推定が遅い環境ではチェックが一瞬外れてクリックが空振りすることがあるので、進むまで押し直す
+  // 推定が遅い環境ではチェックが一瞬外れてクリックが空振りすることがあるので、進むまで押し直す。
+  // カメラは自動で起動することもあり、そのあいだ「カメラを有効にする」は一瞬だけ無効で表示される
   await expect(async () => {
-    await expect(next).toBeEnabled();
+    if (await enable.isVisible())
+      await enable.click({ timeout: 1_000 }).catch(() => undefined);
+    await expect(next).toBeEnabled({ timeout: 2_000 });
     await next.click();
     await expect(record).toBeVisible({ timeout: 2_000 });
   }).toPass({ timeout: 120_000 });
@@ -54,6 +57,16 @@ test('onboarding → calibration → monitoring detects bad posture and recovery
 }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
+  // 外部への通信が一切成功しないこと
+  const external: string[] = [];
+  page.on('response', (r) => {
+    const url = new URL(r.url());
+    if (
+      !['localhost', '127.0.0.1'].includes(url.hostname) &&
+      url.protocol !== 'data:'
+    )
+      external.push(r.url());
+  });
   const started = Date.now();
   const elapsed = () => Math.round((Date.now() - started) / 1000);
   await seedSettings(page);
@@ -107,6 +120,17 @@ test('onboarding → calibration → monitoring detects bad posture and recovery
     .toBeGreaterThan(0);
 
   expect(errors).toEqual([]);
+  expect(external).toEqual([]);
+
+  // CSP（connect-src 'self'）で外部への送信がブラウザに止められる。
+  // MediaPipe 1.x が 60 秒ごとに送る利用統計（odml.pa.googleapis.com）もこれで届かない
+  const outbound = await page.evaluate(() =>
+    fetch('https://odml.pa.googleapis.com/v1/log', { method: 'POST' }).then(
+      () => 'sent',
+      () => 'blocked'
+    )
+  );
+  expect(outbound).toBe('blocked');
 });
 
 test('welcome renders the 3D demo without errors', async ({ page }) => {

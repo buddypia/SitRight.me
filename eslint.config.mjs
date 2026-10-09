@@ -13,6 +13,7 @@ const config = [
       'playwright-report/**',
       'test-results/**',
       '.tmp/**',
+      '.wrangler/**',
       'tmp/**',
     ],
   },
@@ -32,8 +33,8 @@ const config = [
     },
   },
   {
-    // テストと検証スクリプトは結果をログに出す
-    files: ['tests/**'],
+    // テスト・検証・ビルド用スクリプトは結果をログに出す
+    files: ['tests/**', 'scripts/**'],
     rules: { 'no-console': 'off' },
   },
 ];
