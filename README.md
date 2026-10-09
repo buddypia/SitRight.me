@@ -54,8 +54,15 @@ npm run lint && npm run type-check
 - 録画した映像で通し確認する場合は `tests/e2e/fixtures/generate.sh` で動画を作り、
   開発サーバーで `/?source=/dev/posture.mp4` を開くとカメラの代わりに使われます（開発時のみ）
 - E2E: `tests/e2e/fixtures/generate.sh` の後に `npm run test:e2e`（Playwright が偽カメラ付きの Chromium を起動します）
+- バックグラウンド動作: `npx next start -p 3011` を起動した状態で `node tests/e2e/background-check.mjs [秒数]`。
+  偽カメラで基準姿勢を記録したあと、別タブを前面に出して非表示中の計測量・通知数・CPU 使用率を出力します
+  （Playwright のページは常に表示状態に固定されるため、非表示部分は生の CDP で操作しています）
 
 ## ブラウザ
 
 Chrome / Edge / Safari / Firefox の最新版（WebGL2 必須）。デスクトップ通知はブラウザの許可が必要です。
-タブを裏に回したときは Worker タイマーとカメラトラックからの直接取得（Chrome の ImageCapture）で計測を続ける設計です（実カメラでの長時間のバックグラウンド動作は未検証）。
+タブを裏に回したときは Worker タイマーとカメラトラックからの直接取得（Chrome の ImageCapture）で計測を続けます。
+偽カメラ＋新ヘッドレス Chromium では、非表示の 180 秒間で 180 秒分を計測し通知も届くこと、CPU 使用率が表示中の約 1/4 になることを確認済みです
+（実カメラでの長時間動作と、Safari・Firefox〔ImageCapture 非対応〕での非表示時の動作は未検証）。
+
+ブラウザのメニューから「アプリとしてインストール」すると（PWA）、独立したウィンドウで常駐できます。
