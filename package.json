@@ -13,7 +13,7 @@
     "build": "next build",
     "postbuild": "node scripts/postbuild.mjs",
     "preview": "wrangler pages dev out --port 3011",
-    "deploy": "npm run build && wrangler pages deploy out --project-name sitright",
+    "deploy": "npm run build && wrangler pages deploy out --project-name sitright --branch main",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
