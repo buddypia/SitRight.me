@@ -26,9 +26,9 @@ const hashes = new Set();
 for (const file of htmlFiles(out)) {
   const html = readFileSync(file, 'utf8');
   for (const [, attrs, body] of html.matchAll(
-    /<script\b([^>]*)>([\s\S]*?)<\/script>/g
+    /<script\b([^>]*)>([\s\S]*?)<\/script[^>]*>/gi
   )) {
-    if (/\bsrc=/.test(attrs) || body.length === 0) continue;
+    if (/\bsrc=/i.test(attrs) || body.length === 0) continue;
     hashes.add(createHash('sha256').update(body).digest('base64'));
   }
 }
