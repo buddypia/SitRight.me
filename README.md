@@ -66,3 +66,7 @@ Chrome / Edge / Safari / Firefox の最新版（WebGL2 必須）。デスクト�
 （実カメラでの長時間動作と、Safari・Firefox〔ImageCapture 非対応〕での非表示時の動作は未検証）。
 
 ブラウザのメニューから「アプリとしてインストール」すると（PWA）、独立したウィンドウで常駐できます。
+
+## ライセンス
+
+MIT（[LICENSE](LICENSE)）。同梱している MediaPipe の wasm とモデルは Apache-2.0 です（[THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)）。

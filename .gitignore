@@ -47,3 +47,7 @@ next-env.d.ts
 /.agents/
 /tests/e2e/fixtures/*.mjpeg
 /tests/e2e/fixtures/portrait.jpg
+
+# local tooling
+/.claude/
+/tmp/
