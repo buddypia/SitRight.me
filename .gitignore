@@ -50,4 +50,6 @@ next-env.d.ts
 
 # local tooling
 /.claude/
-/tmp/
+
+# copied from node_modules by scripts/copy-mediapipe-wasm.mjs
+/public/mediapipe/wasm/

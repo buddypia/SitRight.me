@@ -6,12 +6,7 @@ import { format } from '@/i18n/messages';
 import type { LiveState } from '@/stores/appStore';
 
 export type DisplayStatus =
-  | 'good'
-  | 'fair'
-  | 'poor'
-  | 'paused'
-  | 'away'
-  | 'checking';
+  'good' | 'fair' | 'poor' | 'paused' | 'away' | 'checking';
 
 export function displayStatus(live: LiveState): DisplayStatus {
   if (live.paused) return 'paused';
@@ -117,7 +112,7 @@ export function StatusCard({
 
       {measuring && (
         <div className="relative mt-4">
-          <div className="h-1 overflow-hidden rounded-full bg-white/[0.06]">
+          <div className="h-1 overflow-hidden rounded-full bg-white/6">
             <div
               className="h-full rounded-full transition-[width] duration-300 ease-linear"
               style={{

@@ -156,7 +156,7 @@ export function TodayPanel({
                     {fmtDuration(sec, locale)}
                   </span>
                 </div>
-                <div className="mt-1.5 h-1 rounded-full bg-white/[0.06]">
+                <div className="mt-1.5 h-1 rounded-full bg-white/6">
                   <div
                     className="h-full rounded-full bg-fair"
                     style={{ width: `${Math.max(4, share * 100)}%` }}

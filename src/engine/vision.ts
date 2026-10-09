@@ -36,9 +36,8 @@ export class VisionEngine {
   async init(): Promise<void> {
     if (this.pose && this.face) return;
     filterMediapipeInfoLogs();
-    const { FilesetResolver, PoseLandmarker, FaceLandmarker } = await import(
-      '@mediapipe/tasks-vision'
-    );
+    const { FilesetResolver, PoseLandmarker, FaceLandmarker } =
+      await import('@mediapipe/tasks-vision');
     const fileset = await FilesetResolver.forVisionTasks(WASM_PATH);
 
     const create = async (delegate: Delegate) => {
@@ -86,10 +85,7 @@ export class VisionEngine {
 
   detect(
     source:
-      | HTMLVideoElement
-      | HTMLImageElement
-      | HTMLCanvasElement
-      | ImageBitmap,
+      HTMLVideoElement | HTMLImageElement | HTMLCanvasElement | ImageBitmap,
     width: number,
     height: number
   ): VisionFrame | null {

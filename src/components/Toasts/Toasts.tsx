@@ -14,13 +14,13 @@ const DURATION: Record<AppEvent['kind'], number> = {
 /** 判定エンジンからのイベント（通知・回復・休憩）を画面上部に表示する */
 export function Toasts() {
   const event = useAppStore((s) => s.live.event);
-  const [shown, setShown] = useState<AppEvent | null>(null);
+  const [expiredId, setExpiredId] = useState<number | null>(null);
+  const shown: AppEvent | null = event && event.id !== expiredId ? event : null;
 
   useEffect(() => {
     if (!event) return;
-    setShown(event);
     const id = window.setTimeout(
-      () => setShown((cur) => (cur?.id === event.id ? null : cur)),
+      () => setExpiredId(event.id),
       DURATION[event.kind]
     );
     return () => window.clearTimeout(id);
@@ -33,7 +33,9 @@ export function Toasts() {
       role="status"
       aria-live="assertive"
     >
-      {shown && <Toast shown={shown} onDismiss={() => setShown(null)} />}
+      {shown && (
+        <Toast shown={shown} onDismiss={() => setExpiredId(shown.id)} />
+      )}
     </div>
   );
 }
@@ -66,7 +68,7 @@ function Toast({
   return (
     <div
       key={shown.id}
-      className={`pointer-events-auto flex max-w-[520px] animate-fade-up items-start gap-3 rounded-2xl border bg-s2/95 px-4 py-3 shadow-2xl backdrop-blur ${tone}`}
+      className={`pointer-events-auto flex max-w-[520px] animate-fade-up items-start gap-3 rounded-2xl border bg-s2/95 px-4 py-3 shadow-2xl backdrop-blur-sm ${tone}`}
     >
       <span
         className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${shown.kind === 'alert' ? 'bg-fair' : 'bg-good'}`}

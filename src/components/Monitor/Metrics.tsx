@@ -93,7 +93,7 @@ export function Metrics({
         >
           <div className="min-w-0 flex-1">
             <p className="text-[13px] text-ink-2">{r.label}</p>
-            <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.06]">
+            <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/6">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{

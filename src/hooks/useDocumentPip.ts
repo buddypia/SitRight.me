@@ -42,12 +42,9 @@ function copyStyles(target: Document) {
 
 /** 常に最前面に表示される小窓を開き、その window を返す（React からは createPortal で描画する） */
 export function useDocumentPip() {
-  const [supported, setSupported] = useState(false);
+  // 画面はストアの復元後（クライアント）にだけ描画されるので、初期値で判定してよい
+  const [supported] = useState(() => getApi() !== null);
   const [pipWindow, setPipWindow] = useState<Window | null>(null);
-
-  useEffect(() => {
-    setSupported(getApi() !== null);
-  }, []);
 
   const open = useCallback(async (size: { width: number; height: number }) => {
     const api = getApi();

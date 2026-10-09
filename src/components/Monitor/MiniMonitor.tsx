@@ -63,7 +63,7 @@ export function MiniMonitor({
         </span>
       </div>
       {measuring && (
-        <div className="h-1 bg-white/[0.06]">
+        <div className="h-1 bg-white/6">
           <div
             className="h-full transition-[width] duration-300 ease-linear"
             style={{

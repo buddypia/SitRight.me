@@ -31,13 +31,12 @@ export function SettingsSheet({
   const rootRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
+  if (!open && confirmReset) setConfirmReset(false);
+
   // 閉じている間は中のボタンにフォーカスが入らないようにし、開閉時にフォーカスを移す・戻す
   useEffect(() => {
     rootRef.current?.toggleAttribute('inert', !open);
-    if (!open) {
-      setConfirmReset(false);
-      return;
-    }
+    if (!open) return;
     const opener =
       document.activeElement instanceof HTMLElement
         ? document.activeElement
@@ -81,7 +80,7 @@ export function SettingsSheet({
         role="dialog"
         aria-modal="true"
         aria-label={t.settingsTitle}
-        className={`absolute right-0 top-0 flex h-full w-full max-w-[420px] flex-col border-l border-line bg-s1 shadow-2xl outline-none transition-transform duration-300 ease-out ${open ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`absolute right-0 top-0 flex h-full w-full max-w-[420px] flex-col border-l border-line bg-s1 shadow-2xl outline-hidden transition-transform duration-300 ease-out ${open ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <header className="flex items-center justify-between border-b border-line px-6 py-4">
           <h2 className="text-base font-semibold">{t.settingsTitle}</h2>
@@ -217,7 +216,7 @@ export function SettingsSheet({
             <Button
               size="sm"
               className={
-                confirmReset ? '!border-poor/50 !bg-poor/15 !text-poor' : ''
+                confirmReset ? 'border-poor/50! bg-poor/15! text-poor!' : ''
               }
               onClick={() => {
                 if (!confirmReset) {

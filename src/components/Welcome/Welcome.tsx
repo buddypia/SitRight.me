@@ -30,7 +30,7 @@ export function Welcome() {
         <p className="text-[13px] font-medium tracking-wide text-good">
           {t.welcomeEyebrow}
         </p>
-        <h1 className="mt-4 whitespace-pre-line font-display text-[clamp(30px,4vw,48px)] font-semibold leading-[1.25] tracking-tight text-ink-1">
+        <h1 className="mt-4 whitespace-pre-line font-display text-[clamp(30px,4vw,48px)] font-semibold leading-tight tracking-tight text-ink-1">
           {t.welcomeTitle}
         </h1>
         <p className="mt-5 max-w-[34em] text-[15px] leading-[1.9] text-ink-2">
@@ -84,7 +84,7 @@ export function Welcome() {
         </p>
       </section>
 
-      <section className="relative order-first aspect-[5/4] w-full overflow-hidden rounded-[28px] border border-line lg:order-none lg:aspect-auto lg:h-[min(78dvh,720px)]">
+      <section className="relative order-first aspect-5/4 w-full overflow-hidden rounded-[28px] border border-line lg:order-0 lg:aspect-auto lg:h-[min(78dvh,720px)]">
         <PostureScene
           rig={IDEAL_RIG}
           severity={null}
@@ -95,7 +95,7 @@ export function Welcome() {
           onDemoPattern={setDemo}
           className="h-full w-full"
         />
-        <div className="pointer-events-none absolute left-5 top-5 flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 text-xs backdrop-blur">
+        <div className="pointer-events-none absolute left-5 top-5 flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 text-xs backdrop-blur-sm">
           <span className="text-ink-3">{t.demoLabel}</span>
           <span className={`font-medium transition-colors ${demoTone}`}>
             {demoLabel}

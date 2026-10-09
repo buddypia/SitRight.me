@@ -18,11 +18,7 @@ export interface VisionFrame {
 }
 
 export type FrameIssue =
-  | 'no_person'
-  | 'no_face'
-  | 'shoulders_hidden'
-  | 'turned_away'
-  | 'body_rotated';
+  'no_person' | 'no_face' | 'shoulders_hidden' | 'turned_away' | 'body_rotated';
 
 /** 1フレームから抽出した、姿勢に関係する生の計測値 */
 export interface RawMetrics {
@@ -49,8 +45,7 @@ export interface RawMetrics {
 }
 
 export type FrameResult =
-  | { ok: true; metrics: RawMetrics }
-  | { ok: false; issue: FrameIssue };
+  { ok: true; metrics: RawMetrics } | { ok: false; issue: FrameIssue };
 
 /** キャリブレーションで得る「本人の良い姿勢」 */
 export interface Baseline {
@@ -68,11 +63,7 @@ export interface Baseline {
 export type Sensitivity = 'gentle' | 'standard' | 'strict';
 
 export type PosturePattern =
-  | 'straight_neck'
-  | 'text_neck'
-  | 'neck_hunch'
-  | 'slouch'
-  | 'lean';
+  'straight_neck' | 'text_neck' | 'neck_hunch' | 'slouch' | 'lean';
 
 export type PostureLevel = 'good' | 'fair' | 'poor';
 
