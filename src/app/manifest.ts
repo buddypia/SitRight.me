@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next';
 
+export const dynamic = 'force-static';
+
 /** PWA としてインストールし、独立したウィンドウで常駐できるようにする */
 export default function manifest(): MetadataRoute.Manifest {
   return {

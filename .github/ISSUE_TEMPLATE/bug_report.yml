@@ -1,0 +1,30 @@
+name: Bug report
+description: Something does not work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the app
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Browser and OS
+      placeholder: Chrome 142 on macOS 26
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: Please do not attach camera images of yourself. For security issues, use private vulnerability reporting instead (see SECURITY.md).

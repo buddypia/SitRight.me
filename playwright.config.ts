@@ -38,7 +38,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `npm run build && npx next start -p ${PORT}`,
+    command: `npm run build && node tests/e2e/serve-out.mjs ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: true,
     timeout: 300_000,

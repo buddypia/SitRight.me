@@ -5,7 +5,7 @@
  * 非表示部分は生の CDP で別タブを前面に出して再現する。
  *
  * 使い方:
- *   npm run build && npx next start -p 3011        # 別ターミナル
+ *   npm run build && node tests/e2e/serve-out.mjs 3011   # 別ターミナル
  *   node tests/e2e/background-check.mjs [非表示の秒数=180]
  *
  * 偽カメラ映像は tests/e2e/fixtures/generate.sh で生成した posture.mjpeg を使う。
