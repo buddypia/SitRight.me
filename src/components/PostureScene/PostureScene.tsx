@@ -49,11 +49,7 @@ const RIG_KEYS: (keyof RigParams)[] = [
 ];
 
 export type DemoPattern =
-  | 'ideal'
-  | 'straight_neck'
-  | 'text_neck'
-  | 'slouch'
-  | 'lean';
+  'ideal' | 'straight_neck' | 'text_neck' | 'slouch' | 'lean';
 
 const IDEAL_SEV: Severities = { forward: 0, down: 0, slump: 0, lean: 0 };
 const DEMO_FRAMES: { pattern: DemoPattern; rig: RigParams; sev: Severities }[] =
@@ -137,14 +133,17 @@ export function PostureScene({
 
   // 毎フレーム参照する値は ref に入れて、React の再描画と描画ループを切り離す
   const target = useRef({ rig, severity, xray, guides, lowPower, avatar });
-  target.current = { rig, severity, xray, guides, lowPower, avatar };
   const cam = useRef<OrbitCamera>({ ...DEFAULT_CAMERA });
   const camTarget = useRef<OrbitCamera>({ ...DEFAULT_CAMERA });
   const resetViewRef = useRef<() => void>(() => undefined);
   const tRef = useRef(t);
-  tRef.current = t;
   const demoCallback = useRef(onDemoPattern);
-  demoCallback.current = onDemoPattern;
+  // 描画ループより先に実行されるよう、ループを作る effect より前に置く
+  useEffect(() => {
+    target.current = { rig, severity, xray, guides, lowPower, avatar };
+    tRef.current = t;
+    demoCallback.current = onDemoPattern;
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -165,6 +164,8 @@ export function PostureScene({
       renderer = new SceneRenderer(canvas, definesFor(shownAvatar));
     } catch (error) {
       console.error('[scene] WebGL init failed', error);
+      // WebGL（外部システム）の初期化に失敗したことを画面に反映する
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFailed(true);
       return;
     }
@@ -290,12 +291,14 @@ export function PostureScene({
       const rollDeg = (anchors.headRollRad * 180) / Math.PI;
       const headDeg = leanDeg + rollDeg;
       // 後ろから見るので、本人の右（正）は画面でも右（時計回り）
-      g
-        .querySelector('[data-id="trunk"]')
-        ?.setAttribute('transform', `rotate(${leanDeg.toFixed(2)} 48 72)`);
-      g
-        .querySelector('[data-id="head"]')
-        ?.setAttribute('transform', `rotate(${rollDeg.toFixed(2)} 48 42)`);
+      g.querySelector('[data-id="trunk"]')?.setAttribute(
+        'transform',
+        `rotate(${leanDeg.toFixed(2)} 48 72)`
+      );
+      g.querySelector('[data-id="head"]')?.setAttribute(
+        'transform',
+        `rotate(${rollDeg.toFixed(2)} 48 42)`
+      );
       g.style.setProperty(
         '--gauge',
         sevLean >= 0.6
@@ -511,7 +514,7 @@ export function PostureScene({
       </svg>
       <div
         ref={offsetLabelRef}
-        className="pointer-events-none absolute left-0 top-0 rounded-md bg-[#ffbe5c] px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums text-[#1a1306] shadow transition-opacity duration-300"
+        className="pointer-events-none absolute left-0 top-0 rounded-md bg-[#ffbe5c] px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums text-[#1a1306] shadow-sm transition-opacity duration-300"
       />
       <div
         ref={idealLabelRef}
@@ -522,7 +525,7 @@ export function PostureScene({
       <svg
         ref={gaugeRef}
         viewBox="0 0 96 96"
-        className="pointer-events-none absolute bottom-12 right-3 h-24 w-24 rounded-2xl border border-white/10 bg-black/35 backdrop-blur transition-opacity duration-500"
+        className="pointer-events-none absolute bottom-12 right-3 h-24 w-24 rounded-2xl border border-white/10 bg-black/35 backdrop-blur-sm transition-opacity duration-500"
         style={{ '--gauge': 'var(--good)' } as React.CSSProperties}
         role="img"
         aria-label={t.backView}
@@ -609,7 +612,7 @@ export function PostureScene({
         type="button"
         onClick={() => resetViewRef.current()}
         onPointerDown={(e) => e.stopPropagation()}
-        className="absolute bottom-3 right-3 rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[11px] text-white/70 backdrop-blur transition hover:text-white"
+        className="absolute bottom-3 right-3 rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[11px] text-white/70 backdrop-blur-sm transition hover:text-white"
       >
         {t.resetView}
       </button>

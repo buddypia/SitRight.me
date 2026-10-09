@@ -1,9 +1,5 @@
 export type CameraErrorKind =
-  | 'denied'
-  | 'not_found'
-  | 'in_use'
-  | 'insecure'
-  | 'unknown';
+  'denied' | 'not_found' | 'in_use' | 'insecure' | 'unknown';
 
 export class CameraError extends Error {
   constructor(

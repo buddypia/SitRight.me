@@ -21,13 +21,11 @@ export function Calibrate() {
 
   useEffect(() => () => controller.cancelCalibration(), [controller]);
 
+  // カメラが途中で止まったら、計測をやめて「開始」からやり直してもらう
+  if (camera === 'error' && started) setStarted(false);
   useEffect(() => {
     if (camera === 'off') void controller.startCamera();
-    // カメラが途中で止まったら、計測をやめて「開始」からやり直してもらう
-    if (camera === 'error') {
-      controller.cancelCalibration();
-      setStarted(false);
-    }
+    if (camera === 'error') controller.cancelCalibration();
   }, [controller, camera]);
 
   const done = calibration?.state === 'done';
@@ -65,7 +63,7 @@ export function Calibrate() {
 
   return (
     <div className="mx-auto grid max-w-[1180px] content-center gap-8 px-6 pb-12 pt-4 lg:min-h-[calc(100dvh-64px)] lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-center">
-      <section className="relative aspect-[4/3] overflow-hidden rounded-[24px] border border-line bg-s1">
+      <section className="relative aspect-4/3 overflow-hidden rounded-[24px] border border-line bg-s1">
         <CameraPreview tone={tone} />
         {started && (
           <div className="pointer-events-none absolute inset-0 grid place-items-center">
@@ -142,7 +140,7 @@ function ProgressRing({ value, done }: { value: number; done: boolean }) {
   const c = 2 * Math.PI * r;
   const seconds = Math.max(0, Math.ceil(3 - value * 3));
   return (
-    <div className="relative grid h-40 w-40 place-items-center rounded-full bg-black/45 backdrop-blur-sm">
+    <div className="relative grid h-40 w-40 place-items-center rounded-full bg-black/45 backdrop-blur-xs">
       <svg viewBox="0 0 128 128" className="absolute inset-0 -rotate-90">
         <circle
           cx="64"

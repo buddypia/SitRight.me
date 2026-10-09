@@ -39,11 +39,13 @@ export function Setup() {
   }, [camera]);
 
   // 一瞬だけ条件を満たした状態で進めないよう、少しの間続いたら OK にする
+  const [prevAllOk, setPrevAllOk] = useState(allOk);
+  if (allOk !== prevAllOk) {
+    setPrevAllOk(allOk);
+    if (!allOk) setReady(false);
+  }
   useEffect(() => {
-    if (!allOk) {
-      setReady(false);
-      return;
-    }
+    if (!allOk) return;
     const id = window.setTimeout(() => setReady(true), READY_HOLD_MS);
     return () => window.clearTimeout(id);
   }, [allOk]);
@@ -52,7 +54,7 @@ export function Setup() {
 
   return (
     <div className="mx-auto grid max-w-[1180px] content-center gap-8 px-6 pb-12 pt-4 lg:min-h-[calc(100dvh-64px)] lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-center">
-      <section className="relative aspect-[4/3] overflow-hidden rounded-[24px] border border-line bg-s1">
+      <section className="relative aspect-4/3 overflow-hidden rounded-[24px] border border-line bg-s1">
         {cameraOn ? (
           <CameraPreview guide tone={allOk ? 'good' : 'neutral'} />
         ) : (
@@ -92,7 +94,7 @@ export function Setup() {
           </div>
         )}
         {cameraOn && engine !== 'ready' && (
-          <div className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-gradient-to-t from-black/70 to-transparent px-5 pb-4 pt-10 text-sm text-ink-2">
+          <div className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-linear-to-t from-black/70 to-transparent px-5 pb-4 pt-10 text-sm text-ink-2">
             {engine === 'error' ? (
               <>
                 <span className="text-poor">{t.engineError}</span>

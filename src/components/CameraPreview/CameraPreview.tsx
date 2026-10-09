@@ -27,7 +27,9 @@ export function CameraPreview({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const toneRef = useRef(tone);
-  toneRef.current = tone;
+  useEffect(() => {
+    toneRef.current = tone;
+  }, [tone]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

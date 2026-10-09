@@ -80,7 +80,7 @@ export function Monitor() {
               className="h-full w-full"
             />
           )}
-          <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 bg-gradient-to-b from-black/50 to-transparent p-5">
+          <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 bg-linear-to-b from-black/50 to-transparent p-5">
             <div>
               <h2 className="text-sm font-semibold text-ink-1">{t.sideView}</h2>
               <p className="mt-0.5 text-[11px] text-ink-3">{t.sideViewHint}</p>
@@ -94,13 +94,13 @@ export function Monitor() {
                       ? pip.close()
                       : void pip.open({ width: 340, height: 400 })
                   }
-                  className="pointer-events-auto flex h-8 items-center gap-1.5 rounded-full border border-[rgba(77,234,196,0.4)] bg-[rgba(77,234,196,0.15)] px-3 text-xs font-medium text-good backdrop-blur hover:bg-[rgba(77,234,196,0.25)]"
+                  className="pointer-events-auto flex h-8 items-center gap-1.5 rounded-full border border-[rgba(77,234,196,0.4)] bg-[rgba(77,234,196,0.15)] px-3 text-xs font-medium text-good backdrop-blur-sm hover:bg-[rgba(77,234,196,0.25)]"
                 >
                   <PipIcon />
                   {pip.pipWindow ? t.pipClose : t.pipOpen}
                 </button>
               )}
-              <label className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/10 bg-black/35 py-1 pl-3 pr-1 text-xs text-ink-2 backdrop-blur">
+              <label className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/10 bg-black/35 py-1 pl-3 pr-1 text-xs text-ink-2 backdrop-blur-sm">
                 {t.xray}
                 <Toggle
                   checked={settings.xray}
@@ -128,7 +128,7 @@ export function Monitor() {
                 <button
                   type="button"
                   onClick={() => updateSettings({ showCamera: false })}
-                  className="absolute right-2 top-2 rounded-full bg-black/45 px-2.5 py-1 text-[11px] text-ink-2 backdrop-blur hover:text-ink-1"
+                  className="absolute right-2 top-2 rounded-full bg-black/45 px-2.5 py-1 text-[11px] text-ink-2 backdrop-blur-sm hover:text-ink-1"
                 >
                   {t.hideCamera}
                 </button>
@@ -243,14 +243,8 @@ function NotificationCard() {
   const updateSettings = useAppStore((s) => s.updateSettings);
   const [permission, setPermission] = useState<
     NotificationPermission | 'unsupported'
-  >('default');
+  >(() => (notificationsSupported() ? Notification.permission : 'unsupported'));
   const [dismissed, setDismissed] = useState(false);
-
-  useEffect(() => {
-    setPermission(
-      notificationsSupported() ? Notification.permission : 'unsupported'
-    );
-  }, []);
 
   if (
     desktopNotify ||
