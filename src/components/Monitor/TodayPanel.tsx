@@ -9,10 +9,17 @@ import { format } from '@/i18n/messages';
 const scoreColor = (s: number) =>
   s >= 70 ? 'var(--good)' : s >= 40 ? 'var(--fair)' : 'var(--poor)';
 
+const DATE_LOCALE: Record<Locale, string> = {
+  en: 'en-US',
+  ja: 'ja-JP',
+  ko: 'ko-KR',
+};
+
 const fmtDuration = (sec: number, locale: Locale) => {
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
   if (locale === 'ja') return h > 0 ? `${h}時間${m}分` : `${m}分`;
+  if (locale === 'ko') return h > 0 ? `${h}시간 ${m}분` : `${m}분`;
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 };
 
@@ -63,7 +70,7 @@ export function TodayPanel({
       const stats = history.find((h) => h.date === key);
       return {
         key,
-        label: d.toLocaleDateString(locale === 'ja' ? 'ja-JP' : 'en-US', {
+        label: d.toLocaleDateString(DATE_LOCALE[locale], {
           weekday: 'short',
         }),
         ratio: stats && stats.monitoredSec > 60 ? goodRatio(stats) : null,

@@ -206,8 +206,9 @@ export function SettingsSheet({
               value={settings.locale}
               onChange={(v) => update({ locale: v })}
               options={[
-                { value: 'ja', label: '日本語' },
                 { value: 'en', label: 'English' },
+                { value: 'ja', label: '日本語' },
+                { value: 'ko', label: '한국어' },
               ]}
             />
           </Field>
