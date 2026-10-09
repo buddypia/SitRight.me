@@ -3,6 +3,7 @@
 import type { Messages } from '@/i18n/messages';
 import type { LiveState } from '@/stores/appStore';
 import { PostureScene } from '../PostureScene';
+import type { Avatar } from '../PostureScene/models';
 import { STATUS_COLOR, displayStatus, statusLabel } from './StatusCard';
 
 /** 小窓（Picture-in-Picture）用の表示。3D の横姿勢と、状態・スコアだけを出す */
@@ -10,11 +11,13 @@ export function MiniMonitor({
   live,
   t,
   xray,
+  avatar,
   lowPower,
 }: {
   live: LiveState;
   t: Messages;
   xray: boolean;
+  avatar: Avatar;
   lowPower: boolean;
 }) {
   const status = displayStatus(live);
@@ -30,6 +33,7 @@ export function MiniMonitor({
         rig={live.rig}
         severity={measuring ? (a?.severity ?? null) : null}
         xray={xray}
+        avatar={avatar}
         lowPower={lowPower}
         t={t}
         className="min-h-0 flex-1"

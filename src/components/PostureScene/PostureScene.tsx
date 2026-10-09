@@ -4,6 +4,12 @@ import { useEffect, useRef, useState } from 'react';
 import { IDEAL_RIG, type RigParams } from '@/core/rig';
 import type { Severities } from '@/core/types';
 import type { Messages } from '@/i18n/messages';
+import {
+  DEFAULT_AVATAR,
+  HEAD_SCALE,
+  avatarDefines,
+  type Avatar,
+} from './models';
 import { SceneRenderer } from './renderer';
 import {
   DEFAULT_CAMERA,
@@ -20,6 +26,8 @@ export interface PostureSceneProps {
   severity: Severities | null;
   xray: boolean;
   t: Messages;
+  /** 表示するモデル */
+  avatar?: Avatar;
   /** 理想姿勢のゴーストと耳-肩ラインを表示する */
   guides?: boolean;
   /** 姿勢を自動で切り替えるデモ表示 */
@@ -111,6 +119,7 @@ export function PostureScene({
   severity,
   xray,
   t,
+  avatar = DEFAULT_AVATAR,
   guides = true,
   demo = false,
   lowPower = false,
@@ -127,8 +136,8 @@ export function PostureScene({
   const [dragging, setDragging] = useState(false);
 
   // 毎フレーム参照する値は ref に入れて、React の再描画と描画ループを切り離す
-  const target = useRef({ rig, severity, xray, guides, lowPower });
-  target.current = { rig, severity, xray, guides, lowPower };
+  const target = useRef({ rig, severity, xray, guides, lowPower, avatar });
+  target.current = { rig, severity, xray, guides, lowPower, avatar };
   const cam = useRef<OrbitCamera>({ ...DEFAULT_CAMERA });
   const camTarget = useRef<OrbitCamera>({ ...DEFAULT_CAMERA });
   const resetViewRef = useRef<() => void>(() => undefined);
@@ -144,13 +153,16 @@ export function PostureScene({
     // 小窓（Document PiP）に描画するときは、そちらの window の rAF と表示状態に従う
     const doc = wrap.ownerDocument;
     const win = (doc.defaultView ?? window) as typeof window;
+    const strip = new URLSearchParams(win.location.search).get('strip');
+    const stripDefines = strip
+      ? strip.split(',').map((d) => `NO_${d.toUpperCase()}`)
+      : [];
+    const definesFor = (a: Avatar) => [...avatarDefines(a), ...stripDefines];
     let renderer: SceneRenderer;
+    // モデルの切り替えは描画ループ内でシェーダーだけ差し替え、姿勢や視点の状態は保つ
+    let shownAvatar = target.current.avatar;
     try {
-      const strip = new URLSearchParams(win.location.search).get('strip');
-      renderer = new SceneRenderer(
-        canvas,
-        strip ? strip.split(',').map((d) => `NO_${d.toUpperCase()}`) : []
-      );
+      renderer = new SceneRenderer(canvas, definesFor(shownAvatar));
     } catch (error) {
       console.error('[scene] WebGL init failed', error);
       setFailed(true);
@@ -215,12 +227,14 @@ export function PostureScene({
       // 左右の傾きはシェーダーと同じ変形をかけて、マーカーを体に追従させる
       const lean = anchors.leanRad;
       const roll = anchors.headRollRad;
+      // 頭が大きいモデルでは耳も頭の付け根から離れる
+      const hs = HEAD_SCALE[shownAvatar];
+      const earY = (sk.ear.y - sk.skullPivot.y) * hs;
+      const earZ = 7.8 * hs;
       const earLocal: [number, number, number] = [
-        sk.ear.x,
-        sk.skullPivot.y +
-          (sk.ear.y - sk.skullPivot.y) * Math.cos(roll) -
-          7.8 * Math.sin(roll),
-        (sk.ear.y - sk.skullPivot.y) * Math.sin(roll) + 7.8 * Math.cos(roll),
+        sk.skullPivot.x + (sk.ear.x - sk.skullPivot.x) * hs,
+        sk.skullPivot.y + earY * Math.cos(roll) - earZ * Math.sin(roll),
+        earY * Math.sin(roll) + earZ * Math.cos(roll),
       ];
       const earW = bendPoint(earLocal, lean);
       const acrW = bendPoint([sk.acromion.x, sk.acromion.y, 17], lean);
@@ -307,6 +321,11 @@ export function PostureScene({
       if (!visible || doc.hidden) return;
 
       const tgt = target.current;
+      if (tgt.avatar !== shownAvatar) {
+        shownAvatar = tgt.avatar;
+        renderer.setDefines(definesFor(shownAvatar));
+        lastRender = 0;
+      }
       let goalRig = tgt.rig;
       let goalSev = tgt.severity ?? { forward: 0, down: 0, slump: 0, lean: 0 };
       if (demo) {

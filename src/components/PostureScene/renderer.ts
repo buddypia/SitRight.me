@@ -67,6 +67,10 @@ function compile(
 export class SceneRenderer {
   private gl: WebGL2RenderingContext;
   private program: WebGLProgram | null = null;
+  /** 切り替え中のモデルのプログラム。コンパイルが終わるまで今のモデルを描き続ける */
+  private pending: { program: WebGLProgram; key: string } | null = null;
+  private programKey = '';
+  private parallelExt: { COMPLETION_STATUS_KHR: number } | null = null;
   private buffer: WebGLBuffer | null = null;
   private vao: WebGLVertexArrayObject | null = null;
   private loc = {} as Record<UniformName, WebGLUniformLocation | null>;
@@ -85,7 +89,7 @@ export class SceneRenderer {
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
-    private readonly defines: string[] = []
+    private defines: string[] = []
   ) {
     const gl = canvas.getContext('webgl2', {
       antialias: false,
@@ -102,6 +106,7 @@ export class SceneRenderer {
       : '';
     this.software = /swiftshader|llvmpipe|software|basic render/i.test(name);
     this.timerExt = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+    this.parallelExt = gl.getExtension('KHR_parallel_shader_compile');
     canvas.addEventListener('webglcontextlost', this.onLost);
     canvas.addEventListener('webglcontextrestored', this.onRestored);
     this.setup();
@@ -114,13 +119,15 @@ export class SceneRenderer {
 
   private onRestored = () => {
     this.lost = false;
+    this.pending = null;
     this.setup();
   };
 
-  private setup() {
+  /** define 付きでシェーダーをリンクする（完了は待たない） */
+  private buildProgram(defines: string[]): WebGLProgram {
     const gl = this.gl;
     const vs = compile(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
-    const header = this.defines.map((d) => `#define ${d}\n`).join('');
+    const header = defines.map((d) => `#define ${d}\n`).join('');
     const fs = compile(
       gl,
       gl.FRAGMENT_SHADER,
@@ -136,10 +143,59 @@ export class SceneRenderer {
     gl.linkProgram(program);
     gl.deleteShader(vs);
     gl.deleteShader(fs);
+    return program;
+  }
+
+  private useLinked(program: WebGLProgram, key: string) {
+    const gl = this.gl;
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      throw new Error(`Program link error: ${gl.getProgramInfoLog(program)}`);
+      const log = gl.getProgramInfoLog(program);
+      gl.deleteProgram(program);
+      throw new Error(`Program link error: ${log}`);
     }
+    if (this.program) gl.deleteProgram(this.program);
     this.program = program;
+    this.programKey = key;
+    for (const name of UNIFORMS)
+      this.loc[name] = gl.getUniformLocation(program, name);
+  }
+
+  /**
+   * 表示するモデルなどの define を切り替える。対応環境ではバックグラウンドでコンパイルし、
+   * 終わるまで今の絵を描き続けるので、切り替えで描画が止まらない。
+   */
+  setDefines(defines: string[]): void {
+    const key = defines.join('|');
+    if (key === (this.pending?.key ?? this.programKey)) return;
+    this.defines = defines;
+    if (this.lost) return;
+    if (this.pending) this.gl.deleteProgram(this.pending.program);
+    this.pending = { program: this.buildProgram(defines), key };
+    if (!this.parallelExt) this.swapPending();
+  }
+
+  private swapPending() {
+    const p = this.pending;
+    if (!p) return;
+    const ext = this.parallelExt;
+    if (
+      ext &&
+      !this.gl.getProgramParameter(p.program, ext.COMPLETION_STATUS_KHR)
+    )
+      return;
+    this.pending = null;
+    try {
+      this.useLinked(p.program, p.key);
+    } catch (error) {
+      // 新しいモデルが使えないときは今のモデルのまま描き続ける
+      console.error('[scene] variant compile failed', error);
+    }
+  }
+
+  private setup() {
+    const gl = this.gl;
+    this.program = null;
+    this.useLinked(this.buildProgram(this.defines), this.defines.join('|'));
     this.vao = gl.createVertexArray();
     gl.bindVertexArray(this.vao);
     this.buffer = gl.createBuffer();
@@ -149,11 +205,9 @@ export class SceneRenderer {
       new Float32Array([-1, -1, 3, -1, -1, 3]),
       gl.STATIC_DRAW
     );
-    const aPos = gl.getAttribLocation(program, 'aPos');
-    gl.enableVertexAttribArray(aPos);
-    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
-    for (const name of UNIFORMS)
-      this.loc[name] = gl.getUniformLocation(program, name);
+    // aPos は location 0 に固定して、どのモデルのプログラムでも同じ VAO を使う
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   }
 
   resize(width: number, height: number): void {
@@ -164,7 +218,9 @@ export class SceneRenderer {
   }
 
   render(s: RenderState): void {
-    if (this.lost || !this.program) return;
+    if (this.lost) return;
+    this.swapPending();
+    if (!this.program) return;
     const gl = this.gl;
     const L = this.loc;
     const a = s.anchors;
@@ -263,7 +319,9 @@ export class SceneRenderer {
     if (this.buffer) gl.deleteBuffer(this.buffer);
     if (this.vao) gl.deleteVertexArray(this.vao);
     if (this.program) gl.deleteProgram(this.program);
+    if (this.pending) gl.deleteProgram(this.pending.program);
     this.program = null;
+    this.pending = null;
     // loseContext() は呼ばない: 同じ canvas で再初期化される場合（React の再マウント）に失われたままになるため
   }
 }
