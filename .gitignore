@@ -60,4 +60,5 @@ next-env.d.ts
 .tmp/
 .cache/
 .brief2dev/
+.claude/state/
 # --- end brief2dev transplant-bundle ---
