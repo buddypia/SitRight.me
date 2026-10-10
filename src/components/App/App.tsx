@@ -148,18 +148,50 @@ function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
 
 function Logo() {
   return (
-    <svg width="28" height="28" viewBox="0 0 64 64" fill="none" aria-hidden className="shrink-0 drop-shadow-[0_2px_8px_rgba(255,45,85,0.25)]">
-      <rect width="64" height="64" rx="16" fill="#12161f" />
-      <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="#2a3240" strokeWidth="1.5" />
-      <line x1="34" y1="12" x2="34" y2="52" stroke="#4deac4" strokeOpacity="0.18" strokeWidth="1.5" strokeDasharray="3 3" />
-      <path d="M34 52 C 34 46, 33 40, 33 34" stroke="#4deac4" strokeWidth="4" strokeLinecap="round" />
-      <circle cx="34" cy="48" r="2" fill="#2dd4bf" />
-      <circle cx="33.5" cy="40" r="2" fill="#4deac4" />
-      <path d="M33 34 L 23 20" stroke="#ff453a" strokeWidth="4.2" strokeLinecap="round" />
-      <circle cx="21" cy="16" r="4.5" fill="#eef0f2" />
-      <path d="M30 36 L 34 32 L 28 30 L 35 27" stroke="#ff2d55" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="32" cy="33" r="2.5" fill="#ff3b30" />
-      <circle cx="32" cy="33" r="1.2" fill="#fff" />
+    <svg
+      width="28"
+      height="28"
+      viewBox="0 0 64 64"
+      fill="none"
+      aria-hidden
+      className="shrink-0 drop-shadow-[0_2px_10px_rgba(255,45,85,0.4)]"
+    >
+      <defs>
+        <linearGradient id="headerLogoBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#161a22" />
+          <stop offset="1" stopColor="#0a0c10" />
+        </linearGradient>
+        <linearGradient id="headerSonicWave" x1="20" y1="20" x2="50" y2="50" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#ff2d55" />
+          <stop offset="0.6" stopColor="#ff7a00" />
+          <stop offset="1" stopColor="#ffcc00" />
+        </linearGradient>
+      </defs>
+
+      {/* Squircle Rim Base */}
+      <rect width="64" height="64" rx="16" fill="url(#headerLogoBg)" />
+      <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="#2d3748" strokeWidth="1.5" />
+
+      {/* Soundwave concentric rings (破裂音の視覚化) */}
+      <circle cx="34" cy="32" r="17" stroke="#ff2d55" strokeOpacity="0.35" strokeWidth="1.5" strokeDasharray="3 3" />
+      <circle cx="34" cy="32" r="10" stroke="#ff7a00" strokeOpacity="0.6" strokeWidth="2" />
+      <circle cx="34" cy="32" r="5" stroke="#ffffff" strokeOpacity="0.9" strokeWidth="2" />
+
+      {/* Upright lower spine (healthy solid green) */}
+      <path d="M34 54 L 34 33" stroke="#22c55e" strokeWidth="6" strokeLinecap="round" />
+      <circle cx="34" cy="49" r="1.8" fill="#15803d" />
+      <circle cx="34" cy="42" r="1.8" fill="#15803d" />
+
+      {/* Snapped cervical spine (bent forward in critical slouch) */}
+      <path d="M34 32 L 18 18" stroke="url(#headerSonicWave)" strokeWidth="6.5" strokeLinecap="round" />
+
+      {/* Forward head node */}
+      <circle cx="15" cy="15" r="5.5" fill="#f1f5f9" />
+
+      {/* Lightning snap fracture & central spark */}
+      <polygon points="34,31 38,24 33,28 39,21 35,27 42,23 34,33" fill="#ffffff" />
+      <circle cx="34" cy="32" r="3.5" fill="#ff2d55" />
+      <circle cx="34" cy="32" r="1.8" fill="#ffffff" />
     </svg>
   );
 }

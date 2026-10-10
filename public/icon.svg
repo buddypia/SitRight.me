@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="iconBgGrad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#161a22"/>
+      <stop offset="1" stop-color="#0a0c10"/>
+    </linearGradient>
+
+    <!-- Outer Rim Gradient -->
+    <linearGradient id="iconRimGrad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3d4654"/>
+      <stop offset="0.5" stop-color="#1e242d"/>
+      <stop offset="1" stop-color="#0d1117"/>
+    </linearGradient>
+
+    <!-- Sonic Blast Wave Gradient -->
+    <linearGradient id="iconSonicWave" x1="20" y1="20" x2="50" y2="50" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ff2d55"/>
+      <stop offset="0.6" stop-color="#ff7a00"/>
+      <stop offset="1" stop-color="#ffcc00"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Squircle Base -->
+  <rect width="64" height="64" rx="16" fill="url(#iconBgGrad)"/>
+  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="url(#iconRimGrad)" stroke-width="1.5"/>
+
+  <!-- SOUNDWAVE RINGS (パキッ！の瞬間音響リング) -->
+  <circle cx="34" cy="32" r="18" stroke="#ff2d55" stroke-opacity="0.3" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <circle cx="34" cy="32" r="11" stroke="#ff7a00" stroke-opacity="0.6" stroke-width="2"/>
+  <circle cx="34" cy="32" r="5.5" stroke="#ffffff" stroke-opacity="0.9" stroke-width="2"/>
+
+  <!-- LOWER SPINE (Vertical Solid Column) -->
+  <path d="M34 54 L 34 33" stroke="#22c55e" stroke-width="6" stroke-linecap="round"/>
+  <!-- Thoracic Nodes -->
+  <circle cx="34" cy="50" r="1.8" fill="#15803d"/>
+  <circle cx="34" cy="42" r="1.8" fill="#15803d"/>
+
+  <!-- CRITICAL FORWARD SNAP (折れ曲がった頸椎) -->
+  <path d="M34 32 L 18 18" stroke="url(#iconSonicWave)" stroke-width="6.5" stroke-linecap="round"/>
+
+  <!-- FORWARD HEAD / SKULL -->
+  <circle cx="15" cy="15" r="5.5" fill="#f1f5f9"/>
+
+  <!-- LIGHTNING FRACTURE & SPARK (パキッ！の破裂光と亀裂) -->
+  <polygon points="34,31 38,24 33,28 39,21 35,27 42,23 34,33" fill="#ffffff"/>
+  <circle cx="34" cy="32" r="3.5" fill="#ff2d55"/>
+  <circle cx="34" cy="32" r="1.8" fill="#ffffff"/>
+</svg>
