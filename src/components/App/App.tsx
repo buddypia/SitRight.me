@@ -148,22 +148,18 @@ function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
 
 function Logo() {
   return (
-    <svg width="28" height="28" viewBox="0 0 64 64" aria-hidden>
-      <rect width="64" height="64" rx="16" fill="#171b21" />
-      <path
-        d="M28 50c0-9 2-14 2-20 0-4-3-6-3-10"
-        fill="none"
-        stroke="#4deac4"
-        strokeWidth="4"
-        strokeLinecap="round"
-      />
-      <circle cx="31" cy="15" r="7" fill="#eef0f2" />
-      <path
-        d="M37 21v29"
-        stroke="#4deac4"
-        strokeWidth="2"
-        strokeDasharray="3 3"
-      />
+    <svg width="28" height="28" viewBox="0 0 64 64" fill="none" aria-hidden className="shrink-0 drop-shadow-[0_2px_8px_rgba(255,45,85,0.25)]">
+      <rect width="64" height="64" rx="16" fill="#12161f" />
+      <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="#2a3240" strokeWidth="1.5" />
+      <line x1="34" y1="12" x2="34" y2="52" stroke="#4deac4" strokeOpacity="0.18" strokeWidth="1.5" strokeDasharray="3 3" />
+      <path d="M34 52 C 34 46, 33 40, 33 34" stroke="#4deac4" strokeWidth="4" strokeLinecap="round" />
+      <circle cx="34" cy="48" r="2" fill="#2dd4bf" />
+      <circle cx="33.5" cy="40" r="2" fill="#4deac4" />
+      <path d="M33 34 L 23 20" stroke="#ff453a" strokeWidth="4.2" strokeLinecap="round" />
+      <circle cx="21" cy="16" r="4.5" fill="#eef0f2" />
+      <path d="M30 36 L 34 32 L 28 30 L 35 27" stroke="#ff2d55" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="32" cy="33" r="2.5" fill="#ff3b30" />
+      <circle cx="32" cy="33" r="1.2" fill="#fff" />
     </svg>
   );
 }
