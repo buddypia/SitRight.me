@@ -1,0 +1,98 @@
+{
+  "schema_version": 2,
+  "skill_id": "observability-and-instrumentation",
+  "tier": 2,
+  "tier_description": "Delivery Specialist - Production observability instrumentation (logging/metrics/tracing/alerts)",
+  "status": "active",
+  "enforced_protocol": {
+    "version": "2.0",
+    "preflight_required": true,
+    "postflight_required": true,
+    "model_routing_required": false,
+    "evidence_caching_enabled": false
+  },
+  "preflight_checks": [
+    {
+      "id": "PF-001",
+      "description": "Identify target feature / execution code paths for instrumentation",
+      "blocking": true
+    },
+    {
+      "id": "PF-002",
+      "description": "Define 2-4 on-call operational questions (instrumentation without questions forbidden)",
+      "blocking": true
+    },
+    {
+      "id": "PF-003",
+      "description": "Confirm platform lineup (Next.js / Flutter / Tauri)",
+      "blocking": false
+    }
+  ],
+  "postflight_checks": [
+    {
+      "id": "POF-001",
+      "description": "Verify all signals map directly to defined on-call questions",
+      "blocking": true
+    },
+    {
+      "id": "POF-002",
+      "description": "Verify structured logs contain stable event names + correlation IDs",
+      "blocking": true
+    },
+    {
+      "id": "POF-003",
+      "description": "Verify metric cardinality safety (absence of unbounded label values)",
+      "blocking": true
+    },
+    {
+      "id": "POF-004",
+      "description": "Verify alerts are symptom-based (cause-based paging alerts forbidden)",
+      "blocking": false
+    }
+  ],
+  "model_routing": {
+    "default_model": "sonnet",
+    "task_specific": {},
+    "fallback_chain": [
+      "sonnet"
+    ]
+  },
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "add logging",
+      "instrument telemetry",
+      "observability",
+      "metrics instrumentation",
+      "add tracing",
+      "configure alerts"
+    ],
+    "args_pattern": "[--signal <log|metric|trace|alert>]"
+  },
+  "called_by": [
+    "feature-implementer"
+  ],
+  "calls": [],
+  "dependencies": {
+    "required": [],
+    "optional": [
+      "systematic-debugging",
+      "metrics-designer"
+    ]
+  },
+  "outputs": [
+    {
+      "type": "code",
+      "path_pattern": "Instrumentation code within target source files",
+      "format": "code",
+      "description": "Structured logging, metrics, and tracing instrumentation written concurrently with features"
+    }
+  ],
+  "ssot_files": [],
+  "references": [
+    {
+      "file": "references/observability-checklist.md",
+      "description": "Pre-release observability checklist for implementation and review (transplanted from agent-skills 2026-07-17)"
+    }
+  ]
+}

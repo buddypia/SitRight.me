@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Verification Checkpoint",
+  "description": "Phase-level checkpoint schema for Sequential Blocking Verification. Each Phase strictly requires the previous Phase to pass.",
+  "type": "object",
+  "required": ["timestamp", "trigger", "mode", "phases", "summary", "debug_log"],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "trigger": {
+      "type": "string",
+      "description": "Condition activating verification-loop",
+      "enum": [
+        "changed_files_threshold",
+        "hook_changed",
+        "schema_changed",
+        "api_route_changed",
+        "shared_changed",
+        "manual"
+      ]
+    },
+    "mode": {
+      "type": "string",
+      "description": "Execution mode: strict=immediately abort + debug on Phase failure; lenient=traditional mode (record and proceed)",
+      "enum": ["strict", "lenient"],
+      "default": "strict"
+    },
+    "phases": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["name", "order", "status", "command", "started_at", "blocking"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": ["build", "typecheck", "lint", "test", "security", "diff"]
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 6,
+            "description": "Execution order. Phase N can only run after Phase N-1 has passed"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "running", "pass", "fail", "skip", "error", "blocked"],
+            "description": "blocked=cannot run due to previous Phase failure"
+          },
+          "blocking": {
+            "type": "boolean",
+            "description": "true=blocks subsequent Phases on failure (in strict mode, build and test are always true)"
+          },
+          "command": {
+            "type": "string",
+            "description": "Actual resolved command from project-config.json commands"
+          },
+          "started_at": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          },
+          "duration_ms": {
+            "type": ["integer", "null"],
+            "minimum": 0
+          },
+          "exit_code": {
+            "type": ["integer", "null"]
+          },
+          "error_count": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0
+          },
+          "output_summary": {
+            "type": "string",
+            "description": "Error message summary (max 500 characters)"
+          },
+          "debug_hints": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Debug guide provided by AI upon failure in strict mode"
+          },
+          "retry_count": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Retry count for this Phase (max 2)"
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total_phases", "passed", "failed", "skipped", "blocked", "overall_status"],
+      "properties": {
+        "total_phases": { "type": "integer", "const": 6 },
+        "passed": { "type": "integer", "minimum": 0 },
+        "failed": { "type": "integer", "minimum": 0 },
+        "skipped": { "type": "integer", "minimum": 0 },
+        "blocked": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of phases blocked from execution due to prior phase failures"
+        },
+        "overall_status": {
+          "type": "string",
+          "enum": ["pass", "fail", "partial"]
+        },
+        "first_failure": {
+          "type": ["string", "null"],
+          "description": "Name of the first failed Phase (root cause blocking subsequent Phases in strict mode)"
+        }
+      }
+    },
+    "debug_log": {
+      "type": "object",
+      "description": "OSS /husky pattern port: debugging protocol upon failure",
+      "properties": {
+        "failure_analysis": {
+          "type": "string",
+          "description": "Failure root cause analysis (AI interprets error messages)"
+        },
+        "suggested_fixes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["description", "command"],
+            "properties": {
+              "description": { "type": "string" },
+              "command": { "type": "string" },
+              "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+            }
+          }
+        },
+        "similar_elsewhere": {
+          "type": "boolean",
+          "description": "Whether the same type of issue exists in other files"
+        },
+        "console_log_cleanup_needed": {
+          "type": "boolean",
+          "description": "OSS /husky pattern: whether console.log cleanup is needed"
+        }
+      }
+    }
+  }
+}

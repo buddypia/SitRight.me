@@ -1,0 +1,192 @@
+{
+  "schema_version": 2,
+  "skill_id": "final-review",
+  "tier": 2,
+  "tier_description": "Delivery - 8-Axis critical evaluation + Quality Score post-implementation (Read-Only)",
+  "enforced_protocol": {
+    "version": "2.0",
+    "preflight_required": true,
+    "postflight_required": true,
+    "model_routing_required": true,
+    "evidence_caching_enabled": true
+  },
+  "preflight_checks": [
+    {
+      "id": "PF-000",
+      "description": "REVIEW.md read (or its absence explicitly noted in the verdict) — review policy SSOT",
+      "blocking": true
+    },
+    {
+      "id": "PF-001",
+      "description": "Review target files and change intent are clearly identified",
+      "blocking": true
+    },
+    {
+      "id": "PF-002",
+      "description": "Paths and commands resolved via project-config.json or fallback",
+      "blocking": true
+    },
+    {
+      "id": "PF-003",
+      "description": "Test/lint/contract verification commands and obligatoriness classified",
+      "blocking": true
+    },
+    {
+      "id": "PF-004",
+      "description": "Adaptive Depth (Quick/Standard/Deep) determined",
+      "blocking": true
+    },
+    {
+      "id": "PF-005",
+      "description": "Test obligations recorded for doc-only, config-only, or behavior-altering code changes",
+      "blocking": true
+    }
+  ],
+  "postflight_checks": [
+    {
+      "id": "POF-001",
+      "description": "All axes executed according to Adaptive Depth",
+      "blocking": true
+    },
+    {
+      "id": "POF-002",
+      "description": "Mandatory commands, exit codes, and pass/fail counts reported",
+      "blocking": true
+    },
+    {
+      "id": "POF-003",
+      "description": "Quality Score computed using unified severity mathematics",
+      "blocking": true
+    },
+    {
+      "id": "POF-004",
+      "description": "Blocker findings ordered with file/line and evidentiary citations",
+      "blocking": true
+    },
+    {
+      "id": "POF-005",
+      "description": "Review Summary fully populated",
+      "blocking": true
+    },
+    {
+      "id": "POF-006",
+      "description": "Self-review bias, edge case, and Complexity ROI questions answered",
+      "blocking": false
+    },
+    {
+      "id": "POF-007",
+      "description": "On No-Go / Conditional Go, routing skills and re-verification commands explicitly specified in Next Actions per blocker (references/no-go-routing.md format)",
+      "blocking": true
+    }
+  ],
+  "model_routing": {
+    "default_model": "opus",
+    "task_specific": {
+      "scope_detection": "sonnet",
+      "automated_gate": "sonnet",
+      "impact_analysis": "opus",
+      "logic_review": "opus",
+      "edge_case_discovery": "opus",
+      "security_review": "opus",
+      "performance_review": "opus",
+      "test_sufficiency": "opus",
+      "rollback_risk": "opus",
+      "viability_review": "opus",
+      "report_generation": "sonnet"
+    },
+    "fallback_chain": [
+      "opus",
+      "sonnet"
+    ]
+  },
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "final check",
+      "final review",
+      "QA review",
+      "final review",
+      "review code",
+      "code review"
+    ],
+    "args_pattern": "[--feature <id>] [--skip-gate] [--focus <1-8>] [--strict] [--deep] [--quick]"
+  },
+  "dependencies": {
+    "required": [],
+    "optional": [
+      "test-coverage"
+    ]
+  },
+  "called_by": [
+    "feature-pilot",
+    "cleanup-pilot"
+  ],
+  "calls": [],
+  "outputs": [
+    {
+      "type": "report",
+      "format": "markdown",
+      "description": "8-Axis critical review report + Quality Score (0-100) + Go/No-Go verdict"
+    }
+  ],
+  "ssot_files": [],
+  "references": [
+    {
+      "file": "references/final-review-protocol-details.md",
+      "description": "Legacy full final-review protocol archive. Consult on-demand for axis-specific rubrics, output templates, option examples, and phase procedures"
+    },
+    {
+      "file": "references/no-go-routing.md",
+      "description": "No-Go / Conditional Go handling protocol. Blocker → Routing skill matrix (bug-fix / code-standards-aligner / feature-implementer / feature-spec-updater, etc. — Claude Code environment uses /code-review --fix built-in), Generation-Verification Loop, 3-Strike Escalation (R-CM-017 Rule 3.1 Stagnation 4 patterns + persona recommendations). SSOT for POF-007 format."
+    },
+    {
+      "file": "references/de-sloppify-protocol.md",
+      "description": "Post-implementation code cleanup protocol"
+    },
+    {
+      "file": "references/multi-perspective-protocol.md",
+      "description": "6-Role multi-perspective review protocol"
+    },
+    {
+      "file": "references/eng-review-cognitive-patterns.md",
+      "description": "15 engineering leader cognitive patterns used as intuition lenses in Deep mode. Transplanted from gstack plan-eng-review.",
+      "transplant_source": "tp-gstack-round6-20260327"
+    },
+    {
+      "file": "references/cross-model-review-format.md",
+      "description": "Cross-model comparison table + Adversarial review prompt template for multi-LLM review comparisons in Deep/--strict mode. Transplanted from gstack codex.",
+      "transplant_source": "tp-gstack-round7-20260327"
+    },
+    {
+      "file": "references/pr-review-protocol.md",
+      "description": "6-Role Multi-Perspective PR review protocol: Structured reviews across PM/Developer/QE/Security/DevOps/UI-UX roles + GH CLI execution guide. Execution mechanism for 6-Role reviews.",
+      "transplant_source": "tp-awesome-claude-code-v2-20260327"
+    },
+    {
+      "file": "references/santa-adversarial-review-protocol.md",
+      "description": "Santa adversarial dual-review protocol: 2 independent subagents + structured rubric + convergence loop (MAX 3 iterations) + dual pass gate. Supplements multi-perspective review in Deep/--strict mode. Transplanted from ECC santa-method.",
+      "transplant_source": "tp-everything-claude-code-round2-20260402"
+    },
+    {
+      "file": "references/devex-review-methodology.md",
+      "description": "Developer Experience (DX) dedicated 3-mode review methodology: DX First Principles 8 + Seven Characteristics + 7 Persona archetypes + 3 modes (TRIAGE/POLISH/EXPANSION) + TTHW benchmarks + Empathy Narrative + Magical Moment. Deepens Developer role. Transplanted from gstack v1.3 plan-devex-review.",
+      "transplant_source": "tp-gstack-20260420"
+    },
+    {
+      "file": "references/superpowers-requesting-code-review.md",
+      "description": "Stripped raw frontmatter. Maps superpowers Task tool model to brief2dev final-review multi-perspective protocol. 'No session history inheritance' principle matches brief2dev subagent model."
+    },
+    {
+      "file": "references/superpowers-receiving-code-review.md",
+      "description": "Stripped raw frontmatter. 'CLAUDE.md violation' phrasing mapped to brief2dev R-CM-016 (Anti-Sycophancy) violation. Forbidden Responses catalog aligns with R-CM-016 #1 forbidden phrases."
+    },
+    {
+      "file": "references/gstack-review-report-contract.md",
+      "description": "Review report unresolved-decisions sentinel (last line enforces NO UNRESOLVED DECISIONS or unresolved list) + commit distance-based staleness detection contract"
+    },
+    {
+      "file": "references/pm-intended-vs-implemented.md",
+      "description": "documented-intent baseline audit (intent documents ↔ code enforcement evidence cross-check) + shipping-artifacts core 5 document suite — reinforces final-review Process Trace/Logic axes"
+    }
+  ]
+}

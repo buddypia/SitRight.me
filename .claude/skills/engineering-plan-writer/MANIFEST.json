@@ -1,0 +1,69 @@
+{
+  "schema_version": 2,
+  "skill_id": "engineering-plan-writer",
+  "tier": 2,
+  "tier_description": "Delivery - Generates engineering-level bite-sized execution plans from SPEC.md",
+  "enforced_protocol": {
+    "version": "1.0",
+    "preflight_required": false,
+    "postflight_required": false,
+    "model_routing_required": false
+  },
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "execution plan",
+      "implementation plan",
+      "engineering plan",
+      "task breakdown"
+    ],
+    "args_pattern": "[--feature <id>] [--spec <path>]"
+  },
+  "dependencies": {
+    "required": [],
+    "optional": [
+      "feature-spec-generator"
+    ]
+  },
+  "called_by": [
+    "feature-pilot"
+  ],
+  "calls": [],
+  "inputs": [
+    "SPEC.md",
+    "project-config.json"
+  ],
+  "outputs": [
+    {
+      "type": "file",
+      "format": "markdown",
+      "description": "Engineering-level execution plan (including file paths + code + test commands)"
+    }
+  ],
+  "model": "opus",
+  "references": [
+    {
+      "file": "references/scope-challenge-framework.md",
+      "description": "Scope challenge framework. 3-step verification to prevent over-scoping. Transplanted from gstack.",
+      "transplant_source": "tp-gstack-round6-20260327"
+    },
+    {
+      "file": "references/cold-start-plan-protocol.md",
+      "description": "Cold-Start planning protocol. Per-task self-contained context brief + PRP Golden Rule. Transplanted from ECC blueprint + prp-plan.",
+      "transplant_source": "tp-everything-claude-code-round2-20260402"
+    },
+    {
+      "file": "references/temporal-interrogation.md",
+      "description": "Proactive temporal decision resolution. Predicts and answers questions implementers will face across HOUR 1 (foundations) / HOUR 2-3 (core logic) / HOUR 4-5 (integration) / HOUR 6+ (polish) during planning. Dual Human + CC scale notation. Transplanted from gstack.",
+      "transplant_source": "tp-gstack-20260417"
+    },
+    {
+      "file": "references/superpowers-writing-plans.md",
+      "description": "Stripped original frontmatter. Normalized 'your human partner' → user, 'subagent-driven-development' references → superpowers-subagent-driven-development.md references. Normalized plan storage paths to brief2dev conventions (docs/research/ or docs/features/). Mapped 'dedicated worktree' guide to brief2dev EnterWorktree tool."
+    },
+    {
+      "file": "references/superpowers-executing-plans.md",
+      "description": "Stripped original frontmatter. Transformed 'subagent-driven-development' recommendation into a sequential execution cycle guide. Mapped 'finishing-a-development-branch' sub-skill references to brief2dev create-pr skill. Cross-referenced prohibition on direct main/master branch edits with R-CM-008 (git-workflow)."
+    }
+  ]
+}

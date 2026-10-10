@@ -1,0 +1,71 @@
+{
+  "schema_version": 2,
+  "skill_id": "feature-wiring",
+  "tier": 2,
+  "tier_description": "Pipeline - Comprehensive verification of exports, routes, data flows, and linting",
+  "enforced_protocol": {
+    "version": "2.0",
+    "preflight_required": false,
+    "postflight_required": false,
+    "model_routing_required": false,
+    "evidence_caching_enabled": false
+  },
+  "model_routing": {
+    "default_model": "sonnet",
+    "task_specific": {
+      "dependency_analysis": "sonnet",
+      "export_verification": "sonnet",
+      "dataflow_verification": "sonnet",
+      "lint_verification": "sonnet"
+    },
+    "fallback_chain": [
+      "sonnet"
+    ]
+  },
+  "evidence_policy": {
+    "note": "Wiring is a verification skill. Lint results cacheable for 30 minutes."
+  },
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "verify integration",
+      "check wiring",
+      "wiring",
+      "check connections",
+      "verify data flow"
+    ],
+    "args_pattern": "<feature-id>"
+  },
+  "dependencies": {
+    "required": [],
+    "optional": []
+  },
+  "called_by": [
+    "feature-pilot"
+  ],
+  "calls": [],
+  "outputs": [
+    {
+      "type": "report",
+      "path_pattern": "N/A (Console output)",
+      "description": "Verification report (Pass/Fail + suggested fixes)"
+    }
+  ],
+  "state_transitions": {
+    "context_json_field": "quick_resume.current_state",
+    "valid_transitions": [
+      {
+        "from": "Implementing",
+        "to": "Implementing"
+      }
+    ]
+  },
+  "ssot_files": [],
+  "references": [
+    {
+      "file": "references/spec-compliance-audit-template.md",
+      "description": "SPEC compliance audit template. Verifies implementation-SPEC 1:1 mapping + identifies unimplemented items. Transplanted from gstack review.",
+      "transplant_source": "tp-gstack-20260325"
+    }
+  ]
+}

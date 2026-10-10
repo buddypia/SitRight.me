@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.1",
+  "project_name": "sitright",
+  "platform": "web-nextjs",
+  "framework": "Next.js",
+  "framework_version": "16",
+  "language": "TypeScript",
+  "created_by": "brief2dev",
+  "created_at": "2026-10-10T01:05:00Z",
+  "mode": "production",
+  "target": "p2-brownfield",
+  "detected_stack": {
+    "languages": ["typescript", "javascript"],
+    "frameworks": ["nextjs", "react"],
+    "primary": "nextjs",
+    "platform": "web"
+  },
+  "paths": {
+    "source_root": "src",
+    "features": "src/components",
+    "shared": "src/core",
+    "tests": "tests",
+    "tests_unit": "tests/unit",
+    "tests_e2e": "tests/e2e",
+    "public": "public",
+    "styles": "src/app"
+  },
+  "conventions": {
+    "feature_structure": ["<Component>.tsx", "index.ts"],
+    "component_naming": "PascalCase",
+    "component_extension": ".tsx",
+    "file_extension": ".ts",
+    "style_approach": "tailwind",
+    "barrel_files": true,
+    "test_suffix": ".test.ts"
+  },
+  "commands": {
+    "install": "npm ci",
+    "dev": "npm run dev",
+    "typecheck": "npm run type-check",
+    "lint": "npm run lint",
+    "test": "npm run test",
+    "test_e2e": "npm run test:e2e",
+    "format_check": "npx prettier --check .",
+    "format_fix": "npx prettier --write .",
+    "build": "npm run build",
+    "quality_gate": "make q.check",
+    "quality_check": "make q.check"
+  },
+  "styling": {
+    "framework": "tailwind",
+    "preprocessor": "postcss"
+  },
+  "stack": {
+    "ui": { "library": "React 19", "vision": "@mediapipe/tasks-vision" },
+    "state": "Zustand",
+    "deployment": "Cloudflare Pages"
+  },
+  "quality": {
+    "linter": "eslint",
+    "formatter": "prettier",
+    "test_framework": "vitest",
+    "e2e_framework": "playwright"
+  }
+}

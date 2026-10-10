@@ -1,0 +1,110 @@
+{
+  "schema_version": 2,
+  "skill_id": "verification-loop",
+  "tier": 2,
+  "tier_description": "Tier 2 Delivery",
+  "enforced_protocol": {
+    "version": "3.0",
+    "preflight_required": false,
+    "postflight_required": false,
+    "model_routing_required": false,
+    "evidence_caching_enabled": false,
+    "read_only": false,
+    "oss_origin": "awesome-claude-code /husky sequential blocking pattern"
+  },
+  "model_routing": {
+    "default_model": "sonnet",
+    "task_specific": {
+      "command_execution": "sonnet",
+      "error_analysis": "opus",
+      "fix_suggestion": "opus"
+    },
+    "fallback_chain": [
+      "sonnet",
+      "opus"
+    ]
+  },
+  "preflight_checks": [
+    {
+      "id": "PF-001",
+      "description": "Resolved commands from project-config.json",
+      "blocking": true
+    },
+    {
+      "id": "PF-002",
+      "description": "Determined execution mode (strict/lenient)",
+      "blocking": true
+    }
+  ],
+  "postflight_checks": [
+    {
+      "id": "POF-001",
+      "description": "Executed all 6 phases or recorded blocking rationale",
+      "blocking": true
+    },
+    {
+      "id": "POF-002",
+      "description": "Completed residual console.log/debugger audit",
+      "blocking": false
+    },
+    {
+      "id": "POF-003",
+      "description": "Structured checkpoint output (verification-checkpoint.schema.json)",
+      "blocking": true
+    }
+  ],
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "verification-loop",
+      "I implemented the search, filter, pagination, sorting, favorites, and history features",
+      "Executing verification-loop due to 6+ changed files",
+      "Modified hooks/pipeline-drift-guard.mjs",
+      "Hook change detected, executing verification-loop"
+    ],
+    "args_pattern": ""
+  },
+  "dependencies": {
+    "required": [],
+    "optional": []
+  },
+  "called_by": [
+    "feature-pilot"
+  ],
+  "calls": [],
+  "outputs": [
+    {
+      "type": "conversation",
+      "description": "In-conversation output"
+    }
+  ],
+  "safety_rules": {
+    "allowed_modifications": [],
+    "forbidden_modifications": [],
+    "read_only_mode": false,
+    "note": "Allows lint --fix automatic corrections in strict mode"
+  },
+  "strict_mode": {
+    "default": true,
+    "max_retries_per_phase": 2,
+    "blocking_phases": [
+      "build",
+      "test"
+    ],
+    "auto_fix_phases": [
+      "lint"
+    ],
+    "checkpoint_schema": "data/schemas/ci/verification-checkpoint.schema.json"
+  },
+  "references": [
+    {
+      "file": "references/test-failure-triage-template.md",
+      "description": "Test failure ownership triage template. 4-tier classification (T1 AI error to T4 environment issue) + remediation strategies. Transplanted from gstack ship.",
+      "transplant_source": "tp-gstack-round4-20260325"
+    },
+    {
+      "file": "references/superpowers-claim-evidence-protocol.md",
+      "description": "Merged into verification-loop completion claim discipline. Avoided standalone skill deployment to prevent redundancy."
+    }
+  ]
+}

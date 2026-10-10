@@ -1,0 +1,103 @@
+{
+  "schema_version": 2,
+  "skill_id": "contract-codegen",
+  "tier": 2,
+  "tier_description": "Pipeline - Automatically generate Zod schemas, API clients, and mock handlers from SPEC API definitions",
+  "enforced_protocol": {
+    "version": "2.0",
+    "preflight_required": true,
+    "postflight_required": true,
+    "model_routing_required": true,
+    "evidence_caching_enabled": true
+  },
+  "model_routing": {
+    "default_model": "sonnet",
+    "task_specific": {
+      "spec_parsing": "sonnet",
+      "schema_generation": "sonnet",
+      "client_generation": "sonnet",
+      "mock_generation": "sonnet"
+    },
+    "fallback_chain": [
+      "sonnet",
+      "opus"
+    ]
+  },
+  "evidence_policy": {
+    "cacheable_validations": [
+      {
+        "type": "contract_codegen",
+        "validity_minutes": 30,
+        "invalidation_patterns": [
+          "docs/features/*/SPEC*.md",
+          "src/shared/contracts/**/*"
+        ]
+      }
+    ],
+    "cache_location": "CONTEXT.json > evidence_cache"
+  },
+  "preflight_checks": [
+    {
+      "id": "PF-001",
+      "description": "api_endpoint block must exist in SPEC.md 0.5",
+      "blocking": true
+    },
+    {
+      "id": "PF-002",
+      "description": "api_endpoint.schema.json must be loadable",
+      "blocking": true
+    }
+  ],
+  "postflight_checks": [
+    {
+      "id": "POF-001",
+      "description": "tsc --noEmit compilation passes",
+      "blocking": true
+    },
+    {
+      "id": "POF-002",
+      "description": "Zod to JSON Schema reverse conversion matches SPEC",
+      "blocking": true
+    }
+  ],
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "generate contract code",
+      "contract codegen",
+      "generate zod",
+      "contract code generation"
+    ],
+    "args_pattern": "<feature-id> [--force]"
+  },
+  "dependencies": {
+    "required": [
+      "feature-spec-generator"
+    ],
+    "optional": []
+  },
+  "called_by": [],
+  "calls": [],
+  "outputs": [
+    {
+      "type": "file",
+      "format": "typescript",
+      "description": "contracts/schemas/ - Zod schema files"
+    },
+    {
+      "type": "file",
+      "format": "typescript",
+      "description": "contracts/client/ - Type-safe API clients"
+    },
+    {
+      "type": "file",
+      "format": "typescript",
+      "description": "contracts/mocks/ - MSW mock handlers"
+    }
+  ],
+  "ssot_files": [
+    "src/shared/contracts/schemas/",
+    "src/shared/contracts/client/",
+    "src/shared/contracts/mocks/"
+  ]
+}

@@ -15,6 +15,10 @@ const config = [
       '.tmp/**',
       '.wrangler/**',
       'tmp/**',
+      '.claude/**',
+      '.cli/**',
+      '.codex/**',
+      'data/**',
     ],
   },
   {

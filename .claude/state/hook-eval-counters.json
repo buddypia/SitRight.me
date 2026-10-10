@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "window_started_at": "2026-10-10T01:02:51.746Z",
+  "updated_at": "2026-10-10T01:04:47.702Z",
+  "hooks": {
+    "trunk-start-warning": {
+      "evaluated": 1,
+      "errors": 0,
+      "last_evaluated_at": "2026-10-10T01:02:51.746Z",
+      "last_event": ""
+    },
+    "destructive-git-guard": {
+      "evaluated": 3,
+      "errors": 0,
+      "last_evaluated_at": "2026-10-10T01:04:47.629Z",
+      "last_event": ""
+    },
+    "commit-guard": {
+      "evaluated": 3,
+      "errors": 0,
+      "last_evaluated_at": "2026-10-10T01:04:47.570Z",
+      "last_event": ""
+    },
+    "worktree-session-owner-guard": {
+      "evaluated": 3,
+      "errors": 0,
+      "last_evaluated_at": "2026-10-10T01:04:47.702Z",
+      "last_event": ""
+    },
+    "pre-ship-review-guard": {
+      "evaluated": 8,
+      "errors": 0,
+      "last_evaluated_at": "2026-10-10T01:04:47.606Z",
+      "last_event": ""
+    },
+    "milestone-deck-warning": {
+      "evaluated": 6,
+      "errors": 0,
+      "last_evaluated_at": "2026-10-10T01:04:30.978Z",
+      "last_event": ""
+    },
+    "worktree-policy-guard": {
+      "evaluated": 1,
+      "errors": 0,
+      "last_evaluated_at": "2026-10-10T01:04:38.284Z",
+      "last_event": ""
+    }
+  }
+}

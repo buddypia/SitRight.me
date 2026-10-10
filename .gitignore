@@ -49,8 +49,15 @@ next-env.d.ts
 /tests/e2e/fixtures/portrait.jpg
 
 # local tooling
-/.claude/
+/.claude/settings.local.json
 
 # copied from node_modules by scripts/copy-mediapipe-wasm.mjs
 /public/mediapipe/wasm/
 /.wrangler/
+
+# --- brief2dev transplant-bundle (auto-managed block) ---
+.worktrees/
+.tmp/
+.cache/
+.brief2dev/
+# --- end brief2dev transplant-bundle ---

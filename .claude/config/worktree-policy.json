@@ -1,0 +1,50 @@
+{
+  "version": "1.4.0",
+  "updated_at": "2026-10-01",
+  "description": "GENERIC worktree-policy — Universal baseline transplanted by transplant-bundle (git-worktree-isolation) to .claude/config/worktree-policy.json of target projects. Unlike brief2dev's internal policy (.claude/config/worktree-policy.json which includes brief2dev-specific tier1 paths like .brief2dev/**, output/**), this generic policy marks only cross-project git-ignored runtime directories and settings.json (for hook registration codegen) as Tier 1 (direct edit permitted). 100% Worktree Paradigm remains identical: all other git-tracked assets are Tier 3 (worktree enforced) and blocked by worktree-policy-guard when edited directly on protected branches (including README.md and .claude/config/**). External projects customize tier1 patterns to match their git-ignored output directories and protected_branches to match their default branch name.",
+  "protected_branches": ["main", "master"],
+  "tiers": {
+    "tier1_main_allowed": {
+      "description": "Direct Edit/Write permitted on main branch — limited to git-ignored runtime/build artifacts and settings.json (for hook registration codegen). Project owners can customize output paths.",
+      "patterns": [
+        ".tmp/**",
+        ".cache/**",
+        "tmp/**",
+        "node_modules/**",
+        "dist/**",
+        "build/**",
+        "out/**",
+        "coverage/**",
+        "target/**",
+        ".next/**",
+        ".nuxt/**",
+        ".svelte-kit/**",
+        ".turbo/**",
+        ".claude/settings.json",
+        ".claude/settings.local.json"
+      ]
+    }
+  },
+  "escape_hatch": {
+    "branch_patterns": ["hotfix/*", "hotfix-*"],
+    "description": "Emergency bypass for urgent hotfixes or when hook/worktree infrastructure itself is broken"
+  },
+  "enforce_worktree_all_branches": false,
+  "trunk_ref_guard": true,
+  "session_owner_scope": "commit",
+  "trunk_bash_allowlist": {
+    "enabled": false,
+    "description": "Opt-in. When enabled, worktree-policy-guard denies Bash commands on a protected branch unless every simple command matches one pattern. Each pattern is a regex source, anchored by the guard as ^(?:pattern)(?=\\s|$), judged per command after env assignments, reserved words, wrappers (env/sudo/command/time/xargs ...) and git global options are removed. Commands in $( ), backticks and unquoted-delimiter heredoc bodies are judged too. Exempt: cd, and a command whose effective directory (cwd after an &&-chained cd, then cumulative git -C / make -C) is inside an existing linked worktree under .worktrees/ and none of whose path arguments or redirect targets reaches the trunk checkout or fails to resolve; after ; || | & a preceding cd no longer exempts. env -C <dir> counts as a cd; directories and paths are compared after realpath; a path word with .. plus brace/glob characters is unresolvable. Denied regardless: an output redirect into a file (anything but /dev/null or an fd), time -o <file>, any GIT_*= or CDPATH= assignment, and env -S '<cmd>'. Not enforced: file-writing options of a listed command (find -delete, git log --output=f) - exclude them in the pattern. A command that cannot be parsed (nesting deeper than 64) is denied. Requires worktree-policy-guard registered on the Bash matcher (see _adapt.opt_in_wiring).",
+    "patterns": []
+  },
+  "_adapt": {
+    "enforce_worktree_all_branches": "false (default): only protected_branches are trunk. true: a non-worktree checkout on any branch except the escape_hatch.branch_patterns ones (hotfix/*) is treated like trunk, for git-flow repos that keep develop / release/* beside main. Then worktree-policy-guard denies tracked-file edits there (trunk_bash_allowlist, if enabled, applies there too), commit-guard denies git commit there, trunk-start-warning warns at session start, and worktree-shipping-guard never treats that checkout as a ship candidate; a root hotfix/* checkout may both edit and commit. Worktrees must live under .worktrees/ (make wt.new puts them there): that is what the guards recognise, so a linked worktree created elsewhere is blocked like the root checkout and its sessions get the start warning. Read by .cli/lib/trunk-branch.mjs#enforcesWorktreeOnAllBranches only; no registration change needed.",
+    "trunk_ref_guard": "true (default): the reference-transaction hook (.claude/scripts/trunk-ref-guard.mjs, self-installed by commit-guard) denies an AI session moving a protected branch to a commit absent from the remote-tracking refs, on every git path (commit / merge / cherry-pick / reset / update-ref; --no-verify does not skip it), except under a /create-pr lease. false: commit-guard does not install the hook (a repo's own reference-transaction hook stays untouched and unreported) and an already-installed one passes everything, for repos whose documented landing is an AI-run local merge into trunk (no remote, no lease). Only a JSON false opts out; a missing key or any other value keeps the guard on.",
+    "session_owner_scope": "\"commit\" (default): worktree-session-owner-guard checks git commit only. \"all_bash\": every Bash command is checked against every worktree it touches. Where it runs (cwd, each cd, cumulative git -C / make -C) gets Layer 1 (cross-worktree) and Layer 2 (live foreign lease); path arguments and redirect targets that resolve into a worktree (relative ../other paths included) get Layer 2 only. all_bash never claims, renews or adopts a lease for a non-commit command, so reading a worktree cannot take it over. An unparsable command is denied. Requires the guard's Bash registration without if: Bash(git *) (see opt_in_wiring).",
+    "opt_in_wiring": "The bundle registers both Bash hooks narrowly so non-opted-in targets pay no extra process per Bash call. To opt in under Claude Code, in .claude/settings.json PreToolUse matcher Bash: add worktree-policy-guard.mjs (no if) and remove the if from worktree-session-owner-guard.mjs. Re-transplanting keeps these edits (settings merge dedupes by command). Codex/Antigravity registrations already cover every Bash call.",
+    "purpose": "External project adaptation guide (the guard does not read this key — guidance only).",
+    "how": "Add your project's git-ignored output directories (refer to .gitignore) to tier1_main_allowed.patterns. Git-tracked source/configuration files (including this policy file itself) remain Tier 3 (worktree enforced) with settings.json as a codegen exception.",
+    "disable": "If worktree isolation is unneeded, simply omit worktree-policy-guard from settings.json/hook-registry.",
+    "trunk_bash_allowlist_limits": "Threat model: an honest agent that over-generalises, not a malicious one - a static allowlist cannot fence a shell completely. Opaque to the guard: interpreter payloads and scripts (bash -c, node -e, python -c, ./x.sh), write-by-argument tools (dd of=), allowlisted tools that execute project config (make targets, cargo build scripts), and an inherited CDPATH set outside the command. Keep such commands off the allowlist, and exclude file-writing options of listed commands in the pattern (negative lookahead: git log --output, git diff --ext-diff, git grep -O, make -f, cargo clippy --fix)."
+  }
+}

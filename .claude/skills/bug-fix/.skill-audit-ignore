@@ -1,0 +1,8 @@
+# skill-audit waivers for this skill.
+# Format: RULE-ID[:substring]   (# comments allowed; suppressed counts are still reported)
+
+# Change history inside SKILL.md is a *feature* of this skill, not token pollution:
+# it is one of the eight skills whitelisted for it in
+# data/registry/skill-doc-hygiene-whitelist.json (R-CM-019 Rule 2), because bug
+# fix history is part of what the skill produces.
+HYG-01:*

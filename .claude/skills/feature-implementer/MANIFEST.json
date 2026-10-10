@@ -1,0 +1,58 @@
+{
+  "schema_version": 2,
+  "tier": 2,
+  "skill_id": "feature-implementer",
+  "version": "1.0.0",
+  "description": "Executor skill that implements code via TDD given SPEC.md and Screen documents as input",
+  "triggers": [
+    "implement feature",
+    "write code",
+    "TDD implementation",
+    "FR implementation",
+    "feature-implementer"
+  ],
+  "calls": [
+    "observability-and-instrumentation"
+  ],
+  "called_by": [
+    "feature-pilot"
+  ],
+  "inputs": [
+    "SPEC.md",
+    "screens/*.md",
+    "CONTEXT.json"
+  ],
+  "outputs": [
+    "src/features/**/*.ts(x)",
+    "tests/unit/features/**/*.test.ts(x)",
+    "CONTEXT.json progress updates"
+  ],
+  "model": "sonnet",
+  "references": [
+    {
+      "file": "references/implementation-protocol-details.md",
+      "description": "Legacy full implementation protocol archive. Reference only when code templates, test authoring examples, error handling tables, or SDD detailed procedures are needed"
+    },
+    {
+      "file": "references/sdd-implementer-prompt.md",
+      "description": "Implementer prompt for SDD mode"
+    },
+    {
+      "file": "references/test-coverage-diagram-template.md",
+      "description": "Test coverage diagram template"
+    },
+    {
+      "file": "references/gan-generator-evaluator-pattern.md",
+      "description": "GAN Generator-Evaluator separation pattern. Generation-evaluation separation principle + adversarial evaluator design + AI-slop prevention rubric. Enhances SDD 2-stage review. Transplanted from ECC gan-style-harness.",
+      "transplant_source": "tp-everything-claude-code-round2-20260402"
+    },
+    {
+      "file": "references/superpowers-controller-verification.md",
+      "description": "Merged into controller-side verification for feature-implementer SDD mode. Direct deployment of Superpowers execution loop is avoided."
+    },
+    {
+      "file": "references/sdd-task-reviewer-prompt.md",
+      "description": "Unified SDD Task Reviewer (1 reviewer · spec+quality 2 verdicts). Replaces former separate spec/quality reviewer prompts (the 2 legacy files are deleted — see git history)"
+    }
+  ]
+}

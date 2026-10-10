@@ -1,0 +1,23 @@
+{
+  "schema_version": 2,
+  "tier": 3,
+  "skill_id": "pre-quality-gate",
+  "version": "1.0.0",
+  "description": "Quality verification skill for target projects. Executes Makefile SSOT q.check and interprets the results. Equipped with QA Cycle Mode (up to 5 iterations, aborts after 3 consecutive identical errors).",
+  "triggers": [
+    "pre-commit check",
+    "prepare PR",
+    "quality check",
+    "quality gate"
+  ],
+  "calls": [],
+  "called_by": [
+    "feature-pilot",
+    "cleanup-pilot"
+  ],
+  "inputs": [],
+  "outputs": [
+    "Quality check result (PASS/FAIL)"
+  ],
+  "model": "sonnet"
+}

@@ -1,0 +1,116 @@
+{
+  "version": "1.1.0",
+  "updated_at": "2026-07-14",
+  "description": "GENERIC PLAN.md section template — customizable seed transplanted by transplant-bundle (git-worktree-isolation) to external projects. brief2dev itself does not read this JSON (Option C — live path uses fixed JS constant .claude/scripts/lib/worktree-plan-template.mjs#DEFAULT_PLAN_SECTIONS). The `sections` array follows the schema of .cli/lib/section-template-renderer.mjs#renderTemplateFromSections (5 block types: static/checklist_group/field_list/fenced_block/table, {{var}} placeholders). Deep-equal to DEFAULT_PLAN_SECTIONS (pinned by drift regression test in tests/unit/worktree-plan-template.test.mjs) — target projects can customize headings, sections, and checklist items post-transplant while renderer contract remains intact.",
+  "sections": [
+    {
+      "heading": "# PLAN — {{branch}}",
+      "blocks": []
+    },
+    {
+      "heading": "## Goal",
+      "blocks": [
+        {
+          "type": "static",
+          "lines": [
+            "(Required — Single sentence describing the objective achieved in this worktree)"
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "## Why",
+      "blocks": [
+        {
+          "type": "static",
+          "lines": ["(Required — Why is this change necessary now? Existing gaps/issues)"]
+        }
+      ]
+    },
+    {
+      "heading": "## Acceptance (Frozen at kickoff — record rationale in Decisions if modified)",
+      "blocks": [
+        {
+          "type": "static",
+          "lines": [
+            "(Required — Verifiable acceptance criteria for this worktree to be considered \"done\". Pre-Ship verdict cross-checks this criteria. Using `- [ ]` checkboxes includes them in ship completion checks)"
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "## Scope (Surgical — R-CM-029 Rule 4)",
+      "blocks": [
+        {
+          "type": "static",
+          "lines": ["(Required — Target files/modules to modify)"]
+        }
+      ]
+    },
+    {
+      "heading": "## Out of scope",
+      "blocks": [
+        {
+          "type": "static",
+          "lines": ["(Required — Areas explicitly left untouched)"]
+        }
+      ]
+    },
+    {
+      "heading": "## Verify",
+      "blocks": [
+        {
+          "type": "checklist_group",
+          "subheading": "### Automated (Run within this turn)",
+          "items": [
+            "(Required — Commands like `npm test` / `npx vitest run <paths>`)",
+            "(Required — Automated checks like lint / audit / smoke tests)"
+          ]
+        },
+        {
+          "type": "checklist_group",
+          "subheading": "### Manual",
+          "items": [
+            "(Remove section or mark (dropped) if inapplicable. For UI changes, note verification steps like \"Check X in browser\")"
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "## Status (append-only — accompanied by fresh evidence)",
+      "blocks": [
+        {
+          "type": "static",
+          "lines": [
+            "- {{createdAt}}: Worktree initialized + PLAN drafted.",
+            "<!-- Format: - YYYY-MM-DD done: <completed item> / evidence: <file:line · test output · commit sha> / next: <next action> / blocker: <if any> -->",
+            "<!-- An \"in progress\" line without fresh evidence is not a progress report (heartbeat ≠ progress). Do not modify existing entries; append only. -->"
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "## Outstanding",
+      "blocks": [
+        {
+          "type": "static",
+          "lines": ["- None (initial state)"]
+        }
+      ]
+    },
+    {
+      "heading": "## Decisions",
+      "blocks": [
+        {
+          "type": "static",
+          "lines": ["- (Required — Distinguish AI default decisions from explicit user decisions)"]
+        }
+      ]
+    }
+  ],
+  "_adapt": {
+    "purpose": "External project adaptation guide (brief2dev code does not read this key — guidance only).",
+    "how": "Customize heading wording, section count, and checklist_group subheading/items. 5 block types (static/checklist_group/field_list/fenced_block/table) are evaluated by .cli/lib/section-template-renderer.mjs.",
+    "wiring": "This JSON is not automatically loaded by any runtime code. To apply, wire target project worktree-init.mjs to pass `renderPlanTemplate(branch, { createdAt, sections: <this JSON's sections array> })`, or replace DEFAULT_PLAN_SECTIONS in transplanted worktree-plan-template.mjs with this JSON's contents directly."
+  }
+}

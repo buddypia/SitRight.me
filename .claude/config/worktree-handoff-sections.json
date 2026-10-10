@@ -1,0 +1,71 @@
+{
+  "version": "1.0.0",
+  "updated_at": "2026-07-14",
+  "description": "GENERIC handoff.md section template (RETURN contract — teamwork-preview native port Phase 2) — customizable seed transplanted by transplant-bundle (git-worktree-isolation) to external projects. brief2dev itself does not read this JSON (Option C — live path uses fixed JS constant .claude/scripts/lib/worktree-plan-template.mjs#DEFAULT_HANDOFF_SECTIONS). The `sections` array follows the schema of .cli/lib/section-template-renderer.mjs#renderTemplateFromSections (5 block types: static/checklist_group/field_list/fenced_block/table, {{var}} placeholders). Deep-equal to DEFAULT_HANDOFF_SECTIONS (pinned by drift regression test in tests/unit/worktree-plan-template.test.mjs). handoff.md is not automatically created at worktree initialization — presence itself is a signal that a RETURN contract was authored, created on-demand during session transitions (ensureWorktreeHandoff).",
+  "sections": [
+    {
+      "heading": "# HANDOFF — {{branch}}",
+      "blocks": []
+    },
+    {
+      "heading": "## Observation (Observed Facts)",
+      "blocks": [
+        {
+          "type": "static",
+          "lines": [
+            "(Required — Verified facts only. Backed by file:line, command output, or commit sha evidence. Keep inferences separate in Logic section)"
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "## Logic (Inference)",
+      "blocks": [
+        {
+          "type": "static",
+          "lines": [
+            "(Required — Rationale leading from observations to conclusions. Explicitly state uncertainties)"
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "## Caveat (Cautions & Limitations)",
+      "blocks": [
+        {
+          "type": "static",
+          "lines": [
+            "(Required — Unverified items, known risks, and potential pitfalls for successors)"
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "## Conclusion (Verdict & Artifact Index)",
+      "blocks": [
+        {
+          "type": "static",
+          "lines": [
+            "(Required — Final status in a single sentence + list of deliverable paths. Categorize remaining tasks as checkpoint / done / incomplete)"
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "## Verification (Re-verification Method)",
+      "blocks": [
+        {
+          "type": "static",
+          "lines": [
+            "(Required — Commands and procedures for successors to independently reproduce this conclusion)"
+          ]
+        }
+      ]
+    }
+  ],
+  "_adapt": {
+    "purpose": "External project adaptation guide (brief2dev code does not read this key — guidance only).",
+    "how": "Customize heading wording and section count. The core of the RETURN contract is the separation of Observation and Logic + accompanying Verification method — preserving these 3 elements is strongly recommended. 5 block types (static/checklist_group/field_list/fenced_block/table) are evaluated by .cli/lib/section-template-renderer.mjs.",
+    "wiring": "This JSON is not automatically loaded by runtime code. To apply, wire target project code to pass `renderHandoffTemplate(branch, { sections: <this JSON's sections array> })`, or replace DEFAULT_HANDOFF_SECTIONS in transplanted worktree-plan-template.mjs directly with this JSON's contents. Authored on-demand at session transitions (not auto-created at worktree-init to preserve presence-signal)."
+  }
+}

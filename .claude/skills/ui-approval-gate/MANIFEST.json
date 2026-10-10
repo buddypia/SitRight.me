@@ -1,0 +1,28 @@
+{
+  "schema_version": 2,
+  "tier": 2,
+  "skill_id": "ui-approval-gate",
+  "version": "1.0.0",
+  "description": "UI / Wireframe approval gate following SPEC generation. Assures visual confirmation prior to implementation.",
+  "triggers": [
+    "UI approval",
+    "wireframe review",
+    "screen review",
+    "ui approval gate",
+    "approve wireframe"
+  ],
+  "calls": [],
+  "called_by": [
+    "feature-pilot"
+  ],
+  "inputs": [
+    "SPEC.md",
+    "screens/*.md",
+    "CONTEXT.json"
+  ],
+  "outputs": [
+    "docs/wireframes/feature-{id}-wireframe.md",
+    "CONTEXT.json ui_approval update"
+  ],
+  "model": "sonnet"
+}

@@ -1,0 +1,43 @@
+{
+  "schema_version": 2,
+  "skill_id": "systematic-debugging",
+  "tier": 2,
+  "tier_description": "Delivery - 4-Phase Root Cause Analysis Debugging Methodology (REQUIRED SUB-SKILL for bug-fix)",
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "debugging",
+      "root cause analysis",
+      "why does this fail",
+      "root cause",
+      "systematic debug"
+    ]
+  },
+  "dependencies": {
+    "required": [],
+    "optional": []
+  },
+  "called_by": [
+    "bug-fix"
+  ],
+  "calls": [],
+  "model": "opus",
+  "references": [
+    {
+      "file": "references/defense-in-depth.md",
+      "description": "Defense in Depth debugging strategy"
+    },
+    {
+      "file": "references/root-cause-tracing.md",
+      "description": "Root cause tracing protocol"
+    },
+    {
+      "file": "references/superpowers-systematic-debugging.md",
+      "description": "Stripped original frontmatter. Normalized 'your human partner' expressions to brief2dev human-AI collaboration context. Stated alignment with R-CM-017 Rule 3 (3-Strike Escalation). Converted internal superpowers cross-references (such as superpowers:test-driven-development) to brief2dev tdd-guide agent. Preserved language-neutral boundary instrumentation code examples."
+    },
+    {
+      "file": "references/feedback-loop-catalog.md",
+      "description": "10-technique feedback loop catalog + loop-tightening discipline + non-deterministic bug reproduction strategies — comprehensive expansion of Phase 0 (4 options)."
+    }
+  ]
+}

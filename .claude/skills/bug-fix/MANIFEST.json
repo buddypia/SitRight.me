@@ -1,0 +1,46 @@
+{
+  "schema_version": 2,
+  "tier": 2,
+  "skill_id": "bug-fix",
+  "version": "1.0.0",
+  "description": "Bug-fix dedicated skill for the target project. Analyzes bug reports, identifies root causes, fixes issues, and adds regression tests via TDD.",
+  "triggers": [
+    "bug fix",
+    "error occurred",
+    "not working",
+    "does not work",
+    "crash",
+    "fix bug"
+  ],
+  "calls": [
+    "systematic-debugging"
+  ],
+  "called_by": [
+    "feature-pilot"
+  ],
+  "inputs": [
+    "Bug symptom description",
+    "--log <error log> (optional)",
+    "--file <related file> (optional)"
+  ],
+  "outputs": [
+    "Fixed code (src/**/*.ts, src/**/*.tsx)",
+    "Regression tests (tests/unit/**/*.test.ts)"
+  ],
+  "model": "sonnet",
+  "references": [
+    {
+      "file": "references/fix-github-issue-protocol.md",
+      "description": "GitHub issue-based 7-step fix workflow: gh issue view → root cause discovery → fix → test → commit. Integrated with systematic-debugging and R-CM-009/010.",
+      "transplant_source": "tp-awesome-claude-code-v2-20260327"
+    },
+    {
+      "file": "references/hitl-loop.template.sh",
+      "description": "Structured HITL script template for manually reproduced bugs (step/capture helpers)"
+    },
+    {
+      "file": "references/hitl-loop-guide.md",
+      "description": "1-page guide for using HITL template (when and how)"
+    }
+  ]
+}

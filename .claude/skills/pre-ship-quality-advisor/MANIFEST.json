@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "skill_id": "pre-ship-quality-advisor",
+  "tier": 3,
+  "tier_description": "Utility Operations - Pre-ship quality tool recommendation advisor",
+  "title": "pre-ship-quality-advisor",
+  "version": "1.0.0",
+  "category": "utility_operations",
+  "description": "Advisor skill that recommends code quality tools based on change size immediately prior to PR creation.",
+  "dependencies": {
+    "system": [],
+    "calls": []
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "schema_version": 2,
+  "skill_id": "story-decomposer",
+  "tier": 2,
+  "tier_description": "Delivery Specialist - SPEC → User/Job Story Decomposition + INVEST Validation + Acceptance Criteria",
+  "status": "active",
+  "enforced_protocol": {
+    "version": "2.0",
+    "preflight_required": true,
+    "postflight_required": true,
+    "model_routing_required": true,
+    "evidence_caching_enabled": false
+  },
+  "preflight_checks": [
+    {
+      "id": "PF-001",
+      "description": "Target SPEC.md confirmed",
+      "blocking": true
+    },
+    {
+      "id": "PF-002",
+      "description": "BRIEF.md persona information confirmed",
+      "blocking": false
+    },
+    {
+      "id": "PF-003",
+      "description": "Story format selected (user/job)",
+      "blocking": true
+    },
+    {
+      "id": "PF-004",
+      "description": "project-config.json paths resolved",
+      "blocking": false
+    }
+  ],
+  "postflight_checks": [
+    {
+      "id": "POF-001",
+      "description": "Minimum 3 stories generated",
+      "blocking": true
+    },
+    {
+      "id": "POF-002",
+      "description": "Each story passes INVEST criteria",
+      "blocking": true
+    },
+    {
+      "id": "POF-003",
+      "description": "3+ Acceptance Criteria per story (Given-When-Then)",
+      "blocking": true
+    },
+    {
+      "id": "POF-004",
+      "description": "Dependency graph created",
+      "blocking": true
+    },
+    {
+      "id": "POF-005",
+      "description": "Implementation sequence proposed",
+      "blocking": true
+    }
+  ],
+  "model_routing": {
+    "default_model": "sonnet",
+    "task_specific": {
+      "story_decomposition": "opus",
+      "acceptance_criteria": "sonnet",
+      "invest_validation": "sonnet",
+      "dependency_analysis": "sonnet"
+    },
+    "fallback_chain": ["sonnet", "opus"]
+  },
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "story decompose",
+      "decompose story",
+      "user story",
+      "job story",
+      "backlog",
+      "author story",
+      "acceptance criteria"
+    ],
+    "args_pattern": "[--format <user|job>] [--spec <path>] [--ac-only] <feature-name>"
+  },
+  "called_by": ["feature-pilot"],
+  "calls": [],
+  "dependencies": {
+    "required": ["feature-spec-generator"],
+    "optional": ["feature-architect"]
+  },
+  "outputs": [
+    {
+      "type": "report",
+      "path_pattern": "stdout",
+      "format": "markdown",
+      "description": "Story decomposition report"
+    }
+  ],
+  "ssot_files": []
+}
