@@ -2,7 +2,7 @@
 name: create-pr
 model: sonnet
 effort: low
-description: "Worktree-isolated GitHub Flow (8 commands, v2 response contract). Mode A (staged isolation → Feature PR → base branch sync) + Mode B (PLAN.md-based worktree shipping). 100% preservation of unstaged/untracked files via stash backup."
+description: "Worktree-isolated GitHub Flow (8 commands, v2 response contract). Mode A (staged isolation → Feature PR → base branch sync; deprecated, sunset 2026-11-10) + Mode B (PLAN.md-based worktree shipping). 100% preservation of unstaged/untracked files via stash backup."
 argument-hint: "[additional instructions (optional)]"
 ---
 
@@ -72,6 +72,8 @@ Configuration: `.claude/skills/create-pr/config.json` — `github_account`, `bas
 
 ### AI Execution Sequence — Mode A (Staged Isolation)
 
+> **Deprecated — sunset 2026-11-10.** Use Mode B instead: `make wt.new BR=<branch>`, commit in the worktree, then `ship-worktree`. Why: Mode B is the primary path; `finalize` and the next `init` remove the scratch worktree and branch without checking for work made inside it; and where the pre-ship marker is installed (`mark-pre-ship-confirmed`), it crashes without a worktree branch, so Mode A's guarded ship fails. Removing Mode A after the sunset is a separate change that needs user approval.
+
 If any command returns `ok: false`, halt immediately, report the error, and invoke `finalize`.
 
 ```bash
@@ -116,12 +118,12 @@ AI Decision Scope: BRANCH name (Conventional Commits, ≤30 characters), commit 
 
 ## Hook Integration (commit-guard / destructive-git-guard)
 
-Flags in `.tmp/create-pr-active` (30-minute mtime freshness) automatically grant temporary exceptions for two guards:
+Flags in `.tmp/create-pr-active` (30-minute mtime freshness) automatically grant temporary exceptions, for example in these two guards:
 - **commit-guard**: Blocks manual `git commit` / branch creations outside `/create-pr` → Allowed while active flag is fresh.
 - **destructive-git-guard**: Allows `git merge --ff-only` and `git worktree remove` exclusively (all other destructive commands remain blocked).
-- Flag is automatically removed upon completion of `finalize` / `cleanup-worktree`.
+- `init` / `isolate` / `commit` / `ship-feature` write the flag; `finalize` removes it, as does `init` when it cleans up an abandoned session. `cleanup-worktree` does not touch it.
 
-**Concurrency Lock**: `init` rejects execution if an active flag exists within 30 seconds, preventing multi-session collisions and state corruption.
+**Concurrency Lock**: `init` rejects execution if an active flag is younger than 30 minutes, preventing multi-session collisions and state corruption.
 
 ## Branch Completion Options
 

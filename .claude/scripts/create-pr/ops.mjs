@@ -24,9 +24,9 @@
  *
  * Security: All external commands use execFileSync argument arrays (no shell interpretation).
  *
- * Hook integration: cmdInit creates .tmp/create-pr-active flag →
+ * Hook integration: init / isolate / commit / ship-feature write the .tmp/create-pr-active flag →
  *   commit-guard.mjs / destructive-git-guard.mjs switch to allowlist mode.
- *   cmdFinalize / cmdCleanupWorktree automatically remove the flag upon completion.
+ *   cmdFinalize removes it, as does init's cleanup of an abandoned session; cmdCleanupWorktree does not touch it.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -2698,8 +2698,9 @@ function cmdCleanupWorktree(args, { mergedHead = null } = {}) {
 
   // mergedHead: the head GitHub merged, passed by ship-worktree. Measured against it the loss check
   // is exact, needs no `origin/<branch>` (a fetch prunes it once the merge deletes the branch), and
-  // one refusal lists the files and the commits together. Ship reports only `warnings` and `hint`
-  // of a cleanup, so the refusal carries its reason and lists in `warnings` too.
+  // one refusal lists the files and the commits together. Ship reads `ok`, `worktree_cleaned`,
+  // `sync_status`, `hint` and `warnings` of a cleanup but not `error` or `details`, so the refusal
+  // carries its reason and lists in `warnings` too.
   if (args.force !== true && existsSync(absWtPath)) {
     const safety = assessCleanupSafety(absWtPath, { mergedHead });
     if (!safety.safe) {

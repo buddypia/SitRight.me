@@ -8,9 +8,9 @@
       "bundle_version": "1.3",
       "source": {
         "repo": "brief2dev",
-        "commit": "9de27b125e921e7dbff31798c2d976b96896d944"
+        "commit": "ba14e9960d1b85af03f7dfb5f92651271cb8a0b5"
       },
-      "transplanted_at": "2026-10-10T00:54:30.707Z",
+      "transplanted_at": "2026-10-10T01:34:41.463Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle git-worktree-isolation --target <this-project-root> --json",
       "files": [
         {
@@ -42,7 +42,7 @@
         {
           "path": ".claude/scripts/create-pr/ops.mjs",
           "role": "managed",
-          "sha256": "d9a4b6515ea6db40c8dae6a2914d7dfcd861e7e467ed6420928db54cc836621a"
+          "sha256": "4cdb9048712fcf1cf751fe5a8f662a1182bfe51f3a36b4e8004d48a59022a3f0"
         },
         {
           "path": ".claude/scripts/followup-debt-tracker.mjs",
@@ -261,7 +261,7 @@
         {
           "path": ".claude/skills/create-pr/MANIFEST.json",
           "role": "managed",
-          "sha256": "ca86476336dc69128d530a01b922ef2e6dca94ba2746e29731930087f9b13ce5"
+          "sha256": "1c46f3673bc8879191c030a41d66cce53311f2062becfe80d0058633719e2f91"
         },
         {
           "path": ".claude/skills/create-pr/references/merge-conflict-resolution.md",
@@ -276,7 +276,7 @@
         {
           "path": ".claude/skills/create-pr/SKILL.md",
           "role": "managed",
-          "sha256": "5f5c579c4f1a86d728731af001fd48d9596d6277ebe0ecb34cf7d76f711dd8a6"
+          "sha256": "d0838daf60a9063095261b4e468c74a5383570c90ed196b4fc71b7f9b2b5f19f"
         },
         {
           "path": ".cli/_cli-dispatch.mjs",
@@ -530,7 +530,7 @@
         },
         {
           "id": "create-pr-github-dependency",
-          "note": "ops.mjs depends on GitHub Flow (added 2026-07-02, resolved 2026-07-03 by transplanting create-pr): previously the automation after the approval marker — push/PR/squash-merge (`/create-pr` skill, `.claude/scripts/create-pr/ops.mjs`) — was not part of this bundle. Since 2026-07-03 the `create-pr` skill itself is transplanted via entry_skills: commit-guard/destructive-git-guard/worktree-session-owner-guard/worktree-shipping-guard reference the `.tmp/create-pr-active` carve-out marker (created and removed only by `ops.mjs` cmdInit/cmdFinalize/cmdCleanupWorktree) and the `/create-pr ship-worktree` guidance text directly in code, so without create-pr the only release path for these hooks did not exist in the target (pre-ship-review-guard deliberately ignores the marker — it guards the ship command itself) (entry_scripts also includes `create-pr/ops.mjs` — join() accepts sub-paths as-is, so no schema/code change was needed). Remaining limit: if the target is not on GitHub or uses a different PR workflow, the logic depending on the `gh` CLI must be reimplemented."
+          "note": "ops.mjs depends on GitHub Flow (added 2026-07-02, resolved 2026-07-03 by transplanting create-pr): previously the automation after the approval marker — push/PR/squash-merge (`/create-pr` skill, `.claude/scripts/create-pr/ops.mjs`) — was not part of this bundle. Since 2026-07-03 the `create-pr` skill itself is transplanted via entry_skills: commit-guard/destructive-git-guard/worktree-session-owner-guard/worktree-shipping-guard reference the `.tmp/create-pr-active` carve-out marker (written by `ops.mjs` init/isolate/commit/ship-feature; removed by finalize and by init's cleanup of an abandoned session; cleanup-worktree does not touch it) and the `/create-pr ship-worktree` guidance text directly in code, so without create-pr the only release path for these hooks did not exist in the target (pre-ship-review-guard deliberately ignores the marker — it guards the ship command itself) (entry_scripts also includes `create-pr/ops.mjs` — join() accepts sub-paths as-is, so no schema/code change was needed). Remaining limit: if the target is not on GitHub or uses a different PR workflow, the logic depending on the `gh` CLI must be reimplemented."
         },
         {
           "id": "create-pr-config-genericized",
