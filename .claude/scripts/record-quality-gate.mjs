@@ -17,6 +17,7 @@
  * Usage (Immediately after verdict — prior to Pre-Ship Human Review Panel):
  *   node .claude/scripts/record-quality-gate.mjs <branch|worktree-path> --json '<record>'
  *   node .claude/scripts/record-quality-gate.mjs feature/foo --from <record.json>
+ *   node .claude/scripts/record-quality-gate.mjs "$PWD/.tmp/create-pr/wt" --json '...'  # ship-feature
  *
  *   Record example (branch / recorded_at are stamped by CLI and can be omitted):
  *   {
@@ -46,8 +47,12 @@
  * Regression tests: `tests/unit/worktree-quality-gate.test.mjs`.
  */
 
-import { readFileSync } from 'node:fs';
-import { resolveWorktreeQualityGatePath } from '../../.cli/lib/worktree-plan-path.mjs';
+import { existsSync, readFileSync } from 'node:fs';
+import { isAbsolute, join, resolve } from 'node:path';
+import {
+  resolveWorktreeQualityGatePath,
+  inferBranchFromWorktreePath,
+} from '../../.cli/lib/worktree-plan-path.mjs';
 import { validateQualityGateRecord, resolveHeadShaResult } from './lib/worktree-quality-gate.mjs';
 import { writeJsonAtomicSync } from './lib/atomic-fs.mjs';
 import {
@@ -109,6 +114,31 @@ export function recordQualityGate(worktreePath, branch, record, execFn = undefin
   return { ok: true, path, headSha };
 }
 
+/**
+ * Resolves the CLI target to the worktree that receives the PROOF.
+ *
+ * A branch or `.worktrees/` path resolves under `.worktrees/`. An absolute path to an existing
+ * directory elsewhere is the ship-feature (Mode A) scratch worktree, `.tmp/create-pr/wt`: its PROOF
+ * is keyed by the branch `pre-ship-steps` infers from that path, otherwise the step check never
+ * finds it. Only absolute paths to a git worktree take this route — a relative one is indistinguishable
+ * from a branch, and a non-git directory would get a PROOF without head_sha that can never go stale.
+ * The path is normalized as pre-ship-steps does, so `wt/.` and `x/../wt` key the same as `wt`.
+ *
+ * @param {string} mainRoot
+ * @param {string} target
+ * @returns {{ worktreePath: string, branch: string } | null}
+ */
+export function resolveProofTarget(mainRoot, target) {
+  const branch = resolveBranch(target);
+  const worktreePath = branch && resolveWorktreeDir(mainRoot, branch);
+  if (worktreePath) return { worktreePath, branch };
+  if (!isAbsolute(target)) return null;
+  const abs = resolve(target);
+  if (!existsSync(join(abs, '.git'))) return null;
+  return { worktreePath: abs, branch: inferBranchFromWorktreePath(abs) };
+  return null;
+}
+
 function fail(message) {
   process.stderr.write(`[record-quality-gate] ${message}\n`);
   process.exit(1);
@@ -150,20 +180,23 @@ function main(argv) {
   const target = args[0];
   if (!target) fail(USAGE.trim());
   if (target === '--staged' || target === 'staged') {
-    fail('--staged (ship-feature) mode is not a PROOF record target — PROOF is only recorded on real worktrees');
+    fail(
+      '--staged is not a PROOF target — for ship-feature pass the scratch worktree as an absolute path ' +
+        '(e.g. "$PWD/.tmp/create-pr/wt")',
+    );
   }
   if (target.startsWith('--')) fail(USAGE.trim());
 
   const mainRoot = resolveMainRoot();
   if (!mainRoot) fail('git common-dir resolve failed (not a git repo?)');
 
-  const branch = resolveBranch(target);
-  if (!branch) fail(`branch resolve failed: ${target}`);
-
-  const worktreePath = resolveWorktreeDir(mainRoot, branch);
-  if (!worktreePath) {
-    fail(`worktree does not exist: .worktrees/${branch} — PROOF is only recorded on real worktrees`);
+  const resolved = resolveProofTarget(mainRoot, target);
+  if (!resolved) {
+    fail(
+      `worktree does not exist: ${target} — pass a branch under .worktrees/ or the absolute path of a git worktree`,
+    );
   }
+  const { worktreePath, branch } = resolved;
 
   const record = parseCliRecord(args);
   const result = recordQualityGate(worktreePath, branch, record);

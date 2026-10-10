@@ -25,6 +25,15 @@
  */
 
 /**
+ * Korean approvals are composed (core × ending) rather than listed one by one: the listed form refused
+ * natural answers such as "승인 진행해줘" and forced a re-ask with the exact label (design-lookbook
+ * af95297). It is still a whole-answer match. Endings that state the speaker's own plan or a status
+ * ("진행할게", "승인함"), a proposal ("진행하자"), a sequence that may wait on someone else ("승인 후 진행") and bare assent ("네", "좋아요") stay out — the reviewer fuzz list re-asks them.
+ */
+const KO_ENDING = '(?:해|해요|해줘|해줘요|해주세요|합니다|하세요|시켜|시켜줘|ㄱ|ㄱㄱ)?';
+const KO_PHRASE = new RegExp(`^(?:승인|진행|승인(?:하고|해서)?진행|(?:ok|오케이|머지)진행)${KO_ENDING}$`, 'u');
+
+/**
  * Ordered approval specs. `label` is the default (English) human-facing copy. Order is meaningful —
  * it is the order the choices are offered in.
  *
@@ -37,18 +46,18 @@ export const APPROVAL_SPECS = [
     decision: 'approve',
     label: 'Approve and proceed',
     phrases: [
-      /^승인(하고|합니다|해|해요|해요요)?$/u,
-      /^진행(해|해요|해주세요|합니다|하라고)?$/u,
-      /^ok진행$/u,
-      /^승인하고진행$/u, // the runner's former Korean label
+      KO_PHRASE,
+      /^승인(하고|해요요)$/u,
+      /^진행하라고$/u,
+      /^(approved?|ok(ay)?|y(es)?|lgtm)(and|,)?(proceed|goahead|shipit)$/u,
       /^approved?$/u,
       /^proceed$/u,
       /^lgtm$/u,
       /^ok(ay)?$/u,
       /^y(es)?$/u,
-      /^go$/u,
+      /^go(ahead)?$/u,
       /^shipit$/u,
-      /^承認(します)?$/u,
+      /^承認(します|して)?(進めて(ください)?)?$/u,
       /^進行$/u,
       /^進めて(ください)?$/u,
     ],
