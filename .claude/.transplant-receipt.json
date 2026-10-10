@@ -8,9 +8,9 @@
       "bundle_version": "1.3",
       "source": {
         "repo": "brief2dev",
-        "commit": "2cf3a9a1ab58b75e495ba978fc5326ddb546d0ae"
+        "commit": "fe1068c76763bc93f921855193e6c6171e72979d"
       },
-      "transplanted_at": "2026-10-10T02:14:17.843Z",
+      "transplanted_at": "2026-10-10T04:38:23.150Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle git-worktree-isolation --target <this-project-root> --json",
       "files": [
         {
@@ -197,7 +197,7 @@
         {
           "path": ".claude/scripts/mark-pre-ship-confirmed.mjs",
           "role": "managed",
-          "sha256": "70b9a79079e0fb67d615eeede7475e2fb52220e08afddcad9e5de035df61b7d6"
+          "sha256": "6b08d80ebf2b6f60a13ebd2bf13591805be447d5a5c7cf3fcf5dce64c9eb080d"
         },
         {
           "path": ".claude/scripts/pre-ship-steps.mjs",
@@ -207,7 +207,7 @@
         {
           "path": ".claude/scripts/record-quality-gate.mjs",
           "role": "managed",
-          "sha256": "bb84dce3f291ae550cd55caa560ab694720978ab190c56ad1a604c00ae8067e4"
+          "sha256": "650c65b9d98b301867fcf2c27a3d59f80153f30e25bbb5d4f6adbefe657ca354"
         },
         {
           "path": ".claude/scripts/regression-test-lock.mjs",
@@ -336,7 +336,7 @@
         {
           "path": ".cli/lib/approval-vocabulary.mjs",
           "role": "managed",
-          "sha256": "ae72c9e13113b0c18df02d3f2b3ce8bf561523a0e1d7f29d5d4e9a6406d691be"
+          "sha256": "5145c513e4f20fc56123edebfb2123b7455b4476f8e16fbd2992a9566f1725b9"
         },
         {
           "path": ".cli/lib/bash-segments.mjs",

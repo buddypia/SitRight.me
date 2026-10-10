@@ -115,10 +115,12 @@ export function resolveBranch(arg) {
  * Resolves existing worktree absolute directory from branch name.
  *
  * @param {string} mainRoot
- * @param {string} branch
+ * @param {string|null} branch
  * @returns {string|null}
  */
 export function resolveWorktreeDir(mainRoot, branch) {
+  // --staged resolves to branch=null; join() throws on null, which crashed buildMarkerPayload.
+  if (!branch) return null;
   const candidates = [
     join(mainRoot, '.worktrees', branch),
     join(mainRoot, '.worktrees', safeBranchKey(branch)),
