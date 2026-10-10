@@ -154,49 +154,48 @@ function Logo() {
       viewBox="0 0 64 64"
       fill="none"
       aria-hidden
-      className="shrink-0 drop-shadow-[0_2px_10px_rgba(255,59,48,0.35)]"
+      className="shrink-0 drop-shadow-[0_2px_10px_rgba(255,45,85,0.4)]"
     >
       <defs>
-        <linearGradient id="absLogoBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#14171f" />
-          <stop offset="1" stopColor="#090b0e" />
-        </linearGradient>
-        <linearGradient id="absHealthy" x1="32" y1="52" x2="32" y2="34" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#10b981" />
-          <stop offset="1" stopColor="#34d399" />
-        </linearGradient>
-        <linearGradient id="absSlouch" x1="32" y1="34" x2="20" y2="18" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#ff3b30" />
-          <stop offset="1" stopColor="#ff9500" />
+        <linearGradient id="favHeaderBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#141822" />
+          <stop offset="1" stopColor="#080a0e" />
         </linearGradient>
       </defs>
 
-      {/* Clean Obsidian Squircle */}
-      <rect width="64" height="64" rx="16" fill="url(#absLogoBg)" />
+      {/* Squircle Rim Base */}
+      <rect width="64" height="64" rx="16" fill="url(#favHeaderBg)" />
       <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="#2d3748" strokeWidth="1.5" />
 
-      {/* Subtle Ideal Posture Axis */}
-      <line x1="33" y1="14" x2="33" y2="50" stroke="#34d399" strokeOpacity="0.12" strokeWidth="1.5" strokeDasharray="2 3" />
+      {/* Soundwave Concentric Rings (ファビコンでも抜ける太い同心円リング) */}
+      <circle cx="34" cy="31" r="18" stroke="#ff2d55" strokeOpacity="0.35" strokeWidth="2" strokeDasharray="3 3" />
+      <circle cx="34" cy="31" r="11" stroke="#ff9500" strokeOpacity="0.65" strokeWidth="2.5" />
+      <circle cx="34" cy="31" r="5.5" stroke="#ffffff" strokeOpacity="0.95" strokeWidth="2" />
 
-      {/* Acoustic Soundwave Concentric Rings (パキッ！のミニマル幾何学音波) */}
-      <circle cx="33" cy="33" r="16" stroke="#ff3b30" strokeOpacity="0.25" strokeWidth="1.2" strokeDasharray="2 3" />
-      <circle cx="33" cy="33" r="10" stroke="#ff9500" strokeOpacity="0.5" strokeWidth="1.6" />
-      <circle cx="33" cy="33" r="5" stroke="#ffffff" strokeOpacity="0.85" strokeWidth="1.6" />
+      {/* Lower Upright Monolith Vertebrae (直立した健康なモノリス椎骨ブロック) */}
+      <rect x="27" y="49" width="14" height="5" rx="2.5" fill="#10b981" />
+      <rect x="32" y="47" width="4" height="3" rx="1" fill="#059669" />
 
-      {/* Abstract Upright Spine Ribbon */}
-      <path d="M33 51 L 33 33" stroke="url(#absHealthy)" strokeWidth="5.5" strokeLinecap="round" />
-      <circle cx="33" cy="46" r="1.5" fill="#14171f" />
-      <circle cx="33" cy="39" r="1.5" fill="#14171f" />
+      <rect x="27.5" y="41" width="13" height="5" rx="2.5" fill="#34d399" />
+      <rect x="32.5" y="39" width="3" height="3" rx="1" fill="#10b981" />
 
-      {/* Snapped Forward Slouch Neck Ribbon */}
-      <path d="M33 33 L 19 19" stroke="url(#absSlouch)" strokeWidth="6" strokeLinecap="round" />
+      <rect x="28" y="33" width="12" height="5" rx="2.5" fill="#4deac4" />
 
-      {/* Minimal Apex / Head Node */}
-      <circle cx="17" cy="17" r="4.5" fill="#f8fafc" />
-      <circle cx="17" cy="17" r="2" fill="#ff3b30" fillOpacity="0.8" />
+      {/* Forward-Tilted Cervical Monoliths (前傾・悪姿勢でパキッとズレた頸椎ブロック) */}
+      <g transform="rotate(-35 32 26)">
+        <rect x="25" y="23" width="13" height="5.5" rx="2.75" fill="#ff7a00" />
+        <rect x="30" y="21" width="3" height="3" rx="1" fill="#ea580c" />
+      </g>
 
-      {/* Central Acoustic Spark */}
-      <circle cx="33" cy="33" r="2.5" fill="#ffffff" />
+      <g transform="rotate(-52 23 15)">
+        <rect x="17" y="11" width="14" height="6.5" rx="3.25" fill="#ff2d55" />
+        <circle cx="24" cy="14" r="2" fill="#ffffff" />
+      </g>
+
+      {/* Lightning Snap Flash (パキッ！の瞬間閃光) */}
+      <polygon points="34,29 39,21 33,26 40,18 35,24 43,20 34,31" fill="#ffffff" />
+      <circle cx="34" cy="31" r="3" fill="#ffcc00" />
+      <circle cx="34" cy="31" r="1.5" fill="#ffffff" />
     </svg>
   );
 }
