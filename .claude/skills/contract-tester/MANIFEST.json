@@ -1,0 +1,84 @@
+{
+  "schema_version": 2,
+  "skill_id": "contract-tester",
+  "tier": 2,
+  "tier_description": "Pipeline - Automatically generate and run contract tests",
+  "enforced_protocol": {
+    "version": "2.0",
+    "preflight_required": true,
+    "postflight_required": true,
+    "model_routing_required": true,
+    "evidence_caching_enabled": true
+  },
+  "model_routing": {
+    "default_model": "sonnet",
+    "task_specific": {
+      "contract_analysis": "sonnet",
+      "test_generation": "sonnet",
+      "test_execution": "sonnet"
+    },
+    "fallback_chain": [
+      "sonnet",
+      "opus"
+    ]
+  },
+  "evidence_policy": {
+    "cacheable_validations": [
+      {
+        "type": "contract_test",
+        "validity_minutes": 30,
+        "invalidation_patterns": [
+          "src/shared/contracts/**/*",
+          "tests/contract/**/*"
+        ]
+      }
+    ],
+    "cache_location": "CONTEXT.json > evidence_cache"
+  },
+  "preflight_checks": [
+    {
+      "id": "PF-001",
+      "description": "Zod schemas must exist in contracts/schemas/",
+      "blocking": true
+    },
+    {
+      "id": "PF-002",
+      "description": "vitest must be installed",
+      "blocking": true
+    }
+  ],
+  "postflight_checks": [
+    {
+      "id": "POF-001",
+      "description": "make q.test (contract tests) exit 0",
+      "blocking": true
+    }
+  ],
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "contract test",
+      "contract testing",
+      "run contract tests"
+    ],
+    "args_pattern": "<feature-id> [--force]"
+  },
+  "dependencies": {
+    "required": [
+      "contract-codegen"
+    ],
+    "optional": []
+  },
+  "called_by": [],
+  "calls": [],
+  "outputs": [
+    {
+      "type": "file",
+      "format": "typescript",
+      "description": "tests/contract/{feature}.contract.test.ts"
+    }
+  ],
+  "ssot_files": [
+    "tests/contract/"
+  ]
+}

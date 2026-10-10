@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Verification Phases",
+  "description": "6-Phase verification result schema for the verification-loop skill",
+  "type": "object",
+  "required": ["phases", "summary"],
+  "properties": {
+    "timestamp": { "type": "string" },
+    "trigger": {
+      "type": "string",
+      "description": "Activation condition (e.g., 'files_changed >= 6')"
+    },
+    "phases": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "description": "Must follow the exact sequence: Build -> TypeCheck -> Lint -> Test -> Security -> Diff.",
+      "prefixItems": [
+        {
+          "allOf": [{ "$ref": "#/$defs/phase_item" }],
+          "properties": { "name": { "const": "build" } }
+        },
+        {
+          "allOf": [{ "$ref": "#/$defs/phase_item" }],
+          "properties": { "name": { "const": "typecheck" } }
+        },
+        {
+          "allOf": [{ "$ref": "#/$defs/phase_item" }],
+          "properties": { "name": { "const": "lint" } }
+        },
+        {
+          "allOf": [{ "$ref": "#/$defs/phase_item" }],
+          "properties": { "name": { "const": "test" } }
+        },
+        {
+          "allOf": [{ "$ref": "#/$defs/phase_item" }],
+          "properties": { "name": { "const": "security" } }
+        },
+        {
+          "allOf": [{ "$ref": "#/$defs/phase_item" }],
+          "properties": { "name": { "const": "diff" } }
+        }
+      ],
+      "items": false
+    },
+    "claim_evidence": {
+      "type": "array",
+      "description": "Mapping between fresh evidence and completion/pass/pre-existing claims reported by verification-loop.",
+      "items": {
+        "type": "object",
+        "required": ["claim", "evidence", "status"],
+        "properties": {
+          "claim": { "type": "string" },
+          "evidence": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["verified", "unverified", "not_run", "pre_existing_evidenced"]
+          },
+          "source_phase": {
+            "type": "string",
+            "enum": ["build", "typecheck", "lint", "test", "security", "diff"]
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total_phases", "passed", "failed"],
+      "properties": {
+        "total_phases": { "type": "integer", "const": 6 },
+        "passed": { "type": "integer" },
+        "failed": { "type": "integer" },
+        "skipped": { "type": "integer" },
+        "overall_status": { "type": "string", "enum": ["pass", "fail"] }
+      }
+    }
+  },
+  "$defs": {
+    "phase_item": {
+      "type": "object",
+      "required": ["name", "status", "command"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": ["build", "typecheck", "lint", "test", "security", "diff"]
+        },
+        "status": { "type": "string", "enum": ["pass", "fail", "skip", "error"] },
+        "command": { "type": "string" },
+        "duration_ms": { "type": "integer", "minimum": 0 },
+        "output_summary": { "type": "string" },
+        "error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

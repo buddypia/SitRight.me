@@ -1,0 +1,334 @@
+{
+  "$comment": "{{PROJECT_NAME}} project unified context template v8. Copied as CONTEXT.json under docs/features/{ID}/ for feature development. v8: added completion_summary (GSD Feature Completion Summary). v7 compatible.",
+
+  "schema_version": 8,
+  "feature_id": "{NNN}-{feature-name}",
+  "title": "{Feature Title in English}",
+  "feature_type": null,
+  "domain": null,
+
+  "characteristics": {
+    "$comment": "Feature Characteristics. Automatically detected by feature-architect. Serves as the basis for skill execution conditions and SPEC depth determination.",
+    "involves_new_api": false,
+    "involves_external_api": false,
+    "db_schema_change": false,
+    "multi_screen": false,
+    "ai_ml_integration": false,
+    "security_sensitive": false,
+    "realtime_processing": false,
+    "offline_capability": false,
+    "payment_billing": false,
+    "pii_handling": false,
+    "novel_domain": false,
+    "cross_feature_impact": false
+  },
+
+  "quick_resume": {
+    "$comment": "For rapid context restoration on session resume (orient within 3 seconds)",
+    "current_state": "Idle",
+    "current_task": "",
+    "next_actions": [],
+    "blockers": [],
+    "last_updated_at": "{ISO_8601_DATETIME}",
+    "last_decision": {
+      "summary": "",
+      "at": null
+    },
+    "current_rationale": "",
+    "active_constraints": [
+      "Follow Feature-First + Simplified Clean Architecture",
+      "Use TypeScript interfaces + Zod schemas"
+    ],
+    "previous_state": null,
+    "question_count": 0
+  },
+
+  "progress": {
+    "$comment": "FR-based progress rate - Auto-calculated: (completed / total) * 100",
+    "percentage": 0,
+    "fr_total": 0,
+    "fr_completed": 0,
+    "fr_in_progress": 0,
+    "details": {}
+  },
+
+  "competitive_data": {
+    "comp_ids": [],
+    "gap_severity": null,
+    "is_industry_standard": false,
+    "app_count": 0,
+    "linked_at": null
+  },
+
+  "architecture": {
+    "$comment": "Phase 0 Discovery & Architecture deliverables. Initialized to null in Step 1 by feature-architect. Updated with deliverable paths by feature-pilot after passing Step 1.5 Discovery Gate. Retains null if Discovery is deemed unnecessary based on characteristics.",
+    "domain_model": null,
+    "adr": null,
+    "system_design": null,
+    "discovery_gate": null,
+    "discovery_rationale": null
+  },
+
+  "why": "{Why this feature is needed - core anchor against context loss. Minimum 10 characters}",
+  "success_criteria": ["{Success criterion 1 - measurable}", "{Success criterion 2}"],
+  "constraints": [
+    "Follow Feature-First + Simplified Clean Architecture",
+    "Use TypeScript interfaces + Zod schemas",
+    "API Routes backend",
+    "English interface"
+  ],
+
+  "artifacts": {
+    "brief": "docs/features/{NNN}-{feature-name}/BRIEF.md",
+    "brief_format_version": null,
+    "spec": null,
+    "spec_version": null,
+    "spec_locked_at": null,
+    "spec_validation": {
+      "last_run_at": null,
+      "verdict": null,
+      "blocking_count": 0,
+      "warning_count": 0
+    },
+    "screens": [],
+    "design_assets": null,
+    "index": "docs/features/{NNN}-{feature-name}/index.md"
+  },
+
+  "references": {
+    "$comment": "Reference priorities adjust dynamically based on current task",
+    "priority_order": ["spec", "screens"],
+    "current_focus": {
+      "document": "",
+      "section": "",
+      "reason": ""
+    },
+    "documents": {
+      "spec": {
+        "path": "",
+        "sections_to_read": [],
+        "focus": []
+      },
+      "screens": {
+        "paths": [],
+        "focus": []
+      }
+    },
+    "related_specs": [],
+    "related_code": {
+      "types": [],
+      "hooks": [],
+      "api": [],
+      "components": []
+    },
+    "dependencies": {
+      "features": [],
+      "packages": []
+    },
+    "research_links": {
+      "research_ids": [],
+      "id_format": "R-YYYYMMDD-NNN",
+      "comp_ids": []
+    }
+  },
+
+  "execution": {
+    "lock": {
+      "locked": false,
+      "locked_by": null,
+      "locked_at": null
+    },
+    "active_branch": null,
+    "rollback_point": null,
+    "worktree": {
+      "$comment": "Git worktree handoff information. Recorded by feature-pilot at task start and cleaned up upon completion or interruption.",
+      "branch": null,
+      "worktree_path": null,
+      "plan_path": null,
+      "status": null,
+      "last_updated": null,
+      "handoff": null
+    }
+  },
+
+  "decisions": [
+    {
+      "$comment": "Example - delete in actual usage",
+      "at": "{ISO_8601_DATETIME}",
+      "summary": "{Decision summary}",
+      "rationale": "{Decision rationale}"
+    }
+  ],
+
+  "open_questions": [
+    {
+      "$comment": "Example - delete in actual usage",
+      "id": "Q1",
+      "question": "{Open question}",
+      "status": "open",
+      "type": "question",
+      "impact": "{Impact scope}",
+      "resolution": null
+    }
+  ],
+
+  "history": [
+    {
+      "$comment": "Example - delete in actual usage",
+      "at": "{ISO_8601_DATETIME}",
+      "from_state": "Idle",
+      "to_state": "Briefing",
+      "triggered_by": "feature-architect",
+      "note": ""
+    }
+  ],
+
+  "autonomy_control": {
+    "$comment": "AI autonomy control - 7-question soft cap rule, autonomous stop conditions",
+    "max_questions_per_session": 7,
+    "auto_stop_conditions": [
+      "Reached 7-question limit",
+      "Discovered BLOCKING pattern",
+      "High-risk operation (security_sensitive, payment_billing, pii_handling)",
+      "DB migration required"
+    ],
+    "current_autonomy_level": "supervised",
+    "risk_level": null,
+    "risk_factors": [],
+    "claude_md_checked": false,
+    "claude_md_version": null
+  },
+
+  "esp_execution_log": {
+    "$comment": "ESP (Enforced Skill Pattern) execution log - verifiable evidence for long-term operations",
+    "schema_version": 1,
+    "summary": {
+      "total_esp_calls": 0,
+      "preflight_completed": 0,
+      "postflight_completed": 0,
+      "violations": 0,
+      "compliance_rate": null
+    },
+    "executions": [
+      {
+        "$comment": "Example - delete in actual usage",
+        "skill": "feature-pilot",
+        "esp_version": "v2.0",
+        "started_at": "{ISO_8601_DATETIME}",
+        "preflight": {
+          "completed": false,
+          "completed_at": null,
+          "all_passed": null,
+          "blocking_items": []
+        },
+        "postflight": {
+          "completed": false,
+          "completed_at": null,
+          "all_passed": null,
+          "failed_items": []
+        },
+        "model_routing": {
+          "task_calls": 0,
+          "with_model_param": 0,
+          "compliance": null
+        },
+        "evidence_used": [],
+        "ended_at": null,
+        "status": "pending"
+      }
+    ],
+    "violations_history": [
+      {
+        "$comment": "Example - delete in actual usage",
+        "at": "{ISO_8601_DATETIME}",
+        "skill": "",
+        "violation_type": "",
+        "severity": "",
+        "action_taken": ""
+      }
+    ]
+  },
+
+  "traceability": {
+    "$comment": "BRIEF <-> SPEC traceability mapping. Populated by spec-generator after SPEC authoring. Verified in Readiness Gate Phase 1.5.",
+    "user_story_to_fr": [],
+    "bdd_to_fr": [],
+    "unmapped_user_stories": [],
+    "unmapped_bdd_scenarios": [],
+    "validated_at": null
+  },
+
+  "priority": {
+    "$comment": "Automatically calculated by priority-analyzer (RICE v2). rice-section-schema.json is SSOT.",
+    "version": "3.0",
+    "schema": "rice-v2",
+    "last_updated": null,
+    "phase": "mvp",
+    "rice_inputs": {
+      "reach": { "score": 5, "evidence": {}, "rationale": "" },
+      "impact": { "score": 1, "evidence": {}, "rationale": "" },
+      "confidence": { "score": 0.5, "factors": {} },
+      "effort": { "score": 2, "unit": "person-weeks", "evidence": {}, "rationale": "" }
+    },
+    "competitive_adjustment": {
+      "adjustment": 1.0,
+      "has_data": false,
+      "evidence": {},
+      "rationale": ""
+    },
+    "calculated": {
+      "rice_score": 0,
+      "adjusted_score": 0,
+      "competitive_adjustment": 1.0,
+      "manual_override_applied": 1.0,
+      "formula": "(Reach × Impact × Confidence) / Effort × CompAdj × ManualOverride",
+      "component_breakdown": {}
+    },
+    "data_sources_read": [],
+    "manual_override": { "value": 1.0, "reason": null },
+    "ai_rationale": "",
+    "history": []
+  },
+
+  "completion_summary": {
+    "$comment": "Records deliverables produced upon feature implementation completion. Automatically extracted from code by feature-status-sync Phase 4.7. Generated only when progress.percentage === 100. Added in v8.",
+    "produces": {
+      "types": [],
+      "exports": [],
+      "api_endpoints": [],
+      "patterns_established": []
+    },
+    "consumes": {
+      "from_features": []
+    },
+    "files_created": [],
+    "generated_at": null,
+    "generated_by": null
+  },
+
+  "completion_contract": {
+    "$comment": "DoD structured tracking. BRIEF Section 7 serves as SSOT, automatically tracked by pipeline. Added in v7.",
+    "version": "1.0",
+    "work_type": null,
+    "source": "BRIEF §7",
+    "last_verified_at": null,
+    "verdict": null,
+    "items": [],
+    "summary": {
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "pass_rate": null
+    }
+  },
+
+  "brief_context": {
+    "$comment": "Automatically extracted from BRIEF.md by brief_regenerator.py",
+    "core_goal": "",
+    "user_value": "",
+    "business_metrics": [],
+    "user_story": "",
+    "priority_label": ""
+  }
+}

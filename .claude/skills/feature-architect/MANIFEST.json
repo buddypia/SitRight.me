@@ -1,0 +1,30 @@
+{
+  "schema_version": 2,
+  "tier": 2,
+  "skill_id": "feature-architect",
+  "version": "1.0.0",
+  "description": "Orchestrator that takes user stories/Why/requirements as input, acts as the sole owner responsible for creating CONTEXT.json by gathering context, and invokes feature-spec-generator to generate SPEC.md + Screen documents",
+  "triggers": [
+    "/feature-architect",
+    "architect",
+    "create context",
+    "analyze intent"
+  ],
+  "calls": [
+    "feature-spec-generator"
+  ],
+  "called_by": [
+    "feature-pilot",
+    "market-intelligence-scanner",
+    "research-pilot"
+  ],
+  "inputs": [
+    "User Story / Why / Requirements / Task",
+    "--quick (Tier 3 simplified mode)"
+  ],
+  "outputs": [
+    "docs/features/<id>-<name>/BRIEF.md",
+    "docs/features/<id>-<name>/CONTEXT.json"
+  ],
+  "model": "sonnet"
+}

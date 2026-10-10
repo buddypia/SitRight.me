@@ -1,0 +1,15 @@
+{
+  "schema_version": 2,
+  "skill_id": "code-standards-aligner",
+  "tier": 2,
+  "tier_description": "Tier 2 Delivery - Project standards alignment refactor",
+  "title": "code-standards-aligner",
+  "version": "1.0.0",
+  "category": "tier2_delivery",
+  "description": "Portable skill that autonomously refactors recently modified code to align with project-specific coding standards.",
+  "called_by": ["cleanup-pilot"],
+  "dependencies": {
+    "system": [],
+    "calls": []
+  }
+}

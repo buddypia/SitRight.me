@@ -1,0 +1,1035 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "context_schema.json",
+  "title": "Feature Context Schema",
+  "description": "Integrated feature development context schema for {{PROJECT_NAME}}. Defines rules referenced by AI when creating or updating CONTEXT.json.",
+
+  "type": "object",
+  "required": [
+    "schema_version",
+    "feature_id",
+    "title",
+    "quick_resume",
+    "why",
+    "artifacts",
+    "brief_context",
+    "traceability",
+    "execution",
+    "decisions",
+    "history",
+    "autonomy_control",
+    "progress"
+  ],
+
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "enum": [5, 6, 7, 8],
+      "description": "Schema version. v5: 13 required fields, progress.details object-only, competitive_data added, artifacts.brief_format_version added. v6: architecture section added (Phase 0 Discovery & Architecture). v7: completion_contract section added (3-tier DoD system). v8: removed characteristics-based Tier + added completion_summary (GSD Feature Completion Summary)"
+    },
+
+  "feature_id": {
+      "type": "string",
+      "pattern": "^[0-9]{3}-[a-z0-9-]+$",
+      "description": "Feature ID (e.g., 001-user-dashboard)"
+    },
+
+    "title": {
+      "type": "string",
+      "minLength": 2,
+      "description": "Feature title"
+    },
+
+    "feature_type": {
+      "type": "string",
+      "enum": ["ui_feature", "backend_feature", "system_feature", "strategy_feature"],
+      "description": "Feature type classification. ui_feature: Contains user-facing screens (screens/ required), backend_feature: Server logic only (API Routes, DB), system_feature: Infrastructure/platform (offline, push), strategy_feature: Business strategy (UA, retention). Must be set by feature-architect when creating CONTEXT."
+    },
+
+    "domain": {
+      "type": ["string", "null"],
+      "description": "Business domain assignment (refer to docs/features/domain-map.json#domains[].id). While feature_type is a technical classification, domain is a business boundary classification. Recorded by feature-architect based on feature-pilot Phase 0 Domain Placement determination. If a new domain, define domain in domain-map.json first."
+    },
+
+    "characteristics": {
+      "type": "object",
+      "description": "Feature Characteristics. Automatically detected by feature-architect. Serves as the basis for skill execution conditions and SPEC depth determination.",
+      "properties": {
+        "involves_new_api": { "type": "boolean", "default": false, "description": "Creates new API Route in project" },
+        "involves_external_api": { "type": "boolean", "default": false, "description": "Integrates external service API" },
+        "db_schema_change": { "type": "boolean", "default": false, "description": "DB schema change or migration" },
+        "multi_screen": { "type": "boolean", "default": false, "description": "Spans 2 or more screens" },
+        "ai_ml_integration": { "type": "boolean", "default": false, "description": "AI/ML model integration" },
+        "security_sensitive": { "type": "boolean", "default": false, "description": "Modifies authentication or authorization code" },
+        "realtime_processing": { "type": "boolean", "default": false, "description": "Real-time data processing (WebSocket, etc.)" },
+        "offline_capability": { "type": "boolean", "default": false, "description": "Requires offline synchronization" },
+        "payment_billing": { "type": "boolean", "default": false, "description": "Payment or billing logic" },
+        "pii_handling": { "type": "boolean", "default": false, "description": "Personally Identifiable Information (PII) handling" },
+        "novel_domain": { "type": "boolean", "default": false, "description": "Introduces new domain concept to the project" },
+        "cross_feature_impact": { "type": "boolean", "default": false, "description": "Changes impacting other features" }
+      }
+    },
+
+    "archived_reason": {
+      "type": "string",
+      "enum": ["merged", "superseded", "deferred", "abandoned", "duplicate"],
+      "description": "Reason for Archived state (valid only when current_state is Archived). merged: merged into another feature, superseded: replaced by a new feature, deferred: postponed indefinitely, abandoned: discarded, duplicate: duplicate feature"
+    },
+
+    "archived_ref": {
+      "type": "string",
+      "pattern": "^[0-9]{3}-[a-z0-9-]+$",
+      "description": "Target Feature ID merged into or replaced by (mandatory when archived_reason is merged or superseded)"
+    },
+
+    "quick_resume": {
+      "type": "object",
+      "description": "For rapid context restoration on session resume (orient within 3 seconds)",
+      "required": ["current_state", "current_task", "next_actions", "last_updated_at"],
+      "properties": {
+        "current_state": {
+          "type": "string",
+          "enum": [
+            "Idle",
+            "Discovery",
+            "Briefing",
+            "SpecDrafting",
+            "SpecUpdating",
+            "Implementing",
+            "BugFixing",
+            "SyncingStatus",
+            "Reviewing",
+            "Done",
+            "Blocked",
+            "AwaitingUser",
+            "Failed",
+            "SpecApproved",
+            "Archived"
+          ],
+          "description": "Current state machine state. AwaitingUser: waiting for user response, Failed: unrecoverable failure, SpecApproved: SPEC approved awaiting implementation, Archived: deferred/abandoned"
+        },
+        "current_task": {
+          "type": "string",
+          "description": "Currently active task (1 sentence)"
+        },
+        "next_actions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of next actions to perform (2-3 items)"
+        },
+        "blockers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Blockers impeding progress (when in Blocked state)"
+        },
+        "last_updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last updated timestamp (ISO 8601)"
+        },
+        "last_decision": {
+          "type": "object",
+          "description": "Most recent decision (for rapid context restoration)",
+          "properties": {
+            "summary": { "type": "string" },
+            "at": { "type": "string", "format": "date-time" }
+          }
+        },
+        "current_rationale": {
+          "type": "string",
+          "description": "Rationale for executing the current task"
+        },
+        "active_constraints": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Active constraints currently applied (extracted from CLAUDE.md)"
+        },
+        "previous_state": {
+          "type": ["string", "null"],
+          "description": "Previous state (referenced when recovering from Blocked or AwaitingUser)"
+        },
+        "question_count": {
+          "type": "integer",
+          "default": 0,
+          "description": "Number of questions asked to user in current session (7-question soft cap rule)"
+        }
+      }
+    },
+
+    "progress": {
+      "type": "object",
+      "description": "FR-based progress rate",
+      "properties": {
+        "percentage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Progress percentage (0-100)"
+        },
+        "fr_total": {
+          "type": "integer",
+          "description": "Total number of FRs"
+        },
+        "fr_completed": {
+          "type": "integer",
+          "description": "Number of completed FRs"
+        },
+        "fr_in_progress": {
+          "type": "integer",
+          "description": "Number of in-progress FRs"
+        },
+        "details": {
+          "type": "object",
+          "description": "Detailed status per FR. In v5, only object format is allowed (strings prohibited).",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["status"],
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["not_started", "pending", "in_progress", "partial", "completed"]
+              },
+              "weight": {
+                "type": "number",
+                "default": 1
+              },
+              "files": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+
+    "why": {
+      "type": "string",
+      "minLength": 10,
+      "description": "Why this feature is needed (core anchor against context loss)"
+    },
+
+    "success_criteria": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of success criteria"
+    },
+
+    "constraints": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Constraints (technical / business)"
+    },
+
+    "artifacts": {
+      "type": "object",
+      "description": "Paths to generated deliverables",
+      "properties": {
+        "brief": {
+          "type": ["string", "null"],
+          "description": "BRIEF.md path. Generated by feature-architect. E.g., docs/features/001-user-dashboard/BRIEF.md"
+        },
+        "brief_format_version": {
+          "type": ["string", "null"],
+          "enum": ["v2.0", "auto-migrated", "candidate-derived", "legacy", null],
+          "description": "BRIEF.md format version. v2.0: Follows Template v2.0, auto-migrated: automatically migrated, candidate-derived: converted from candidate, legacy: legacy format"
+        },
+        "spec": { "type": ["string", "null"] },
+        "spec_version": {
+          "type": ["string", "null"],
+          "description": "SPEC version (e.g., v1.0, v1.1)"
+        },
+        "spec_locked_at": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "Timestamp when SPEC version was locked (Readiness Gate Go point)"
+        },
+        "spec_validation": {
+          "type": ["object", "null"],
+          "description": "SPEC machine validation results",
+          "properties": {
+            "last_run_at": { "type": ["string", "null"], "format": "date-time" },
+            "verdict": {
+              "type": ["string", "null"],
+              "enum": ["Go", "Conditional Go", "No-Go", null]
+            },
+            "blocking_count": { "type": "integer" },
+            "warning_count": { "type": "integer" }
+          }
+        },
+        "screens": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "design_assets": {
+          "type": ["object", "null"],
+          "description": "Optional. Design assets such as Figma exports. Populated only when files exist in design/ directory. Screen Doc is SSOT; design assets are for visual reference.",
+          "properties": {
+            "directory": {
+              "type": ["string", "null"],
+              "description": "Design assets directory path (e.g., docs/features/025-authentication-flow/design/)"
+            },
+            "files": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "List of design asset files (e.g., [\"code.html\", \"screen.png\"])"
+            }
+          }
+        },
+        "index": { "type": ["string", "null"] }
+      }
+    },
+
+    "references": {
+      "type": "object",
+      "description": "Referenced documents and code (replaces legacy context_manifest)",
+      "properties": {
+        "priority_order": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["spec", "screens", "brief"]
+        },
+        "current_focus": {
+          "type": "object",
+          "properties": {
+            "document": { "type": "string" },
+            "section": { "type": "string" },
+            "reason": { "type": "string" }
+          }
+        },
+        "documents": {
+          "type": "object",
+          "description": "Referenced document details (spec, screens, brief paths and focus)",
+          "properties": {
+            "spec": {
+              "type": "object",
+              "properties": {
+                "path": { "type": "string" },
+                "sections_to_read": { "type": "array", "items": { "type": "string" } },
+                "focus": { "type": "array", "items": { "type": "string" } }
+              }
+            },
+            "screens": {
+              "type": "object",
+              "properties": {
+                "paths": { "type": "array", "items": { "type": "string" } },
+                "focus": { "type": "array", "items": { "type": "string" } }
+              }
+            },
+            "brief": {
+              "type": "object",
+              "properties": {
+                "path": { "type": "string" },
+                "sections_to_read": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "related_specs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "related_code": {
+          "type": "object",
+          "description": "Related code file paths",
+          "properties": {
+            "feature_path": {
+              "type": ["string", "null"],
+              "description": "Feature code root path (e.g., src/features/auth/)"
+            },
+            "barrel_file": { "type": ["string", "null"], "description": "Barrel file path" },
+            "di_providers": {
+              "type": ["string", "null"],
+              "description": "DI provider file path"
+            },
+            "models": { "type": "array", "items": { "type": "string" } },
+            "repositories": { "type": "array", "items": { "type": "string" } },
+            "viewmodels": { "type": "array", "items": { "type": "string" } },
+            "services": { "type": "array", "items": { "type": "string" } },
+            "pages": { "type": "array", "items": { "type": "string" } },
+            "widgets": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "db_tables": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "edge_functions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "dependencies": {
+          "type": "object",
+          "properties": {
+            "features": { "type": "array", "items": { "type": "string" } },
+            "packages": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "research_links": {
+          "type": "object",
+          "properties": {
+            "research_ids": { "type": "array", "items": { "type": "string" } },
+            "id_format": { "type": "string" },
+            "comp_ids": {
+              "type": "array",
+              "items": { "type": "string", "pattern": "^comp-[0-9]{3}$" },
+              "description": "List of related competitive analysis IDs (refer to gap-candidates.json)"
+            }
+          }
+        }
+      }
+    },
+
+    "competitive_data": {
+      "type": ["object", "null"],
+      "description": "Competitive analysis data (extracted from gap-candidates + competitor-registry)",
+      "properties": {
+        "comp_ids": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^comp-[0-9]{3}$" }
+        },
+        "gap_severity": {
+          "type": ["string", "null"],
+          "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "N/A", null]
+        },
+        "is_industry_standard": {
+          "type": "boolean",
+          "default": false
+        },
+        "app_count": {
+          "type": "integer",
+          "default": 0
+        },
+        "linked_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        }
+      }
+    },
+
+    "architecture": {
+      "type": ["object", "null"],
+      "description": "Phase 0 Discovery & Architecture deliverables (new in v6). Paths and summaries generated by domain-modeler, architecture-selector, and system-designer. Initialized to null in Step 1 by feature-architect, and updated by feature-pilot after passing Step 1.5 Discovery Gate.",
+      "properties": {
+        "domain_model": {
+          "type": ["object", "null"],
+          "description": "domain-modeler deliverables",
+          "properties": {
+            "path": {
+              "type": ["string", "null"],
+              "description": "DOMAIN-MODEL.md file path"
+            },
+            "bounded_contexts": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "List of identified Bounded Contexts"
+            },
+            "ubiquitous_language_count": {
+              "type": "integer",
+              "description": "Count of defined Ubiquitous Language terms"
+            },
+            "generated_at": {
+              "type": ["string", "null"],
+              "format": "date-time"
+            }
+          }
+        },
+        "adr": {
+          "type": ["object", "null"],
+          "description": "architecture-selector deliverables",
+          "properties": {
+            "path": {
+              "type": ["string", "null"],
+              "description": "ADR document file path"
+            },
+            "decision_title": {
+              "type": ["string", "null"],
+              "description": "Architecture decision title"
+            },
+            "chosen_option": {
+              "type": ["string", "null"],
+              "description": "Selected architecture option"
+            },
+            "alternatives_count": {
+              "type": "integer",
+              "description": "Number of evaluated alternatives (minimum 3)"
+            },
+            "generated_at": {
+              "type": ["string", "null"],
+              "format": "date-time"
+            }
+          }
+        },
+        "system_design": {
+          "type": ["object", "null"],
+          "description": "system-designer deliverables",
+          "properties": {
+            "path": {
+              "type": ["string", "null"],
+              "description": "SYSTEM-DESIGN.md file path"
+            },
+            "c4_levels": {
+              "type": "array",
+              "items": { "type": "string", "enum": ["L1-Context", "L2-Container"] },
+              "description": "Generated C4 diagram levels"
+            },
+            "external_systems": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "List of identified external systems"
+            },
+            "generated_at": {
+              "type": ["string", "null"],
+              "format": "date-time"
+            }
+          }
+        },
+        "discovery_gate": {
+          "type": ["object", "null"],
+          "description": "Discovery Gate validation results",
+          "properties": {
+            "verdict": {
+              "type": ["string", "null"],
+              "enum": ["Go", "Conditional Go", "No-Go", null]
+            },
+            "verified_at": {
+              "type": ["string", "null"],
+              "format": "date-time"
+            },
+            "blocking_count": {
+              "type": "integer",
+              "default": 0
+            },
+            "warning_count": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        },
+        "infra_assessment": {
+          "type": ["object", "null"],
+          "description": "infra-selector deliverables. Summary of NFR analysis, technical pattern selection, and service mapping results.",
+          "properties": {
+            "nfr_composite_profile": {
+              "type": ["string", "null"],
+              "description": "NFR composite profile (e.g., async-eventual-medium)"
+            },
+            "selected_patterns": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "List of selected technical pattern IDs"
+            },
+            "provider": {
+              "type": ["string", "null"],
+              "enum": ["aws", "gcp", null],
+              "description": "Selected provider"
+            },
+            "contract_path": {
+              "type": ["string", "null"],
+              "description": "infrastructure-contract.json path"
+            },
+            "generated_at": {
+              "type": ["string", "null"],
+              "format": "date-time"
+            }
+          }
+        },
+        "discovery_rationale": {
+          "type": ["string", "null"],
+          "description": "Rationale for why AI executed specific Discovery skills. Decision record based on characteristics."
+        }
+      }
+    },
+
+    "execution": {
+      "type": "object",
+      "description": "Execution state",
+      "properties": {
+        "lock": {
+          "type": "object",
+          "properties": {
+            "locked": { "type": "boolean" },
+            "locked_by": { "type": ["string", "null"] },
+            "locked_at": { "type": ["string", "null"] },
+            "lock_expires_at": {
+              "type": ["string", "null"],
+              "format": "date-time",
+              "description": "Lock expiration time. locked_at + 30 minutes. Locks after this time are considered stale."
+            }
+          }
+        },
+        "active_branch": { "type": ["string", "null"] },
+        "rollback_point": { "type": ["string", "null"] },
+        "worktree": {
+          "type": ["object", "null"],
+          "description": "Git worktree handoff information. Updated by feature-pilot at feature start, resume, or completion.",
+          "required": ["branch", "worktree_path", "plan_path", "status", "last_updated", "handoff"],
+          "properties": {
+            "branch": {
+              "type": ["string", "null"],
+              "pattern": "^(feature|fix|chore|docs|refactor|test|hotfix)/[a-z0-9._-]+(/[a-z0-9._-]+)*$",
+              "description": "Work branch name in GitHub Flow format"
+            },
+            "worktree_path": {
+              "type": ["string", "null"],
+              "pattern": "^\\.worktrees/(feature|fix|chore|docs|refactor|test|hotfix)/[a-z0-9._-]+(/[a-z0-9._-]+)*$",
+              "description": "Worktree path under .worktrees/"
+            },
+            "plan_path": {
+              "type": ["string", "null"],
+              "pattern": "^\\.worktrees/(feature|fix|chore|docs|refactor|test|hotfix)/[a-z0-9._-]+(/[a-z0-9._-]+)*/PLAN\\.md$",
+              "description": "PLAN.md path at worktree root"
+            },
+            "status": {
+              "type": ["string", "null"],
+              "enum": ["active", "paused", "completed", null],
+              "description": "Worktree task status"
+            },
+            "last_updated": {
+              "type": ["string", "null"],
+              "format": "date-time",
+              "description": "Worktree information last updated timestamp"
+            },
+            "handoff": {
+              "type": ["string", "null"],
+              "description": "Current status / notes for next session to resume"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+
+    "decisions": {
+      "type": "array",
+      "description": "Decision history",
+      "items": {
+        "type": "object",
+        "properties": {
+          "at": { "type": "string", "format": "date-time" },
+          "summary": { "type": "string" },
+          "rationale": { "type": "string" }
+        }
+      }
+    },
+
+    "open_questions": {
+      "type": "array",
+      "description": "Open questions",
+      "items": {
+        "type": "object",
+        "required": ["id", "question", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "question": { "type": "string" },
+          "status": { "type": "string", "enum": ["open", "resolved"] },
+          "type": { "type": "string", "enum": ["question", "assumption", "risk"] },
+          "impact": { "type": "string" },
+          "resolution": { "type": ["string", "null"] }
+        }
+      }
+    },
+
+    "history": {
+      "type": "array",
+      "description": "State transition history",
+      "items": {
+        "type": "object",
+        "required": ["at", "from_state", "to_state", "triggered_by"],
+        "properties": {
+          "at": { "type": "string", "format": "date-time" },
+          "from_state": { "type": ["string", "null"] },
+          "to_state": { "type": "string" },
+          "triggered_by": { "type": "string" },
+          "note": { "type": "string" }
+        }
+      }
+    },
+
+    "autonomy_control": {
+      "type": "object",
+      "description": "AI autonomy control (7-question soft cap rule, autonomous stop conditions)",
+      "properties": {
+        "max_questions_per_session": {
+          "type": "integer",
+          "default": 7,
+          "description": "Maximum questions per session (transitions to AwaitingUser if exceeded)"
+        },
+        "auto_stop_conditions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of autonomous stop conditions",
+          "default": [
+            "Reached 7-question limit",
+            "Discovered BLOCKING pattern",
+            "High-risk operation (security_sensitive, payment_billing, pii_handling)",
+            "DB migration required"
+          ]
+        },
+        "current_autonomy_level": {
+          "type": "string",
+          "enum": ["full", "supervised", "paused"],
+          "default": "supervised",
+          "description": "Current autonomy level. full: fully autonomous, supervised: confirm on major decisions, paused: waiting for user input"
+        },
+        "risk_level": {
+          "type": ["string", "null"],
+          "enum": ["high", "medium", "low", null],
+          "description": "Risk level automatically derived from characteristics"
+        },
+        "risk_factors": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of characteristics that served as rationale for risk level determination"
+        },
+        "claude_md_checked": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether CLAUDE.md was referenced (mandatory check in Phase 0)"
+        },
+        "claude_md_version": {
+          "type": ["string", "null"],
+          "description": "Last modified date of referenced CLAUDE.md"
+        }
+      }
+    },
+
+    "traceability": {
+      "type": "object",
+      "description": "BRIEF <-> SPEC traceability mapping. Populated by spec-generator after SPEC authoring.",
+      "properties": {
+        "user_story_to_fr": {
+          "type": "array",
+          "description": "User Story -> FR mapping",
+          "items": {
+            "type": "object",
+            "required": ["user_story_id", "fr_ids"],
+            "properties": {
+              "user_story_id": {
+                "type": "string",
+                "description": "User Story ID from BRIEF Section 2 (e.g., US-01)"
+              },
+              "fr_ids": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "List of mapped FR IDs (e.g., [\"FR-02901\", \"FR-02902\"])"
+              }
+            }
+          }
+        },
+        "bdd_to_fr": {
+          "type": "array",
+          "description": "BDD Scenario -> FR mapping",
+          "items": {
+            "type": "object",
+            "required": ["scenario_name", "fr_ids"],
+            "properties": {
+              "scenario_name": {
+                "type": "string",
+                "description": "AC scenario name from BRIEF Section 4 (e.g., AC-01)"
+              },
+              "fr_ids": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "List of mapped FR IDs"
+              }
+            }
+          }
+        },
+        "unmapped_user_stories": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of User Story IDs not mapped to any FR"
+        },
+        "unmapped_bdd_scenarios": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of BDD scenario names not mapped to any FR"
+        },
+        "validated_at": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "Timestamp of last validation in Readiness Gate Phase 1.5"
+        }
+      }
+    },
+
+    "priority": {
+      "type": "object",
+      "description": "RICE v2 priority (managed by priority-analyzer). rice-section-schema.json is SSOT.",
+      "properties": {
+        "version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
+        "schema": { "type": "string", "enum": ["rice-v2"] },
+        "last_updated": { "type": ["string", "null"], "format": "date-time" },
+        "phase": { "type": "string", "enum": ["exploration", "mvp", "growth", "stability"] },
+        "rice_inputs": {
+          "type": "object",
+          "properties": {
+            "reach": {
+              "type": "object",
+              "properties": {
+                "score": { "type": "number", "minimum": 1, "maximum": 10 },
+                "evidence": { "type": "object" },
+                "rationale": { "type": "string" }
+              }
+            },
+            "impact": {
+              "type": "object",
+              "properties": {
+                "score": { "type": "number", "enum": [0.25, 0.5, 1, 2, 3] },
+                "evidence": { "type": "object" },
+                "rationale": { "type": "string" }
+              }
+            },
+            "confidence": {
+              "type": "object",
+              "properties": {
+                "score": { "type": "number", "minimum": 0.05, "maximum": 1.0 },
+                "factors": { "type": "object" }
+              }
+            },
+            "effort": {
+              "type": "object",
+              "properties": {
+                "score": { "type": "number", "minimum": 0.5, "maximum": 20 },
+                "unit": { "type": "string", "const": "person-weeks" },
+                "evidence": { "type": "object" },
+                "rationale": { "type": "string" }
+              }
+            }
+          }
+        },
+        "competitive_adjustment": {
+          "type": "object",
+          "properties": {
+            "adjustment": { "type": "number", "minimum": 0.8, "maximum": 1.3, "default": 1.0 },
+            "has_data": { "type": "boolean" },
+            "evidence": { "type": "object" },
+            "rationale": { "type": "string" }
+          }
+        },
+        "calculated": {
+          "type": "object",
+          "required": ["rice_score", "formula"],
+          "properties": {
+            "rice_score": { "type": "number", "minimum": 0 },
+            "adjusted_score": { "type": "number", "minimum": 0 },
+            "competitive_adjustment": { "type": "number", "minimum": 0.8, "maximum": 1.3 },
+            "manual_override_applied": { "type": "number", "minimum": 0.8, "maximum": 1.2 },
+            "formula": { "type": "string" },
+            "component_breakdown": { "type": "object" }
+          }
+        },
+        "data_sources_read": { "type": "array", "items": { "type": "string" } },
+        "manual_override": {
+          "type": "object",
+          "properties": {
+            "value": { "type": "number", "minimum": 0.8, "maximum": 1.2, "default": 1.0 },
+            "reason": { "type": ["string", "null"] }
+          }
+        },
+        "ai_rationale": { "type": "string" },
+        "history": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "timestamp": { "type": "string", "format": "date-time" },
+              "actor": { "type": "string", "enum": ["ai", "human"] },
+              "change_summary": { "type": "string" },
+              "rice_score": { "type": "number" },
+              "adjusted_score": { "type": "number" },
+              "inputs_snapshot": { "type": "object" },
+              "notes": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "brief_context": {
+      "type": ["object", "null"],
+      "description": "BRIEF.md core summary (generated by brief_regenerator.py)",
+      "properties": {
+        "core_goal": { "type": ["string", "null"] },
+        "user_value": { "type": ["string", "null"] },
+        "business_metrics": { "type": ["array", "null"], "items": { "type": "string" } },
+        "user_story": { "type": ["string", "null"] },
+        "priority_label": { "type": ["string", "null"] }
+      }
+    },
+
+    "completion_summary": {
+      "type": ["object", "null"],
+      "description": "Structured record of deliverables produced upon feature implementation completion. Automatically extracted from code by feature-status-sync. Single source of truth when other features depend on this feature. Implements GSD Slice Summary pattern. Added in v8.",
+      "properties": {
+        "produces": {
+          "type": "object",
+          "description": "Deliverables this feature provides externally",
+          "properties": {
+            "types": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Exported type / interface names (e.g., [\"User\", \"AuthToken\", \"LoginRequest\"])"
+            },
+            "exports": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Exported function / component signatures (e.g., [\"generateToken()\", \"LoginForm\", \"useAuth()\"])"
+            },
+            "api_endpoints": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Created API endpoints (e.g., [\"POST /api/auth/login\", \"GET /api/auth/me\"])"
+            },
+            "patterns_established": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Patterns established by this feature (e.g., [\"JWT refresh rotation\", \"Zod request validation\"])"
+            }
+          }
+        },
+        "consumes": {
+          "type": "object",
+          "description": "Dependencies this feature consumes from other features",
+          "properties": {
+            "from_features": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["feature_id", "imports"],
+                "properties": {
+                  "feature_id": { "type": "string", "description": "Dependent feature ID" },
+                  "imports": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Items imported from the feature (e.g., [\"generateToken()\", \"User\"])"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "files_created": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of created file paths (using dynamic path placeholders)"
+        },
+        "generated_at": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "Summary generation timestamp"
+        },
+        "generated_by": {
+          "type": "string",
+          "enum": ["feature-status-sync", "manual"],
+          "description": "Generator identity"
+        }
+      }
+    },
+
+    "completion_contract": {
+      "type": ["object", "null"],
+      "description": "DoD (Definition of Done) structured tracking. BRIEF Section 7 serves as SSOT, automatically tracked by pipeline. Added in v7. Null indicates uninitialized (backward compatibility).",
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "completion_contract schema version"
+        },
+        "work_type": {
+          "type": ["string", "null"],
+          "enum": ["NEW_FEATURE", "MODIFY_FEATURE", "BUG_FIX", null],
+          "description": "Work type. Used to load base_dod."
+        },
+        "source": {
+          "type": "string",
+          "description": "Source of DoD definition (e.g., BRIEF Section 7)"
+        },
+        "last_verified_at": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "Last verification timestamp"
+        },
+        "verdict": {
+          "type": ["string", "null"],
+          "enum": ["passed", "failed", "partial", null],
+          "description": "Final verdict. passed: all items passed, failed: machine/ai failure present, partial: unverified human items only"
+        },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/dod_item" },
+          "description": "List of DoD items"
+        },
+        "summary": {
+          "type": "object",
+          "description": "DoD verification summary",
+          "properties": {
+            "total": { "type": "integer", "description": "Total item count" },
+            "passed": { "type": "integer", "description": "Passed item count" },
+            "failed": { "type": "integer", "description": "Failed item count" },
+            "skipped": { "type": "integer", "description": "Skipped item count" },
+            "pass_rate": {
+              "type": ["number", "null"],
+              "minimum": 0,
+              "maximum": 100,
+              "description": "Pass rate (%)"
+            }
+          }
+        }
+      }
+    },
+
+    "esp_execution_log": {
+      "type": "object",
+      "description": "ESP (Enforced Skill Pattern) execution log (verifiable evidence for long-term operations)"
+    }
+  },
+
+  "$defs": {
+    "dod_item": {
+      "type": "object",
+      "required": ["id", "level", "description", "verification_type", "status"],
+      "description": "DoD individual item definition",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^DoD-(FT|FS|FR)-[0-9]{2}$",
+          "description": "DoD item ID. FT: Feature-Level (Base DoD), FS: Feature-Specific (§7.1), FR: FR-Level"
+        },
+        "level": {
+          "type": "string",
+          "enum": ["fr", "feature", "specific"],
+          "description": "DoD level. fr: FR unit, feature: whole feature (Base DoD), specific: feature-specific (§7.1)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Completion condition description"
+        },
+        "verification_type": {
+          "type": "string",
+          "enum": ["machine", "ai", "human"],
+          "description": "Verification type. machine: verified by executing commands, ai: evaluated by AI, human: confirmed by user"
+        },
+        "observation": {
+          "type": "string",
+          "description": "Concrete observation method"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "passed", "failed", "skipped", "blocked"],
+          "description": "Verification status"
+        },
+        "verified_at": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "Verification completion timestamp"
+        },
+        "evidence": {
+          "type": ["string", "null"],
+          "description": "Verification evidence (command output, AI evaluation rationale, etc.)"
+        }
+      }
+    }
+  }
+}

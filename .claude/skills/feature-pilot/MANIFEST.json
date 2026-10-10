@@ -1,0 +1,315 @@
+{
+  "schema_version": 2,
+  "skill_id": "feature-pilot",
+  "tier": 1,
+  "tier_description": "Orchestrator - Unified orchestrator for AI-driven feature development",
+  "enforced_protocol": {
+    "version": "2.0",
+    "preflight_required": true,
+    "postflight_required": true,
+    "model_routing_required": true,
+    "evidence_caching_enabled": true
+  },
+  "model_routing": {
+    "default_model": "sonnet",
+    "task_specific": {
+      "work_type_classification": "sonnet",
+      "context_collection": "sonnet",
+      "readiness_gate": "sonnet",
+      "implementation": "sonnet",
+      "architecture_decision": "opus"
+    },
+    "fallback_chain": [
+      "sonnet",
+      "opus"
+    ]
+  },
+  "evidence_policy": {
+    "npm_lint": {
+      "ttl_minutes": 30,
+      "invalidation": "src/**/*.{ts,tsx} changes"
+    },
+    "npm_test": {
+      "ttl_minutes": 30,
+      "invalidation": "tests/**/*.{ts,tsx}, src/**/*.{ts,tsx} changes"
+    },
+    "readiness_gate": {
+      "ttl_minutes": 60,
+      "invalidation": "SPEC-*.md, screens/*.md changes"
+    },
+    "security_scan": {
+      "ttl_minutes": 60,
+      "invalidation": ".env* changes"
+    }
+  },
+  "preflight_checks": [
+    {
+      "id": "PF-000",
+      "description": "Path Resolution completed (read project-config.json)",
+      "blocking": true
+    },
+    {
+      "id": "PF-001",
+      "description": "Work type determination completed",
+      "blocking": true
+    },
+    {
+      "id": "PF-002",
+      "description": "CONTEXT.json accessible or ready for creation",
+      "blocking": true
+    },
+    {
+      "id": "PF-003",
+      "description": "Verify CLAUDE.md rules",
+      "blocking": true
+    },
+    {
+      "id": "PF-004",
+      "description": "Feature Characteristics determination completed",
+      "blocking": true
+    },
+    {
+      "id": "PF-005",
+      "description": "Verify Evidence cache",
+      "blocking": false
+    },
+    {
+      "id": "PF-006",
+      "description": "Verify sub-skill ESP compatibility",
+      "blocking": true
+    },
+    {
+      "id": "PF-007",
+      "description": "Confirm task ID",
+      "blocking": true
+    },
+    {
+      "id": "PF-008",
+      "description": "Create worktree and initialize PLAN.md",
+      "blocking": true
+    },
+    {
+      "id": "PF-009",
+      "description": "Confirm Target Scope (brief2dev core vs output/<slug> generated project)",
+      "blocking": true
+    },
+    {
+      "id": "PF-010",
+      "description": "Domain Placement determination completed (ownership query + domain-map.json + index.md lookup)",
+      "blocking": true
+    }
+  ],
+  "postflight_checks": [
+    {
+      "id": "POF-001",
+      "description": "Pipeline completed or explicitly halted",
+      "blocking": true
+    },
+    {
+      "id": "POF-002",
+      "description": "CONTEXT.json final state update completed",
+      "blocking": true
+    },
+    {
+      "id": "POF-003",
+      "description": "QA verification passed (pre-quality-gate)",
+      "blocking": true
+    },
+    {
+      "id": "POF-004",
+      "description": "All sub-skill Post-flights completed",
+      "blocking": true
+    },
+    {
+      "id": "POF-005",
+      "description": "Evidence caching completed",
+      "blocking": false
+    },
+    {
+      "id": "POF-006",
+      "description": "DoD verification completed (completion_contract verdict = passed)",
+      "blocking": true
+    },
+    {
+      "id": "POF-007",
+      "description": "Worktree PLAN.md and CONTEXT.json cleanup completed",
+      "blocking": true
+    }
+  ],
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "new feature",
+      "bug fix",
+      "modify feature",
+      "development request",
+      "implement this",
+      "feature-pilot"
+    ],
+    "args_pattern": "<natural language request> [--quick] [--docs-only]"
+  },
+  "dependencies": {
+    "required": [],
+    "optional": []
+  },
+  "called_by": [
+    "decide",
+    "mvp-launcher"
+  ],
+  "calls": [
+    "feature-architect",
+    "feature-spec-generator",
+    "feature-spec-updater",
+    "ui-approval-gate",
+    "feature-implementer",
+    "engineering-plan-writer",
+    "feature-wiring",
+    "feature-status-sync",
+    "story-decomposer",
+    "feature-doctor",
+    "bug-fix",
+    "pre-quality-gate",
+    "final-review",
+    "verification-loop",
+    "research-pilot",
+    "priority-analyzer"
+  ],
+  "work_types": {
+    "NEW_FEATURE": {
+      "triggers": [
+        "new feature",
+        "add",
+        "SPEC does not exist"
+      ],
+      "pipeline": [
+        "research-pilot (conditional)",
+        "feature-architect",
+        "feature-spec-generator",
+        "story-decomposer (optional)",
+        "ui-approval-gate",
+        "readiness-gate (built-in)",
+        "implementation",
+        "feature-wiring",
+        "pre-quality-gate",
+        "feature-status-sync",
+        "priority-analyzer (optional)",
+        "pre-quality-gate (final)"
+      ]
+    },
+    "MODIFY_FEATURE": {
+      "triggers": [
+        "modify",
+        "change",
+        "existing SPEC exists"
+      ],
+      "pipeline": [
+        "feature-spec-updater",
+        "ui-approval-gate",
+        "readiness-gate (built-in)",
+        "implementation",
+        "feature-wiring (conditional)",
+        "feature-status-sync",
+        "priority-analyzer (optional)",
+        "pre-quality-gate (optional)"
+      ]
+    },
+    "BUG_FIX": {
+      "triggers": [
+        "bug",
+        "error",
+        "fix"
+      ],
+      "pipeline": [
+        "bug-fix",
+        "pre-quality-gate (optional)"
+      ]
+    },
+    "DOCS_ONLY": {
+      "triggers": [
+        "docs only",
+        "SPEC only"
+      ],
+      "pipeline": [
+        "specified skill only"
+      ]
+    }
+  },
+  "execution_model": {
+    "type": "orchestrator",
+    "phases": [
+      {
+        "id": 0,
+        "name": "Request Intake and Classification",
+        "description": "Auto-determine work type, evaluate Tier, check CLAUDE.md"
+      },
+      {
+        "id": 1,
+        "name": "Plan Presentation",
+        "description": "Present pipeline plan to user"
+      },
+      {
+        "id": 2,
+        "name": "Pipeline Execution",
+        "description": "Sequential execution of pipeline per work type"
+      },
+      {
+        "id": 3,
+        "name": "Progress Tracking",
+        "description": "Update status and report upon completing each step"
+      }
+    ],
+    "built_in_features": [
+      "Readiness Gate (5-Phase verification)",
+      "State Machine (CONTEXT.json)",
+      "7-Question Limit Rule",
+      "Autonomy Control"
+    ]
+  },
+  "inputs": [
+    {
+      "type": "user_request",
+      "description": "Natural language development request"
+    }
+  ],
+  "outputs": [
+    {
+      "type": "implementation",
+      "format": "project-config.language",
+      "description": "Complete feature implementation"
+    },
+    {
+      "type": "context",
+      "format": "json",
+      "description": "CONTEXT.json state update"
+    }
+  ],
+  "references": [
+    {
+      "file": "references/feature-pilot-protocol-details.md",
+      "description": "Archive of original full feature-pilot orchestration protocol. Reference only when long pipeline examples, user interactions, or detailed DO/DON'Ts are needed"
+    },
+    {
+      "file": "references/context-management-protocol.md",
+      "description": "CONTEXT.json state machine, lifecycle, and DoD verification"
+    },
+    {
+      "file": "references/readiness-gate-protocol.md",
+      "description": "Built-in Readiness Gate 5-Phase verification structure, output formats, and evaluation criteria"
+    },
+    {
+      "file": "references/efficiency-skills-protocol.md",
+      "description": "pre-quality-gate operational details"
+    },
+    {
+      "file": "references/autonomy-control-rules.md",
+      "description": "7-question limit, autonomy levels, and auto-stop conditions"
+    },
+    {
+      "file": "references/review-deck-contract.md",
+      "description": "Review deck content and narrative-authoring contract (CP-SPEC/PLAN/MILESTONE/UI/SHIP)"
+    }
+  ],
+  "ssot_files": [
+    "Makefile"
+  ]
+}

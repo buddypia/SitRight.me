@@ -1,0 +1,24 @@
+{
+  "$comment": "Domain Map SSOT Template. Copied as docs/features/domain-map.json. Single source of truth for domain boundary definitions (domains) + feature assignment registry (features). Registered by feature-architect when creating features (copied from this template if file doesn't exist), and synchronized with CONTEXT.json by feature-status-sync. Consulted obligatorily during feature-pilot Phase 0 Domain Placement. domains[].aliases[] is optional — maps DOMAIN-MODEL bounded_contexts[] names to domain vocabulary, activating domain-boundary-coherence BC name checks when 1+ domains declare it (no impact if unused).",
+  "schema_version": "1.0",
+  "updated_at": null,
+  "domains": [
+    {
+      "id": "example-domain",
+      "name": "Example Domain",
+      "responsibility": "Describe responsibilities owned by this domain in 1-2 sentences (e.g., user authentication, sessions, workspace membership)",
+      "keywords": ["auth", "login", "authentication"],
+      "aliases": ["Authentication", "Identity"],
+      "out_of_scope": ["Payment plan management is owned by billing domain"]
+    }
+  ],
+  "features": [
+    {
+      "id": "001-example-feature",
+      "title": "Example Feature",
+      "domain": "example-domain",
+      "src_dir": "example-feature",
+      "status": "planned"
+    }
+  ]
+}

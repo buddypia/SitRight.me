@@ -1,0 +1,1187 @@
+{
+  "schema_version": "1.0",
+  "$comment": "brief2dev transplant-bundle receipt — Inventory SSOT for bundles transplanted into this project. role=managed files are always overwritten with latest source on re-transplants (do not edit locally — make adjustments in role=customizable files or brief2dev source). role=customizable files are edited by this project and preserved during re-transplants.",
+  "generated_by": "transplant-bundle.mjs",
+  "bundles": {
+    "git-worktree-isolation": {
+      "title": "Git/Worktree Isolation + AI Safety Git Guards + Worktree Creation Tools (Multi-CLI)",
+      "bundle_version": "1.3",
+      "source": {
+        "repo": "brief2dev",
+        "commit": "9de27b125e921e7dbff31798c2d976b96896d944"
+      },
+      "transplanted_at": "2026-10-10T00:54:30.707Z",
+      "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle git-worktree-isolation --target <this-project-root> --json",
+      "files": [
+        {
+          "path": ".agents/hooks.json",
+          "role": "managed",
+          "sha256": "66e1fa35080ea52abae121f5fa4ee5500c5e9a2895723752b161a476d31740e3"
+        },
+        {
+          "path": ".claude/config/pre-ship-review-panel-sections.json",
+          "role": "customizable"
+        },
+        {
+          "path": ".claude/config/worktree-handoff-sections.json",
+          "role": "customizable"
+        },
+        {
+          "path": ".claude/config/worktree-plan-sections.json",
+          "role": "customizable"
+        },
+        {
+          "path": ".claude/config/worktree-policy.json",
+          "role": "customizable"
+        },
+        {
+          "path": ".claude/scripts/approval-trust.mjs",
+          "role": "managed",
+          "sha256": "d9c07679b33b90dab40f919d0f1516a0b6a242b4b57e1fa745b86bdaf5a9cf9f"
+        },
+        {
+          "path": ".claude/scripts/create-pr/ops.mjs",
+          "role": "managed",
+          "sha256": "d9a4b6515ea6db40c8dae6a2914d7dfcd861e7e467ed6420928db54cc836621a"
+        },
+        {
+          "path": ".claude/scripts/followup-debt-tracker.mjs",
+          "role": "managed",
+          "sha256": "e8514e4818bec44438f5fbc083861fd2faffe1b350d291bac9150cb58874be06"
+        },
+        {
+          "path": ".claude/scripts/lib/approval-policy.mjs",
+          "role": "managed",
+          "sha256": "b583c16169ec410e959c15f96a31a1b82f336c64a7d4224f0a212a7ecc2bfbeb"
+        },
+        {
+          "path": ".claude/scripts/lib/approval-trust.mjs",
+          "role": "managed",
+          "sha256": "905f4a86e719e7ff305409de40010fbdd75ee0ebfbf0cdf2507aa7d841d3d884"
+        },
+        {
+          "path": ".claude/scripts/lib/atomic-fs.mjs",
+          "role": "managed",
+          "sha256": "6dde0a0aaeabca8184e726e9ffddae3e6e53b57c335f9b73a85657d810b11461"
+        },
+        {
+          "path": ".claude/scripts/lib/change-reach.mjs",
+          "role": "managed",
+          "sha256": "612ac05b2e4cd508aeb0dde66c29c83449b1b7fd96227a0922181f143db0977b"
+        },
+        {
+          "path": ".claude/scripts/lib/change-risk.mjs",
+          "role": "managed",
+          "sha256": "4e2dfdae9001e616cf1f06ff8caf1428f26fcd8062fc1096e0f9872d469163c7"
+        },
+        {
+          "path": ".claude/scripts/lib/change-taxonomy.mjs",
+          "role": "managed",
+          "sha256": "fa0cf0bb56f6329367ce1dc25485b79f1b2c0f2c7492c5d5c30a82e1f14446a7"
+        },
+        {
+          "path": ".claude/scripts/lib/cli-flag-guard.mjs",
+          "role": "managed",
+          "sha256": "ea8894a6aef00639c4d386da0547c1bb975af8ad9aada568ce96eb5b9836e2df"
+        },
+        {
+          "path": ".claude/scripts/lib/code-ownership-index.mjs",
+          "role": "managed",
+          "sha256": "bd193ea65baf57d50a63e414888750923c8008c87d53c8fb57df541bda8980ab"
+        },
+        {
+          "path": ".claude/scripts/lib/deck-impact.mjs",
+          "role": "managed",
+          "sha256": "5a109510b9c73fd78af3d8990864c6a91d3957fc3e60745a49f73d936915e4a8"
+        },
+        {
+          "path": ".claude/scripts/lib/deck-signals.mjs",
+          "role": "managed",
+          "sha256": "de8434ddee2729dbcf17df15d49ed0503c93bd8b13122260539f538003bee82b"
+        },
+        {
+          "path": ".claude/scripts/lib/deck-visuals.mjs",
+          "role": "managed",
+          "sha256": "ad653fd59457a6d887a1c1faccf1afe4f7e1e193ed2c85f95a788ca804dbba08"
+        },
+        {
+          "path": ".claude/scripts/lib/doc-outline.mjs",
+          "role": "managed",
+          "sha256": "6c8caec37f02669a41a8e007bbaae1bf7d6f638bc34a6699980804cf4eb0d46b"
+        },
+        {
+          "path": ".claude/scripts/lib/doc-section-render.mjs",
+          "role": "managed",
+          "sha256": "6e1e8976eef6303396d652a060ee1e5a16e0d87fd7006a47cab32bb551bb56f8"
+        },
+        {
+          "path": ".claude/scripts/lib/governance-writer.mjs",
+          "role": "managed",
+          "sha256": "0bf91aa31cf23f7875ea13d4410f30405a21f5d2d2fa5a05b7b5958d894205af"
+        },
+        {
+          "path": ".claude/scripts/lib/harness-text.mjs",
+          "role": "managed",
+          "sha256": "77d16b2354eea74199d36be2f8330085549a63b88ec87f6dbd76353a5902eb4a"
+        },
+        {
+          "path": ".claude/scripts/lib/narrative-quality.mjs",
+          "role": "managed",
+          "sha256": "565fd8628e48d4762705ef92a27e0e5ffef44c53cece889e3c97c6b9ea3e90ee"
+        },
+        {
+          "path": ".claude/scripts/lib/plain-language.mjs",
+          "role": "managed",
+          "sha256": "ec236205eebf46387c29cfcd7a6d9453402da11c208e1f770fe7eb0e43a0f68f"
+        },
+        {
+          "path": ".claude/scripts/lib/pre-ship-steps.mjs",
+          "role": "managed",
+          "sha256": "11274960502e5202963fd312bf3c3dc6b1c8b00fae30310d9907ad76f4e1aeeb"
+        },
+        {
+          "path": ".claude/scripts/lib/review-deck-core.mjs",
+          "role": "managed",
+          "sha256": "9b87b57fbd905db32f74e49198370cffc9af4a3a556eaffb613e157c9e857782"
+        },
+        {
+          "path": ".claude/scripts/lib/review-deck-render.mjs",
+          "role": "managed",
+          "sha256": "f9b7c27682cc8f24d370ae423cdc9357dd965e348e8be4f7d6502e64e018591e"
+        },
+        {
+          "path": ".claude/scripts/lib/review-narrative.mjs",
+          "role": "managed",
+          "sha256": "2473b993d92109eb078fc85d686a7b7823fadbc5a486c262a8c0747b988b9f4e"
+        },
+        {
+          "path": ".claude/scripts/lib/review-origin.mjs",
+          "role": "managed",
+          "sha256": "49cd7895b70f21589ab9196e6602a83f7b8a115318610a1c1ff6b862919b2a01"
+        },
+        {
+          "path": ".claude/scripts/lib/ship-deck-core.mjs",
+          "role": "managed",
+          "sha256": "5d1c45271eebfc76018e2823dfb5bfdd1b52c019f37cbed83e0f5822dc06463d"
+        },
+        {
+          "path": ".claude/scripts/lib/ship-deck-render.mjs",
+          "role": "managed",
+          "sha256": "f09aed03b96acc0c31e377b5254bc1bc643ceb9d242d60f7d6e43e56f2bb95d2"
+        },
+        {
+          "path": ".claude/scripts/lib/task-acceptance.mjs",
+          "role": "managed",
+          "sha256": "af29f855c0be3b95862f4d59faf53bcd77017e7ed8404d0f68c11dfb1e398e5a"
+        },
+        {
+          "path": ".claude/scripts/lib/task-passport.mjs",
+          "role": "managed",
+          "sha256": "07bad816384eaf2a25a873f12e8e283ba45508fe925df943d41ea0006bc0ddc0"
+        },
+        {
+          "path": ".claude/scripts/lib/worktree-plan-template.mjs",
+          "role": "managed",
+          "sha256": "b332f2a83a9a31ef5b32da4d137121c7d05da57eec259f3bd6da25b515f2d637"
+        },
+        {
+          "path": ".claude/scripts/lib/worktree-quality-gate.mjs",
+          "role": "managed",
+          "sha256": "5ec9e56e4987a81f6858f919fb0750744c638a379a6bdb935832ef7ea4825369"
+        },
+        {
+          "path": ".claude/scripts/lib/wt-run-guards.mjs",
+          "role": "managed",
+          "sha256": "3b90b0e254e41324e96370bea4d219b40be0fabebc1ee61a2b6186482ef626c9"
+        },
+        {
+          "path": ".claude/scripts/mark-pre-ship-confirmed.mjs",
+          "role": "managed",
+          "sha256": "70b9a79079e0fb67d615eeede7475e2fb52220e08afddcad9e5de035df61b7d6"
+        },
+        {
+          "path": ".claude/scripts/pre-ship-steps.mjs",
+          "role": "managed",
+          "sha256": "69b0f8ae076a000b5080d1efb1819cc6974f14e33d195c402c168e551526c8a7"
+        },
+        {
+          "path": ".claude/scripts/record-quality-gate.mjs",
+          "role": "managed",
+          "sha256": "bb84dce3f291ae550cd55caa560ab694720978ab190c56ad1a604c00ae8067e4"
+        },
+        {
+          "path": ".claude/scripts/regression-test-lock.mjs",
+          "role": "managed",
+          "sha256": "679b6b82f0d3b453050a0d02395cf57fc69a393fa554bb04cb1f8038dc6c23b3"
+        },
+        {
+          "path": ".claude/scripts/review-deck.mjs",
+          "role": "managed",
+          "sha256": "ff94ada16961668bbca0afdddc684a6d6c76ab6ee6d730520a5965a336ac4761"
+        },
+        {
+          "path": ".claude/scripts/ship-deck-bridge.mjs",
+          "role": "managed",
+          "sha256": "5bc51b45250afd546fe2967d4f16631bc8e65dc96cffe5242c6c71bd8e2aad13"
+        },
+        {
+          "path": ".claude/scripts/ship-deck.mjs",
+          "role": "managed",
+          "sha256": "ac21786fc53e903affc16c1f59d0550dc29f940a122460c7093249cef83e18aa"
+        },
+        {
+          "path": ".claude/scripts/task-interpretation.mjs",
+          "role": "managed",
+          "sha256": "5c081ecd77117bd43b88bbcb9d2edc349067255038159753bac09a799242c116"
+        },
+        {
+          "path": ".claude/scripts/trunk-ref-guard.mjs",
+          "role": "managed",
+          "sha256": "faa9322f472cb245177793ceffbfb3c00327be86bca399350a6bd6e2816f5f51"
+        },
+        {
+          "path": ".claude/scripts/worktree-init.mjs",
+          "role": "managed",
+          "sha256": "ae677347ec5a4dda613a95cdb43be342fc4c31b56a3e9f2715a393385dfef133"
+        },
+        {
+          "path": ".claude/scripts/worktree-new.mjs",
+          "role": "managed",
+          "sha256": "c7447f66aecb12549d1de5c5dec1090c599626ec1c56f3b07aa4e429154fac69"
+        },
+        {
+          "path": ".claude/scripts/wt-run.mjs",
+          "role": "managed",
+          "sha256": "236d584a043da9a07decb73c3ccb1e4b4e605b070b881ac7374f41b74e1f1075"
+        },
+        {
+          "path": ".claude/skills/create-pr/config.json",
+          "role": "customizable"
+        },
+        {
+          "path": ".claude/skills/create-pr/MANIFEST.json",
+          "role": "managed",
+          "sha256": "ca86476336dc69128d530a01b922ef2e6dca94ba2746e29731930087f9b13ce5"
+        },
+        {
+          "path": ".claude/skills/create-pr/references/merge-conflict-resolution.md",
+          "role": "managed",
+          "sha256": "ec211512b9ed6bd9ed1bf75d6b9e952f4f157de1019a51f7da4e45e8a77169ee"
+        },
+        {
+          "path": ".claude/skills/create-pr/references/superpowers-branch-completion-options.md",
+          "role": "managed",
+          "sha256": "aec92cb8d8a2ae1df09d7fa03ef15c540719846c8cf229d84ab081d9d7f53833"
+        },
+        {
+          "path": ".claude/skills/create-pr/SKILL.md",
+          "role": "managed",
+          "sha256": "5f5c579c4f1a86d728731af001fd48d9596d6277ebe0ecb34cf7d76f711dd8a6"
+        },
+        {
+          "path": ".cli/_cli-dispatch.mjs",
+          "role": "managed",
+          "sha256": "b26b46061ddfe401bd7cd12ce938cfa7e95bfcf458cf1c5404d3dede5df567c7"
+        },
+        {
+          "path": ".cli/hooks/commit-guard.mjs",
+          "role": "managed",
+          "sha256": "892aa402bef20618918b2e29fb014cd810a35e5d56267b2dc8b520b9fbf6f1a3"
+        },
+        {
+          "path": ".cli/hooks/destructive-git-guard.mjs",
+          "role": "managed",
+          "sha256": "d132b58e9e151d325dbf8907fd24e9a2c38ac0545a241fac61f9463546e85bf2"
+        },
+        {
+          "path": ".cli/hooks/milestone-deck-warning.mjs",
+          "role": "managed",
+          "sha256": "b49ae6e16e6b5fd35b6ed9afaf615812ed4e761a6cfe7f1406ff25cd77fc10f1"
+        },
+        {
+          "path": ".cli/hooks/pre-ship-review-guard.mjs",
+          "role": "managed",
+          "sha256": "35b4deb9e0f8cc0c4cd64b4245b53480919688139e2f2158b028a34bad674875"
+        },
+        {
+          "path": ".cli/hooks/trunk-start-warning.mjs",
+          "role": "managed",
+          "sha256": "a1a066c1a93da6515de26054a293fedb9a2abcdec52a4c2e4228c0b4a6e74aec"
+        },
+        {
+          "path": ".cli/hooks/worktree-owner-tracker.mjs",
+          "role": "managed",
+          "sha256": "51f203bf60bd9677a5c3ca4e81591f33427104efe2ed8256da68474b8aa9ee69"
+        },
+        {
+          "path": ".cli/hooks/worktree-policy-guard.mjs",
+          "role": "managed",
+          "sha256": "255cd53bd833082fb795efc2060f62007430470c95d2a1554b3244140037ab20"
+        },
+        {
+          "path": ".cli/hooks/worktree-session-owner-guard.mjs",
+          "role": "managed",
+          "sha256": "bea36142a76ccc0f181b6836a1f01b7209e87c92ff6faf2739658f47deed2814"
+        },
+        {
+          "path": ".cli/hooks/worktree-shipping-guard.mjs",
+          "role": "managed",
+          "sha256": "f96ef825ad815b789131d613595f141be61eae02b2cbfd1a7edbf7f4724fca63"
+        },
+        {
+          "path": ".cli/lib/apply-patch-paths.mjs",
+          "role": "managed",
+          "sha256": "df829d59b26c0d63b5ef3cccc7b7682c92ab78014bc2d2774cd328315dd90d57"
+        },
+        {
+          "path": ".cli/lib/approval-vocabulary.mjs",
+          "role": "managed",
+          "sha256": "ae72c9e13113b0c18df02d3f2b3ce8bf561523a0e1d7f29d5d4e9a6406d691be"
+        },
+        {
+          "path": ".cli/lib/bash-segments.mjs",
+          "role": "managed",
+          "sha256": "b8849ed9ea249d6429ea186ef9111dedba0e963c0df696022641d0934c21325d"
+        },
+        {
+          "path": ".cli/lib/cli-adapter-utils.mjs",
+          "role": "managed",
+          "sha256": "9bc87a269a74188b08f0139a8f2807beac1b4a0f0c76d9601da6350fe8a826c1"
+        },
+        {
+          "path": ".cli/lib/create-pr-lease.mjs",
+          "role": "managed",
+          "sha256": "ff0b35324e9c53bfe9679a4c5ab8c3fc255a3196b213c20d43591f974ee3b400"
+        },
+        {
+          "path": ".cli/lib/git-commit-target.mjs",
+          "role": "managed",
+          "sha256": "99c2b099eb75514479f0c0755552c688d1dfbcd0073961686cf7fa033e07deb1"
+        },
+        {
+          "path": ".cli/lib/heredoc-strip.mjs",
+          "role": "managed",
+          "sha256": "d2c9e89d18ed689c16c031150507c39a0ce13b313844ea1ebec65f431b77cb40"
+        },
+        {
+          "path": ".cli/lib/hook-anchors.mjs",
+          "role": "managed",
+          "sha256": "322ad366f8f43cb8739dfa34ba3cec46147f91cdf79355c0f394cb9b8cebdc13"
+        },
+        {
+          "path": ".cli/lib/hook-flags.mjs",
+          "role": "managed",
+          "sha256": "b7cf3cde56b07238a92f1abb123b4c8fa4417ea8fe3d229ce375e206b6fc8b68"
+        },
+        {
+          "path": ".cli/lib/hook-output.mjs",
+          "role": "managed",
+          "sha256": "0ff3b13a50f58985c6d8a079fc9facb23cd7c08d9f7b75af2b92b714a763b71d"
+        },
+        {
+          "path": ".cli/lib/hook-registry-overlay.mjs",
+          "role": "managed",
+          "sha256": "9376061be1ad2b8e99945ede7dbfe3b7a6aeabc0bd5db5af6ad713c881561384"
+        },
+        {
+          "path": ".cli/lib/hook-registry.mjs",
+          "role": "managed",
+          "sha256": "91d6df8c4a7967ec5db3922312a386b87a40713e9caa089776b980f4e5bc448d"
+        },
+        {
+          "path": ".cli/lib/layout-resolver.mjs",
+          "role": "managed",
+          "sha256": "7d7c150474b0b413224ecab4a0622524c0c07f8aa28c49e9a20b1cf1140aca7f"
+        },
+        {
+          "path": ".cli/lib/plan-obligation.mjs",
+          "role": "managed",
+          "sha256": "7b52440233c77b81ea08962502ec12d3639c7e91141cddf918bcf10e4c6e335d"
+        },
+        {
+          "path": ".cli/lib/quality-gate-labels.mjs",
+          "role": "managed",
+          "sha256": "f659f2c6e86c2f7b704d598499f330d5e6514e489ae4539eb4ba4e1e8e873be0"
+        },
+        {
+          "path": ".cli/lib/section-template-renderer.mjs",
+          "role": "managed",
+          "sha256": "76c05ef15b2b09a3b23c231558062d35ecc112b44755f012ad388540f40e1851"
+        },
+        {
+          "path": ".cli/lib/self-improving-loop.mjs",
+          "role": "managed",
+          "sha256": "8a4d23394dc323253215bb72ca630012ddbe6c4c17469faedfd33131b608a236"
+        },
+        {
+          "path": ".cli/lib/ship-base-branch.mjs",
+          "role": "managed",
+          "sha256": "9a80fb289fab137fe1ac2b1d29c4f195166db28bbaae0b4427c0f39a0406a4e9"
+        },
+        {
+          "path": ".cli/lib/ship-quality-ledger.mjs",
+          "role": "managed",
+          "sha256": "96abea3dd04cc1db10cdba6ea45ff75b290f51ce1caf88fa4dfd8f6fbc6f2202"
+        },
+        {
+          "path": ".cli/lib/ship-scale.mjs",
+          "role": "managed",
+          "sha256": "b7d2793fa9fcbf664be513f5e65ed1692b15ac4d968081f44faa43627729d35a"
+        },
+        {
+          "path": ".cli/lib/test-lock.mjs",
+          "role": "managed",
+          "sha256": "9f5e91c77b85d595402f8c9866767db117e0b5f61a5da2aaf42b1104b864c890"
+        },
+        {
+          "path": ".cli/lib/trunk-branch.mjs",
+          "role": "managed",
+          "sha256": "3260ad00bfa2b62929afe68339cbfacd65e6be5bfd0186173724614f3044dad4"
+        },
+        {
+          "path": ".cli/lib/trunk-ref-guard.mjs",
+          "role": "managed",
+          "sha256": "a9e72ef636ed4597d7046facf416cc2ca803d389d0e8dcfc3e3bde53fa32463e"
+        },
+        {
+          "path": ".cli/lib/utils.mjs",
+          "role": "managed",
+          "sha256": "6324bae5eccaa0f4d30c5764552bbdab9ff8a1c2b5a993fd02a07d390fd0af11"
+        },
+        {
+          "path": ".cli/lib/worktree-owner-lease.mjs",
+          "role": "managed",
+          "sha256": "485d829325da08f48ee835637db6c8560df4c6a5b454d1ba250460e9853e511e"
+        },
+        {
+          "path": ".cli/lib/worktree-path.mjs",
+          "role": "managed",
+          "sha256": "7b813e69d00812267bb9871f54b48ee5c0085ce2f587f4adb49ac6cdd723b71a"
+        },
+        {
+          "path": ".cli/lib/worktree-plan-path.mjs",
+          "role": "managed",
+          "sha256": "e398003c7978affc760df3912ac05024ea83a6f9dad38dcab6b11917e2c46b51"
+        },
+        {
+          "path": ".cli/lib/worktree-plan-status.mjs",
+          "role": "managed",
+          "sha256": "2d42875267f3ca94d3a83c24fe764e394cc372c5727b79b022bb01eec80cce82"
+        },
+        {
+          "path": ".cli/lib/worktree-ship-report.mjs",
+          "role": "managed",
+          "sha256": "c5237ff0352ed52e172b87afbfb180069e796d23c7dffc5b61b30127c9357c7b"
+        },
+        {
+          "path": ".codex/hooks.json",
+          "role": "managed",
+          "sha256": "dd5ad7bdf3eaf49b6c263aa99f55aadd97c9dc237b0b10cda2bc6991f5abbd53"
+        }
+      ],
+      "target_notes": [
+        {
+          "id": "worktree-init-symlink-graceful",
+          "note": "The `.brief2dev/system` symlink created by worktree-init.mjs exists for brief2dev cross-idea SSOT sharing. When the target has no `.brief2dev/system`, init handles it gracefully (missing main system dir branch) — only PLAN.md auto-creation is effective there and the symlink step is a no-op. Single-clone projects that do not need worktree isolation can use the guard hooks alone."
+        },
+        {
+          "id": "worktree-policy-generic-tiers",
+          "note": "worktree-policy.json is transplanted by remapping the generic template (data/registry/transplant-templates/worktree-policy.generic.json) to .claude/config/worktree-policy.json — only ecosystem-neutral git-ignored outputs (.tmp/.cache/dist/build/node_modules/target/.next, etc.) plus .claude/settings.json (hook-registration codegen special case, a git-tracked exception) are Tier 1. brief2dev-specific paths (.brief2dev/output) are not included. `.claude/config/**` (including the policy file itself) is Tier 3 — the same paradigm as brief2dev's own policy (corrected 2026-07-01; the earlier version omitted settings.json, a self-lock gap that blocked hook-registration edits right after transplanting). The target may add or remove tier1 patterns for its own git-ignored directories (optional). Denying edits to tracked files (README.md, etc.) on main is the intended behavior of the worktree paradigm — if isolation is not wanted, do not register worktree-policy-guard."
+        },
+        {
+          "id": "worktree-policy-bash-opt-ins",
+          "note": "Two opt-in Bash policies in .claude/config/worktree-policy.json (added 2026-09-23, upstreamed from a target that had hard-coded them into the guards): `trunk_bash_allowlist` {enabled, patterns[]} and `session_owner_scope: \"all_bash\"`. Exact semantics are in the generic template (trunk_bash_allowlist.description, _adapt.session_owner_scope) and the headers of worktree-policy-guard.mjs / worktree-session-owner-guard.mjs / bash-segments.mjs. Both default off, and a target without the keys behaves exactly as before. Claude Code wiring stays narrow by default (no worktree-policy-guard on Bash, `if: Bash(git *)` on the session-owner Bash entry) because each extra Bash hook is a node process per Bash call (~55 ms measured 2026-09-23). Opting in under Claude Code therefore also means editing the target's .claude/settings.json: add worktree-policy-guard.mjs to PreToolUse Bash without `if`, and drop the `if` from worktree-session-owner-guard.mjs. Re-transplant keeps both (merge dedupes by command). Codex/Antigravity registrations run both guards on every Bash call already (one extra dispatch per Bash call for worktree-policy-guard, returning after one JSON read when not opted in)."
+        },
+        {
+          "id": "worktree-policy-all-branches-opt-in",
+          "note": "Opt-in `enforce_worktree_all_branches: true` in .claude/config/worktree-policy.json (added 2026-09-23, upstreamed from a git-flow target that had forked commit-guard / worktree-policy-guard / trunk-start-warning for it): a non-worktree checkout on any branch (develop, release/*) except escape-hatch branches (hotfix/*) is treated like trunk by all four trunk consumers; worktrees must live under .worktrees/ for the guards to recognise them. The key is read in one place, .cli/lib/trunk-branch.mjs#enforcesWorktreeOnAllBranches; exact per-guard effects are in the generic template's _adapt.enforce_worktree_all_branches. Default false: a target without the key behaves exactly as before. No settings.json change is needed. Same change: trunk-start-warning no longer warns when the session cwd is inside a linked worktree (checked with git rev-parse --git-dir vs --git-common-dir)."
+        },
+        {
+          "id": "trunk-ref-guard-opt-out",
+          "note": "Opt-out `trunk_ref_guard: false` in .claude/config/worktree-policy.json (added 2026-10-01): the git-level trunk guard passes every ref update. Use it only where an AI-run local merge into trunk is the documented landing (no remote, so /create-pr and its lease never run) — otherwise the guard blocks that landing. Only a JSON false opts out; a missing key keeps the guard on. The policy file is customizable, so the opt-out survives re-transplanting. Semantics: generic template _adapt.trunk_ref_guard."
+        },
+        {
+          "id": "base-branch-autodetect",
+          "note": "worktree-new.mjs auto-detects the base branch (origin/HEAD → main → master), and in a purely local repo without an origin remote it skips fetch/ff and creates the worktree from the local <base> — external projects defaulting to master or without a remote work unmodified."
+        },
+        {
+          "id": "trunk-branch-judgement-ssot",
+          "note": "Trunk (protected) branch SSOT (defect fixed 2026-08-01): which branches count as \"no direct work\" is decided by one transitively collected module, .cli/lib/trunk-branch.mjs, shared by commit-guard / worktree-policy-guard / worktree-shipping-guard / trunk-start-warning. The default is both main and master, so master-default projects work with no configuration. If the default branch has another name (trunk / develop / release, etc.), list it in the protected_branches array of .claude/config/worktree-policy.json (a customizable file transplanted via extra_files — edits survive re-transplantation). Earlier versions hardcoded 'main' in commit-guard and worktree-shipping-guard only, so on master-default targets file-edit blocking and session warnings worked while **direct trunk commits silently got through** and the trunk repo itself was treated as a ship candidate — targets transplanted from an old receipt are fixed by re-transplanting."
+        },
+        {
+          "id": "trunk-start-warning-harmless",
+          "note": "trunk-start-warning performs SessionStart context injection (warns to create a worktree when entering main directly), preventing accidental direct commits on trunk branches."
+        },
+        {
+          "id": "retransplant-customization-protection",
+          "note": "Customization protection on re-transplant (added 2026-07-01): files transplanted as extra_files, such as worktree-policy.json, are designed to be edited directly by the target after transplanting (adding/removing tier1 patterns). Re-running the same bundle SKIPs extra_files that already exist in the target with different content, preserving customizations (`--force` overwrites). entry_hooks/entry_scripts/CLI registration JSON are mechanism code maintained by brief2dev, so they are not protected and are always refreshed on re-transplant. Root cause: without this safeguard a re-transplant could silently revert the target's customizations to generic defaults."
+        },
+        {
+          "id": "pre-ship-review-procedure",
+          "note": "PLAN.md checkboxes → human review → approval marker procedure (added 2026-07-02): mark-pre-ship-confirmed.mjs (creates the approval marker) and pre-ship-review-guard.mjs (PreToolUse Bash guard checking marker freshness) are transplanted, so the target also enforces review-panel approval before any `ship-*` command. The step sequence comes from lib/pre-ship-steps.mjs (machine steps first, human steps last), run through the pre-ship-steps.mjs CLI. .claude/config/approval-policy.json is deliberately not shipped: without it every diff is T2, so the `approval` step always waits for a human and approval-trust.mjs reports the file as missing — add a policy only to opt into auto-approval. The remaining libs (PLAN template, ship report, section renderer, quality-gate labels/PROOF, PLAN path/status) are collected by BFS as well."
+        },
+        {
+          "id": "review-panel-sections-wiring",
+          "note": "Review panel section customization (added 2026-07-02, handoff seed added 2026-07-14): worktree-plan-sections.json (PLAN.md default-section seed — DEFAULT_PLAN_SECTIONS is the SSOT), worktree-handoff-sections.json (handoff.md RETURN contract seed — DEFAULT_HANDOFF_SECTIONS is the SSOT), and pre-ship-review-panel-sections.json (approval panel — DEFAULT_REVIEW_SECTIONS is the SSOT) are transplanted as directly editable seeds via extra_files — heading text, section count, checklist items and table columns can all be changed freely. The `sections` schema of the three JSONs is exactly the five block types (static/checklist_group/field_list/fenced_block/table) interpreted by section-template-renderer.mjs#renderTemplateFromSections. The plan and handoff JSONs are not read by brief2dev (option C — the live path uses the DEFAULT_PLAN_SECTIONS/DEFAULT_HANDOFF_SECTIONS JS constants): to use them, wire worktree-init.mjs to pass them as `options.sections`, or replace the constants in the transplanted worktree-plan-template.mjs. The panel JSON is read on the live path since 2026-09-23 once it opts in with `\"override\": true` — the seed ships false, so seeds already copied into targets stay inert instead of freezing stale sections (.cli/lib/worktree-ship-report.mjs#loadReviewPanelConfig, used by pre-ship-review-guard, worktree-shipping-guard, the pre-ship step runner and the ship-worktree completion report) and additionally accepts `locale`, `labels` (DEFAULT_REPORT_LABELS keys), `approval_choices` and `line_budget` — so a target localizes or condenses the panel, completion report and approval choices by editing that file instead of the managed .mjs files; malformed keys fall back to the built-in English. The ship deck is localized separately through the project-owned `.claude/reach-map.json` (`locale` selects ship-deck-render.mjs#DECK_LABELS; `tiers.<id>.{label,short,means}` re-words reach tiers)."
+        },
+        {
+          "id": "non-customizable-transitive-libs",
+          "note": "Non-customizable files (added 2026-07-02, worktree-quality-gate.mjs added 2026-07-14): quality-gate-labels.mjs / worktree-plan-status.mjs / worktree-quality-gate.mjs are brief2dev-maintained code collected by BFS as transitive dependencies of entry_hooks/entry_scripts — they are not extra_files, so they carry no customizable flag and are always overwritten with the latest version on re-transplant (if the target edited these three files directly, back them up before re-transplanting)."
+        },
+        {
+          "id": "create-pr-github-dependency",
+          "note": "ops.mjs depends on GitHub Flow (added 2026-07-02, resolved 2026-07-03 by transplanting create-pr): previously the automation after the approval marker — push/PR/squash-merge (`/create-pr` skill, `.claude/scripts/create-pr/ops.mjs`) — was not part of this bundle. Since 2026-07-03 the `create-pr` skill itself is transplanted via entry_skills: commit-guard/destructive-git-guard/worktree-session-owner-guard/worktree-shipping-guard reference the `.tmp/create-pr-active` carve-out marker (created and removed only by `ops.mjs` cmdInit/cmdFinalize/cmdCleanupWorktree) and the `/create-pr ship-worktree` guidance text directly in code, so without create-pr the only release path for these hooks did not exist in the target (pre-ship-review-guard deliberately ignores the marker — it guards the ship command itself) (entry_scripts also includes `create-pr/ops.mjs` — join() accepts sub-paths as-is, so no schema/code change was needed). Remaining limit: if the target is not on GitHub or uses a different PR workflow, the logic depending on the `gh` CLI must be reimplemented."
+        },
+        {
+          "id": "create-pr-config-genericized",
+          "note": "create-pr/config.json genericized (added 2026-07-03): `.claude/skills/create-pr/config.json` holds brief2dev's own values (e.g. a specific GitHub account) and must not be transplanted as-is — an extra_files remap installs `data/registry/transplant-templates/create-pr-config.generic.json` instead (only `base_branch: \"main\"`, no `github_account`). `github_account` is an optional field needed only when several GitHub accounts are logged in to the `gh` CLI on one machine (multi-account disambiguation) — with a single account, omitting it uses `gh`'s default login, so the template leaves it out. Add it to `config.json` in the target if needed. When entry_skills (whole-directory copy) and extra_files (generic remap) target the same path, extra_files always wins (Map insertion order by destRel in `planTransplant`)."
+        },
+        {
+          "id": "create-pr-soft-references",
+          "note": "Soft references in create-pr SKILL.md (added 2026-07-03): create-pr SKILL.md/MANIFEST.json mentions /pre-ship-quality-advisor, code-standards-aligner, final-review, make q.ci-mirror, etc., but these are recommendations or optional Makefile targets — not included in this bundle (hard runtime dependencies only). The core create-pr flow (init/isolate/commit/ship-feature/finalize/verify-plan/ship-worktree/cleanup-worktree) operates normally without them (ops.mjs#cmdInit checks make -n q.ci-mirror first and skips the gate if absent)."
+        },
+        {
+          "id": "quality-gate-proof-optional",
+          "note": "quality-gate.json PROOF persistence (added 2026-07-14, teamwork-preview transplant Phase 2): When review/gate results (verdict go|no_go + gates[]{name,status,command,detail,finding}) are recorded to worktree mailbox (.tmp/worktree-<safeBranch>/quality-gate.json) via record-quality-gate.mjs, mark-pre-ship-confirmed.mjs rejects creating approval markers if verdict=no_go (--force override available). Opt-in by presence — target projects not recording PROOF automatically skip checks without changes to marker procedures. Schema contract SSOT is transitively collected worktree-quality-gate.mjs."
+        },
+        {
+          "id": "task-contract-ship-gate",
+          "note": "v1.2: mark-pre-ship-confirmed.mjs re-runs the Task Passport acceptance[] (file_exists | grep | command) recorded by task-interpretation.mjs record --acceptance and rejects the ship on failure. Without a passport or acceptance the gate skips with a note (fail-open) — the passport is written by task-context-injector (not in this bundle) or manually via task-interpretation.mjs record."
+        }
+      ]
+    },
+    "feature-delivery-core": {
+      "title": "SPEC Delivery Core (Architect → SPEC → UI Approval → Implementation → Wiring → Status Sync, Excluding Orchestrators)",
+      "bundle_version": "1.1",
+      "source": {
+        "repo": "brief2dev",
+        "commit": "9de27b125e921e7dbff31798c2d976b96896d944"
+      },
+      "transplanted_at": "2026-10-10T00:54:31.017Z",
+      "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle feature-delivery-core --target <this-project-root> --json",
+      "files": [
+        {
+          "path": ".claude/skills/feature-architect/MANIFEST.json",
+          "role": "managed",
+          "sha256": "917b3745c7ce58c58062dded71f95a7e67fa451f65f1e7a7679e836dedcda2e5"
+        },
+        {
+          "path": ".claude/skills/feature-architect/SKILL.md",
+          "role": "managed",
+          "sha256": "0a504c3af504bd9334c03f77ac532846cc7142d6cda40508c212bb4294c52677"
+        },
+        {
+          "path": ".claude/skills/feature-implementer/MANIFEST.json",
+          "role": "managed",
+          "sha256": "4e0ac94a9143d39ba013122c499eff9ed8307bbbe0740e94f0fbd6a5e4941692"
+        },
+        {
+          "path": ".claude/skills/feature-implementer/references/gan-generator-evaluator-pattern.md",
+          "role": "managed",
+          "sha256": "bf8a40bf9b43c69166f52382a50cb0f9f865a7cb8c8ac159dde5948ae74ce3f0"
+        },
+        {
+          "path": ".claude/skills/feature-implementer/references/implementation-protocol-details.md",
+          "role": "managed",
+          "sha256": "47b77ab3b5bec38e3ef2af27483ca0d5988a6e2371a061c2779f199ff9729b70"
+        },
+        {
+          "path": ".claude/skills/feature-implementer/references/sdd-implementer-prompt.md",
+          "role": "managed",
+          "sha256": "10ac6aea64cba7cd42f7601150f439ce1a17c4cf84bec0e0816fc206c7045f30"
+        },
+        {
+          "path": ".claude/skills/feature-implementer/references/sdd-task-reviewer-prompt.md",
+          "role": "managed",
+          "sha256": "ecb116498e963d81b4f3e935a32f961ad24f25d894b8e097fbcff1481bb26e91"
+        },
+        {
+          "path": ".claude/skills/feature-implementer/references/superpowers-controller-verification.md",
+          "role": "managed",
+          "sha256": "3c39536de03aa360c454d829f6c7398c6b36fe8ec349e5c9ec228d6f8b305811"
+        },
+        {
+          "path": ".claude/skills/feature-implementer/references/test-coverage-diagram-template.md",
+          "role": "managed",
+          "sha256": "a696e420d5a53ab0e8200875923c7fe1a87d97ebf11fcbf0c75c91640ef36b9d"
+        },
+        {
+          "path": ".claude/skills/feature-implementer/SKILL.md",
+          "role": "managed",
+          "sha256": "2580ce8d07bcfc0ce2604d708f512f2961f135c4add144fac0a47812c642ad3a"
+        },
+        {
+          "path": ".claude/skills/feature-spec-generator/MANIFEST.json",
+          "role": "managed",
+          "sha256": "2108d24031377d43ef6cc44381f011af7fa52a077b1a8744880389f119eaf901"
+        },
+        {
+          "path": ".claude/skills/feature-spec-generator/references/error-rescue-map-template.md",
+          "role": "managed",
+          "sha256": "7972fcd0b057288e47e5752b42d8ed9a7181c8c3334247ac89805fe1ff7b5e62"
+        },
+        {
+          "path": ".claude/skills/feature-spec-generator/references/interaction-state-coverage-template.md",
+          "role": "managed",
+          "sha256": "d15b00f04184affe7f581e8ac380d8e288647d73ca830c6a1f58b0724337a918"
+        },
+        {
+          "path": ".claude/skills/feature-spec-generator/references/spec-generation-protocol-details.md",
+          "role": "managed",
+          "sha256": "3496383ced43b81120b8a508f7fdbf383cd43a238e39758e95e92ca51ab20c25"
+        },
+        {
+          "path": ".claude/skills/feature-spec-generator/references/spec-sections.md",
+          "role": "managed",
+          "sha256": "dd76fa70da9ebebc7c0718ccee7fc75e348bef3af22df4d5b1a466364af6a241"
+        },
+        {
+          "path": ".claude/skills/feature-spec-generator/SKILL.md",
+          "role": "managed",
+          "sha256": "f037bb4450c407acc96fd4bcc9cefbcd73e57346f531965fc9b7307f68c18367"
+        },
+        {
+          "path": ".claude/skills/feature-spec-updater/MANIFEST.json",
+          "role": "managed",
+          "sha256": "6b886ce629cb6d753af17fb8ade6a094ed6072bdc3be50b4f3dd7b8c3712c65b"
+        },
+        {
+          "path": ".claude/skills/feature-spec-updater/references/modification-types.md",
+          "role": "managed",
+          "sha256": "a60398f978da5e7ee553683f40b7964a4a1084a733a87ef5c6659abda14d4be5"
+        },
+        {
+          "path": ".claude/skills/feature-spec-updater/references/validation-checklist.md",
+          "role": "managed",
+          "sha256": "74d60d93e5b611b7f3837a8c4526526e3acc9998dff63538c2e25b762f874c4c"
+        },
+        {
+          "path": ".claude/skills/feature-spec-updater/SKILL.md",
+          "role": "managed",
+          "sha256": "49383e53d1b277f0979e51d47a638c91f4cdb87ec9ccc21f020f461b4f71e116"
+        },
+        {
+          "path": ".claude/skills/feature-status-sync/MANIFEST.json",
+          "role": "managed",
+          "sha256": "ed507492516904180e10d2ceb8b4433cb3d6783277e0502c0cb9a633035967e7"
+        },
+        {
+          "path": ".claude/skills/feature-status-sync/references/completion-summary-generation.md",
+          "role": "managed",
+          "sha256": "8bf1327561f77d88691668a374fdddcae8d0c7b50836c70c63feacd0848edb40"
+        },
+        {
+          "path": ".claude/skills/feature-status-sync/SKILL.md",
+          "role": "managed",
+          "sha256": "60eb5bc53af5f828a0dc7aa487c9f0b21497a2016f891929237aba2a61039eae"
+        },
+        {
+          "path": ".claude/skills/feature-wiring/MANIFEST.json",
+          "role": "managed",
+          "sha256": "fa7202e8093de67256bc706d06a142cedc52eedf8eaea87d567b2e4d6500a7fa"
+        },
+        {
+          "path": ".claude/skills/feature-wiring/references/spec-compliance-audit-template.md",
+          "role": "managed",
+          "sha256": "8015a4cd2ba8e8fbaad9ca7475a8402c03c47f52eaea64f3081f8f48a69420f7"
+        },
+        {
+          "path": ".claude/skills/feature-wiring/SKILL.md",
+          "role": "managed",
+          "sha256": "be9e16b7e853a5303344e47c3e5c28179602f94ffe39f2109f56bbaa64fe52c4"
+        },
+        {
+          "path": ".claude/skills/observability-and-instrumentation/MANIFEST.json",
+          "role": "managed",
+          "sha256": "2c892702baf13dfd335c15393e733a1b058f58f1c931a2554e9fd3746605f2bf"
+        },
+        {
+          "path": ".claude/skills/observability-and-instrumentation/references/observability-checklist.md",
+          "role": "managed",
+          "sha256": "de98c1be83546f2c3dd0d3ad08cbfcf7417a78f3d5a6c20a02b9498144998017"
+        },
+        {
+          "path": ".claude/skills/observability-and-instrumentation/SKILL.md",
+          "role": "managed",
+          "sha256": "8019ab3e2b566499eef60faa3a361d5945548b7d3cc98406c75a7149b4bf9955"
+        },
+        {
+          "path": ".claude/skills/story-decomposer/MANIFEST.json",
+          "role": "managed",
+          "sha256": "6b38f7db0bfe4325e0cbca008e05af6444d5c1d6c317203c811ae4d724a597e4"
+        },
+        {
+          "path": ".claude/skills/story-decomposer/SKILL.md",
+          "role": "managed",
+          "sha256": "eb66e859defb0b31ee8bdd8888f86a978e62b2b4a898a222cc857de2bf8906a0"
+        },
+        {
+          "path": ".claude/skills/ui-approval-gate/MANIFEST.json",
+          "role": "managed",
+          "sha256": "ca2c49410241e49ee3a081443072579fb61552b37fd4614c5a2a61dd353dbcf7"
+        },
+        {
+          "path": ".claude/skills/ui-approval-gate/references/review-templates.md",
+          "role": "managed",
+          "sha256": "ae8b557b8eb9f626f2a18211d0ac17b957c5bb1f89354f0e4e29f7da51710183"
+        },
+        {
+          "path": ".claude/skills/ui-approval-gate/references/state-management.md",
+          "role": "managed",
+          "sha256": "13288888e1ce0c40eebc3c348babb4734b3b7ffa5271ebecc46d1b4e0ef988f5"
+        },
+        {
+          "path": ".claude/skills/ui-approval-gate/SKILL.md",
+          "role": "managed",
+          "sha256": "4721da89b3ab7493fb3b9f3871ed005a92a0c419e050c9b9fc2175c98283ae9d"
+        },
+        {
+          "path": "docs/_templates/api_template.md",
+          "role": "customizable"
+        },
+        {
+          "path": "docs/_templates/context_schema.json",
+          "role": "customizable"
+        },
+        {
+          "path": "docs/_templates/context_template.json",
+          "role": "customizable"
+        },
+        {
+          "path": "docs/_templates/domain_map_template.json",
+          "role": "customizable"
+        },
+        {
+          "path": "docs/_templates/screen_template.md",
+          "role": "customizable"
+        },
+        {
+          "path": "docs/_templates/spec_template.md",
+          "role": "customizable"
+        },
+        {
+          "path": "docs/_templates/unified_feature_brief.md",
+          "role": "customizable"
+        }
+      ],
+      "target_notes": [
+        {
+          "id": "orchestrator-excluded-manual-pipeline",
+          "note": "The orchestrator feature-pilot is intentionally excluded — the skills run as a manual pipeline, each invoked on its own trigger ('update the SPEC', 'verify integration', 'check the wireframe', etc.). To add feature-pilot, layer the feature-orchestration bundle (added 2026-07-12) on top after this one — it verifies its prerequisites (this bundle among four) via requires_bundles, and its pf-runtime-prereqs note covers the POF-003 (pre-quality-gate) / PF-008 (worktree) / PF-010 (ownership index) / Makefile q.check prerequisites."
+        },
+        {
+          "id": "python-validators-excluded",
+          "note": "feature-doctor (.quality/scripts/feature_doctor.py) and spec-validator (scripts/validate.py + jsonschema) are excluded because they need a Python runtime plus pip dependencies. SPEC generation in feature-spec-generator works without them; if SPEC schema validation is needed, install python3 + pip install jsonschema in the target and transplant spec-validator separately (docs/_templates/schemas/*.schema.json must come along)."
+        }
+      ]
+    },
+    "quality-gate-core": {
+      "title": "Quality Gate Core (Quality Check → Verification Loop → Standards Alignment → Pre-Ship Advisor → Final Review, Excluding Orchestrators)",
+      "bundle_version": "1.0",
+      "source": {
+        "repo": "brief2dev",
+        "commit": "9de27b125e921e7dbff31798c2d976b96896d944"
+      },
+      "transplanted_at": "2026-10-10T00:54:31.275Z",
+      "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle quality-gate-core --target <this-project-root> --json",
+      "files": [
+        {
+          "path": ".claude/skills/code-standards-aligner/MANIFEST.json",
+          "role": "managed",
+          "sha256": "10ea0309823dbcda176ffdb17dc8b62ed47f5f15eb53be6c08e3d55f6667047b"
+        },
+        {
+          "path": ".claude/skills/code-standards-aligner/SKILL.md",
+          "role": "managed",
+          "sha256": "ac85a13a24312c74c0cee00f6c3824149f7cb2d261b350a1ef30ff5cb8b2cf89"
+        },
+        {
+          "path": ".claude/skills/final-review/MANIFEST.json",
+          "role": "managed",
+          "sha256": "81c61ea85bc378597c22c538f1b274f2eaf7a0e6543a4fcc737717f035bf323a"
+        },
+        {
+          "path": ".claude/skills/final-review/references/cross-model-review-format.md",
+          "role": "managed",
+          "sha256": "e95e7ca6d2ed90f78235fa1cf0e2c7d0aa7389e800da5582307ee36f38ea28ee"
+        },
+        {
+          "path": ".claude/skills/final-review/references/cso-security-protocol.md",
+          "role": "managed",
+          "sha256": "b9506092fab634c6517803bfb47b05e21df2c0dab86d324b3559c0d98905e0ff"
+        },
+        {
+          "path": ".claude/skills/final-review/references/de-sloppify-protocol.md",
+          "role": "managed",
+          "sha256": "bde90263ae9a93b465db0f916c009f066ef3cb632dd97df56c7d0753c9251fcf"
+        },
+        {
+          "path": ".claude/skills/final-review/references/devex-review-methodology.md",
+          "role": "managed",
+          "sha256": "e7ad07bde03b630331ea6d32c04b13d4b4cea7eeacf687182db4bdcc9452ad48"
+        },
+        {
+          "path": ".claude/skills/final-review/references/eng-review-cognitive-patterns.md",
+          "role": "managed",
+          "sha256": "2287b4dd0ea50d5b6cd5048769ca54c485c4fddf782c479d88699033875d9a2a"
+        },
+        {
+          "path": ".claude/skills/final-review/references/final-review-protocol-details.md",
+          "role": "managed",
+          "sha256": "aa82dbae24fce8e8cd2dcfdab52597024a3d73cebebe54de64ad0361d93a5d62"
+        },
+        {
+          "path": ".claude/skills/final-review/references/gstack-review-report-contract.md",
+          "role": "managed",
+          "sha256": "46d0e204083c26ca0e1de295eac61312052a9e4f00f2a0654ac9f6dd6e64f688"
+        },
+        {
+          "path": ".claude/skills/final-review/references/multi-perspective-protocol.md",
+          "role": "managed",
+          "sha256": "c69f452f0cbcb1ec4e94b4c232f0f8c03a62e35584da32952c0b200658e43563"
+        },
+        {
+          "path": ".claude/skills/final-review/references/no-go-routing.md",
+          "role": "managed",
+          "sha256": "bd25623ec436ca2cc519e248f834706af2e9455d045977169d078dd386bb34ed"
+        },
+        {
+          "path": ".claude/skills/final-review/references/pm-intended-vs-implemented.md",
+          "role": "managed",
+          "sha256": "e0bffc0a458070e195cdcd3d0a6f779b7b95c58bffd30e7fcf73f7737a662516"
+        },
+        {
+          "path": ".claude/skills/final-review/references/pr-review-protocol.md",
+          "role": "managed",
+          "sha256": "3c56e0fe5b122ad8a89dac92b2c158b3f8499f03fbefd51a42c71eebc061b182"
+        },
+        {
+          "path": ".claude/skills/final-review/references/santa-adversarial-review-protocol.md",
+          "role": "managed",
+          "sha256": "6cecd60fa73520c55d1d80971478e42e08e430bb8ecd05bc7261133b59f47ca0"
+        },
+        {
+          "path": ".claude/skills/final-review/references/superpowers-receiving-code-review.md",
+          "role": "managed",
+          "sha256": "8286740a19d3f739a9eb701e092b4d495d6dceebc58ff3b07edaa6cf820ea93c"
+        },
+        {
+          "path": ".claude/skills/final-review/references/superpowers-requesting-code-review.md",
+          "role": "managed",
+          "sha256": "4fa8287581daac35d5f7b477acc16b4a4e8185defac9f0e98db81d1447cef471"
+        },
+        {
+          "path": ".claude/skills/final-review/SKILL.md",
+          "role": "managed",
+          "sha256": "e308b6510892b0bba10dbf482d91851c9395a450c010e37a72d3ccb84cceb7b6"
+        },
+        {
+          "path": ".claude/skills/pre-quality-gate/MANIFEST.json",
+          "role": "managed",
+          "sha256": "fef2684f997173d43003a1551644a6a09de7ab53bea4dff6fe09f552c366c8b5"
+        },
+        {
+          "path": ".claude/skills/pre-quality-gate/SKILL.md",
+          "role": "managed",
+          "sha256": "5f9ad77620f7514dc2947e369130be9b5cc23ac34a2a474574817f1791dd11ed"
+        },
+        {
+          "path": ".claude/skills/pre-ship-quality-advisor/MANIFEST.json",
+          "role": "managed",
+          "sha256": "4ef4b029c9bf24702c432e2e4e01c3e2eac25fad5c25a0368ba2f3abf2c20ae2"
+        },
+        {
+          "path": ".claude/skills/pre-ship-quality-advisor/SKILL.md",
+          "role": "managed",
+          "sha256": "be12667be30e5ecf7b8ffd22f14c57f2c584530f192964ed3926bf6636562c3d"
+        },
+        {
+          "path": ".claude/skills/verification-loop/MANIFEST.json",
+          "role": "managed",
+          "sha256": "ec645f4c146e6956fd9d37134802fae498f070a4fb85e1bd0f736ca12263cb88"
+        },
+        {
+          "path": ".claude/skills/verification-loop/references/superpowers-claim-evidence-protocol.md",
+          "role": "managed",
+          "sha256": "a1ab713aa61cd76a1b4bb82858c568dff31e5bdeb70bda7499e9a41a988402d8"
+        },
+        {
+          "path": ".claude/skills/verification-loop/references/test-failure-triage-template.md",
+          "role": "managed",
+          "sha256": "65d6c133140213f01ec92796eaddc3b9c84968b2b36d57d0258457ad462ad18c"
+        },
+        {
+          "path": ".claude/skills/verification-loop/SKILL.md",
+          "role": "managed",
+          "sha256": "869b39bea5f6e5ab687e3b69b9781b7fc5a373e2f9848c0db5be7694e2de6d37"
+        },
+        {
+          "path": "data/schemas/ci/verification-checkpoint.schema.json",
+          "role": "customizable"
+        },
+        {
+          "path": "data/schemas/ci/verification-phases.schema.json",
+          "role": "customizable"
+        }
+      ],
+      "target_notes": [
+        {
+          "id": "target-makefile-q-family-required",
+          "note": "(2026-08-05: Copy mode automatically derives q.check/q.fix bridge recipes from scripts[typecheck/lint/test/build] in target package.json — including stamp touch. Only when zero scripts can be derived does the manual requirement below remain, in which case report.wiring.readiness.unmet explicitly reports it.) pre-quality-gate requires q.check (mandatory) / q.fix / q.secrets / q.deps-audit targets in the target project's own Makefile to operate (running Makefile targets is the skill's purpose). If absent, define equivalent targets in Makefile (consolidating lint+test+build) or omit pre-quality-gate during transplant. The remaining 4 skills are Makefile-independent: verification-loop/final-review have built-in platform fallback tables when project-config.json is absent; code-standards-aligner/pre-ship-quality-advisor are self-detecting (session modified files, adjacent code patterns, git diff --stat) with zero prerequisites."
+        },
+        {
+          "id": "final-review-deep-reference-make-strings",
+          "note": "References in final-review references/final-review-protocol-details.md mention make q.lint/q.test/q.check-architecture, but these are deep-reference examples, not contracts of the main body — SKILL.md dynamically resolves commands via project-config.json. Harmless if target lacks those make targets. Mentions of .brief2dev/ in references/pr-review-protocol.md are also provenance metadata and checklist examples, unrelated to runtime."
+        },
+        {
+          "id": "pre-ship-advisor-cli-fallback",
+          "note": "pre-ship-quality-advisor detects CLI via $CLAUDECODE, recommending /code-review in Claude Code and code-standards-aligner in other CLIs — because the fallback target is included in this bundle, routing resolves internally within the bundle. Mention of /create-pr ship-worktree is a soft trigger description, not a hard dependency (works without git-worktree-isolation bundle)."
+        }
+      ]
+    },
+    "api-contract-layer": {
+      "title": "API Contract Layer (Contract Codegen + Contract Test)",
+      "bundle_version": "1.0",
+      "source": {
+        "repo": "brief2dev",
+        "commit": "9de27b125e921e7dbff31798c2d976b96896d944"
+      },
+      "transplanted_at": "2026-10-10T00:54:31.447Z",
+      "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle api-contract-layer --target <this-project-root> --json",
+      "files": [
+        {
+          "path": ".claude/skills/contract-codegen/MANIFEST.json",
+          "role": "managed",
+          "sha256": "602b0e300d958a9e2ff5e9358dfcdcda8a7084fb95bd92770f741f4f39ca9582"
+        },
+        {
+          "path": ".claude/skills/contract-codegen/SKILL.md",
+          "role": "managed",
+          "sha256": "f927e16245eb571c24d14a6a7993f103f566c637141b745970675e772e37664a"
+        },
+        {
+          "path": ".claude/skills/contract-tester/MANIFEST.json",
+          "role": "managed",
+          "sha256": "98849b80ae90a93e5723003e75cbdab2f49eaffd1e929ad5a64dfb17f0b8df6e"
+        },
+        {
+          "path": ".claude/skills/contract-tester/SKILL.md",
+          "role": "managed",
+          "sha256": "4ca7d5cfa7748053611eb02136153c4e7ea051eead5c1f3a779c99aa08efd597"
+        }
+      ],
+      "target_notes": []
+    },
+    "debug-fix-pair": {
+      "title": "Debug-Fix Pair (Symptom → Hypothesis → Verification Systematic Debugging + Reproduction Test-First Bug Fix)",
+      "bundle_version": "1.0",
+      "source": {
+        "repo": "brief2dev",
+        "commit": "9de27b125e921e7dbff31798c2d976b96896d944"
+      },
+      "transplanted_at": "2026-10-10T00:54:31.622Z",
+      "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle debug-fix-pair --target <this-project-root> --json",
+      "files": [
+        {
+          "path": ".claude/skills/bug-fix/.skill-audit-ignore",
+          "role": "managed",
+          "sha256": "e398cfe492278347577697d42d4d902d9db95d88a39a734cb6b8dd803039b601"
+        },
+        {
+          "path": ".claude/skills/bug-fix/MANIFEST.json",
+          "role": "managed",
+          "sha256": "48054353fd45a347689e4ba32a9ee99a8b2f7a0c87064512ad528f0654b78271"
+        },
+        {
+          "path": ".claude/skills/bug-fix/references/error-handling-recap.md",
+          "role": "managed",
+          "sha256": "a8b6bab66f3568e7ad5bb9f0912d8fbc53d4b7712569244d2d7b9737d812edcc"
+        },
+        {
+          "path": ".claude/skills/bug-fix/references/fix-github-issue-protocol.md",
+          "role": "managed",
+          "sha256": "e3f60810268ef804bd605df03d575dffca993bab6b36a87031748c0bd6617a20"
+        },
+        {
+          "path": ".claude/skills/bug-fix/references/hitl-loop-guide.md",
+          "role": "managed",
+          "sha256": "b2630dc261a43ca576c4df8e13a6259f58ea6437258635383ec7066414564a7e"
+        },
+        {
+          "path": ".claude/skills/bug-fix/references/hitl-loop.template.sh",
+          "role": "managed",
+          "sha256": "e8190b5f9981f440fd149ea017c65c248a0052163a2ae856ae61f72170d8767a"
+        },
+        {
+          "path": ".claude/skills/bug-fix/references/special-cases.md",
+          "role": "managed",
+          "sha256": "8bbf8eeebb702aa2a3241cacefa2bb1e65abea76795cf2ac3cbdf80aec1424eb"
+        },
+        {
+          "path": ".claude/skills/bug-fix/SKILL.md",
+          "role": "managed",
+          "sha256": "32c0d4fb2d70c4d69a59b7b4f1397985ae814521bcabfd6cb87cfcb10efeb097"
+        },
+        {
+          "path": ".claude/skills/systematic-debugging/MANIFEST.json",
+          "role": "managed",
+          "sha256": "113ae7bfd9f60350fdf199b41c5bd3a5f7263e290369e43e8b132788f404e1fa"
+        },
+        {
+          "path": ".claude/skills/systematic-debugging/references/defense-in-depth.md",
+          "role": "managed",
+          "sha256": "bedbf54ff1d6b5bf7cab206f1c1a67a345afff87542e7468f7439c438212cdb0"
+        },
+        {
+          "path": ".claude/skills/systematic-debugging/references/feedback-loop-catalog.md",
+          "role": "managed",
+          "sha256": "392ce4cc56a4e85c411fae14ae679dcbb06534ce0165cd94565c98caa647cd33"
+        },
+        {
+          "path": ".claude/skills/systematic-debugging/references/root-cause-tracing.md",
+          "role": "managed",
+          "sha256": "63062df1e3225bb18c560a60991e6af990b58276d0c20b341f283a1a83465098"
+        },
+        {
+          "path": ".claude/skills/systematic-debugging/references/superpowers-systematic-debugging.md",
+          "role": "managed",
+          "sha256": "0ca844f878349e82eb97115898100178e8590234e62f8e3290f50221bfd78829"
+        },
+        {
+          "path": ".claude/skills/systematic-debugging/SKILL.md",
+          "role": "managed",
+          "sha256": "86e81f53bc9af3f648212fcd5675950bbc5ea44df8825a7332875170394ffb2e"
+        }
+      ],
+      "target_notes": [
+        {
+          "id": "historical-transplant-plan-paths",
+          "note": "References in systematic-debugging references/superpowers-systematic-debugging.md mention .brief2dev/transplants/... paths, but these are documentation provenance notes of OSS transplant history, not runtime dependencies — harmless if target lacks .brief2dev/."
+        }
+      ]
+    },
+    "feature-orchestration": {
+      "title": "Feature Development Full Orchestration (feature-pilot Single Entrypoint + Implementation Plan Authoring + Derived Code Ownership Index)",
+      "bundle_version": "1.0",
+      "source": {
+        "repo": "brief2dev",
+        "commit": "9de27b125e921e7dbff31798c2d976b96896d944"
+      },
+      "transplanted_at": "2026-10-10T00:54:32.721Z",
+      "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle feature-orchestration --target <this-project-root> --json",
+      "files": [
+        {
+          "path": ".claude/scripts/generate-code-ownership-index.mjs",
+          "role": "managed",
+          "sha256": "6e9999f5e392e57da1d799ee463900531b6e6ee546b1f3565116372bfd84e737"
+        },
+        {
+          "path": ".claude/scripts/lib/code-ownership-index.mjs",
+          "role": "managed",
+          "sha256": "bd193ea65baf57d50a63e414888750923c8008c87d53c8fb57df541bda8980ab"
+        },
+        {
+          "path": ".claude/skills/engineering-plan-writer/MANIFEST.json",
+          "role": "managed",
+          "sha256": "8d99865b7e6886d322083f7099d770a5312d2ac9d94e8ecaf08843e75a195a34"
+        },
+        {
+          "path": ".claude/skills/engineering-plan-writer/references/cold-start-plan-protocol.md",
+          "role": "managed",
+          "sha256": "18c6ff320a63100188a499916d35c464f4a4c2dff9ab56d17adebcfa344ab292"
+        },
+        {
+          "path": ".claude/skills/engineering-plan-writer/references/scope-challenge-framework.md",
+          "role": "managed",
+          "sha256": "91d5289cd84f511720473b523fbf57499c4bfd09d6e15a41468a278f3a73dc00"
+        },
+        {
+          "path": ".claude/skills/engineering-plan-writer/references/superpowers-executing-plans.md",
+          "role": "managed",
+          "sha256": "e16c63cc807170fe0818c7d895b07abef7b31fbbed5c0d0395495372d0e976ec"
+        },
+        {
+          "path": ".claude/skills/engineering-plan-writer/references/superpowers-writing-plans.md",
+          "role": "managed",
+          "sha256": "4f60d1e896fe18afc261824b7da537fca44b9a4c245697f401bfd1861410b3f6"
+        },
+        {
+          "path": ".claude/skills/engineering-plan-writer/references/temporal-interrogation.md",
+          "role": "managed",
+          "sha256": "9fde70f6b2feebbad9e41342c662dbea588084a93e6704a83e36264e30ea869c"
+        },
+        {
+          "path": ".claude/skills/engineering-plan-writer/SKILL.md",
+          "role": "managed",
+          "sha256": "17e399a43c6134572dcc178d33f389e96087e496fb7e995f1fca7752bb4e78e5"
+        },
+        {
+          "path": ".claude/skills/feature-pilot/MANIFEST.json",
+          "role": "managed",
+          "sha256": "a3ae5d3ee9afb73c52fbc286200f0ccc806557b66a28aaeabde46ad4a644df73"
+        },
+        {
+          "path": ".claude/skills/feature-pilot/references/autonomy-control-rules.md",
+          "role": "managed",
+          "sha256": "bef16cced2789f6d91a8b8f11e1dbfcff44a525f68a695d826ea9c0d350cb1ec"
+        },
+        {
+          "path": ".claude/skills/feature-pilot/references/context-management-protocol.md",
+          "role": "managed",
+          "sha256": "9d1e43d8f6c9fc123f3193f4d147124a92306b86c053a82f97a17195ab1526d4"
+        },
+        {
+          "path": ".claude/skills/feature-pilot/references/efficiency-skills-protocol.md",
+          "role": "managed",
+          "sha256": "510061e4f77c70f3e3ecf2a1347b01069a5c78051e98ee3baaf48776a054700b"
+        },
+        {
+          "path": ".claude/skills/feature-pilot/references/feature-pilot-protocol-details.md",
+          "role": "managed",
+          "sha256": "ce76f109cf945d827f2406b57b748f93a20e8b5c5e7f92c8f8464815080bb819"
+        },
+        {
+          "path": ".claude/skills/feature-pilot/references/readiness-gate-protocol.md",
+          "role": "managed",
+          "sha256": "808267c5e1fb28a8d96b13bb431356ffb12c8b81f935ad85abcf4d54ae6f797c"
+        },
+        {
+          "path": ".claude/skills/feature-pilot/references/review-deck-contract.md",
+          "role": "managed",
+          "sha256": "0ad59cb4cd02ea7f227378e35237f63c4ff3d184ff6580c933eca6ca53593879"
+        },
+        {
+          "path": ".claude/skills/feature-pilot/scripts/validate_spec.py",
+          "role": "managed",
+          "sha256": "2554208ff65e64f3c6d0efef4962829520b7e31dab0450e63f21455b73f3055f"
+        },
+        {
+          "path": ".claude/skills/feature-pilot/SKILL.md",
+          "role": "managed",
+          "sha256": "4e8edefbd332196c4bfe6b3ca6b9e5dd0cc9a7f0be1c182b7bb268821276b5c0"
+        }
+      ],
+      "target_notes": [
+        {
+          "id": "uncovered-calls-degrade",
+          "note": "Of feature-pilot's 16 calls, only research-pilot / priority-analyzer lie outside this bundle + prerequisite bundles, both declared as optional_skills since SKILL.md specifies 'SKIP if absent'. The core delivery loop (task classification -> SPEC -> implementation -> wiring -> status sync -> QA -> final review) completes with prerequisite bundles. **Previous revision of this note (prior to 2026-08-17) described 11 uncovered items as 'discovery/design extension routing targets', which was untrue** — those 11 were never named anywhere in feature-pilot instructions and could never trigger routing (12 discrepancies with invocation rules table); even if placed in targets, feature-pilot had no way to call them. Corrected declarations to actual call set. Recurrence prevented by D1 in skill-consistency-check."
+        },
+        {
+          "id": "validate-spec-python-optional",
+          "note": "scripts/validate_spec.py in feature-pilot is an optional wrapper invoking validate.py of python3 + spec-validator skill (excluded from feature-delivery-core due to python jsonschema dependency) via subprocess — if python3/spec-validator is absent in target, only SPEC placeholder validation fails/skips while core loop remains intact. Because it is a script explicitly called by AI per SKILL.md instructions rather than a hook, there is no fail-closed risk (reason for polyglot entry hook prohibition)."
+        },
+        {
+          "id": "pf-runtime-prereqs",
+          "note": "The 3 prerequisites for feature-pilot Pre/Post-flight require target environment preparation — (1) PF-000: target root project-config.json (paths/commands SSOT). If absent, reported by report.wiring.readiness.unmet — paths/conventions are assumptions of target structure, so not auto-generated. Generation recommended (identical schema to ecosystem-adapter Phase 2 output). (2) PF-008: worktree creation + PLAN.md initialization — companion transplant of git-worktree-isolation bundle recommended (not required — non-worktree projects replace this check with own branch conventions). (3) POF-003: pre-quality-gate is satisfied by quality-gate-core, but requires Makefile q.check target per that bundle's target-makefile-q-family-required note."
+        },
+        {
+          "id": "ownership-index-derived",
+          "note": "generate-code-ownership-index.mjs is an index derived from project-config.json/docs/features/domain-map.json/feature CONTEXT.json/SPEC documents (not a new SSOT) — joins with docs/_templates conventions transplanted by feature-delivery-core. In initial states without source files, outputs an empty candidate index without failing."
+        }
+      ]
+    }
+  },
+  "target_owned": [
+    ".claude/config/hook-registry.local.json"
+  ]
+}
