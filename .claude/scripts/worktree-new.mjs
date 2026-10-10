@@ -579,11 +579,7 @@ export function runWorktreeNew(opts) {
     if (!dryRun) {
       try {
         const out = nodeFn([initScript, '--worktree', wtPathAbs], { cwd, timeout: 30_000 });
-        // worktree-init prints PLAN.md path on creation — parse for reporting.
-        const planMatch = out.match(/PLAN\.md (?:Automatically created|already exists[^:]*): (.+)/);
-        if (planMatch) {
-          result.plan_path = resolve(wtPathAbs, planMatch[1].trim());
-        }
+        result.plan_path = parsePlanPath(out, wtPathAbs);
       } catch (e) {
         result.errors.push(
           `worktree-init.mjs failed: ${(e.stderr || e.message || '').toString().trim()}`,
@@ -595,6 +591,18 @@ export function runWorktreeNew(opts) {
 
   result.ok = true;
   return result;
+}
+
+/**
+ * PLAN.md path from worktree-init's log, created or preserved (null when it skipped).
+ * The wording is worktree-init's `ensurePlanIfApplicable`; worktree-new.test.mjs reads both
+ * messages from worktree-init's source, so a rewording on either side fails there.
+ */
+export function parsePlanPath(out, wtPathAbs) {
+  const m = String(out || '').match(
+    /(?:Automatically created PLAN\.md|PLAN\.md already exists \(preserved\)): (.+)/,
+  );
+  return m ? resolve(wtPathAbs, m[1].trim()) : null;
 }
 
 /**

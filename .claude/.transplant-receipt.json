@@ -8,9 +8,9 @@
       "bundle_version": "1.3",
       "source": {
         "repo": "brief2dev",
-        "commit": "ba14e9960d1b85af03f7dfb5f92651271cb8a0b5"
+        "commit": "2cf3a9a1ab58b75e495ba978fc5326ddb546d0ae"
       },
-      "transplanted_at": "2026-10-10T01:34:41.463Z",
+      "transplanted_at": "2026-10-10T02:14:17.843Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle git-worktree-isolation --target <this-project-root> --json",
       "files": [
         {
@@ -247,7 +247,7 @@
         {
           "path": ".claude/scripts/worktree-new.mjs",
           "role": "managed",
-          "sha256": "c7447f66aecb12549d1de5c5dec1090c599626ec1c56f3b07aa4e429154fac69"
+          "sha256": "6a04be93d984e7c8a1bc7a28f6441a102a2a13ef9aa0978748b1b46a2a8f18ad"
         },
         {
           "path": ".claude/scripts/wt-run.mjs",
