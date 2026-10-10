@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "engines": {
-    "node": "^22.0.0"
+    "node": "^24.21.0"
   },
   "scripts": {
     "predev": "node scripts/copy-mediapipe-wasm.mjs",

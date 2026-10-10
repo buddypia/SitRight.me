@@ -67,7 +67,7 @@ src/
 
 ## Development
 
-Requires Node.js 22.
+Requires Node.js 24 (LTS).
 
 ```bash
 npm install
