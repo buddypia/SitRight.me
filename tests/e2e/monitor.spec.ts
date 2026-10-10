@@ -36,7 +36,7 @@ test('onboarding → calibration → monitoring detects bad posture and recovery
   });
 
   const baseline = JSON.parse(
-    (await page.evaluate(() => localStorage.getItem('sitsmart.v2'))) ?? '{}'
+    (await page.evaluate(() => localStorage.getItem('sitright.v2'))) ?? '{}'
   );
   expect(baseline.state.baseline.scaleRatio).toBeGreaterThan(0);
 
@@ -66,7 +66,7 @@ test('onboarding → calibration → monitoring detects bad posture and recovery
     .poll(
       async () => {
         const s = JSON.parse(
-          (await page.evaluate(() => localStorage.getItem('sitsmart.v2'))) ??
+          (await page.evaluate(() => localStorage.getItem('sitright.v2'))) ??
             '{}'
         );
         return s.state.history?.[0]?.alerts ?? 0;

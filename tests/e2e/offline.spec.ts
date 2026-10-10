@@ -17,7 +17,7 @@ test('keeps measuring after the network goes offline', async ({
 
   const monitoredSec = async () =>
     JSON.parse(
-      (await page.evaluate(() => localStorage.getItem('sitsmart.v2'))) ?? '{}'
+      (await page.evaluate(() => localStorage.getItem('sitright.v2'))) ?? '{}'
     ).state.history?.[0]?.monitoredSec ?? 0;
 
   await context.setOffline(true);

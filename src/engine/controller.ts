@@ -463,7 +463,7 @@ class PostureController {
       showDesktopNotification(
         t.breakTitle,
         format(t.breakBody, { n: minutes }),
-        'sitsmart-break'
+        'sitright-break'
       );
     }
   }

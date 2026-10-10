@@ -223,7 +223,7 @@ const en: Messages = {
   welcomeEyebrow: 'Prevent text neck, forward head and slouching',
   welcomeTitle: 'This is what your neck\nlooks like from the side.',
   welcomeBody:
-    'Using only your laptop camera, SitSmart measures how far your head juts forward, how much you look down and how much your back rounds. It shows the side view a front camera cannot see in 3D, and nudges you only when bad posture persists.',
+    'Using only your laptop camera, SitRight measures how far your head juts forward, how much you look down and how much your back rounds. It shows the side view a front camera cannot see in 3D, and nudges you only when bad posture persists.',
   welcomeStart: 'Get started',
   welcomeResume: 'Resume monitoring',
   welcomeRecalibrate: 'Recalibrate',
@@ -241,7 +241,7 @@ const en: Messages = {
     'Only when bad posture persists — not when you briefly lean in',
   demoLabel: 'Demo',
   disclaimer:
-    'SitSmart is not a medical device and does not diagnose. See a professional if you have pain or numbness.',
+    'SitRight is not a medical device and does not diagnose. See a professional if you have pain or numbness.',
 
   setupStep: 'Step {n} of 2',
   setupTitle: 'Position your camera',
@@ -271,7 +271,7 @@ const en: Messages = {
 
   calibrateTitle: 'Hold good posture for 3 seconds',
   calibrateBody:
-    'This becomes your baseline. SitSmart measures how far you drift from it.',
+    'This becomes your baseline. SitRight measures how far you drift from it.',
   calibrateTip1: 'Sit back with your pelvis upright',
   calibrateTip2: 'Tuck your chin slightly so your ears are over your shoulders',
   calibrateTip3: 'Eyes on the screen, shoulders relaxed',

@@ -5,8 +5,8 @@ export const dynamic = 'force-static';
 /** PWA としてインストールし、独立したウィンドウで常駐できるようにする */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'SitSmart',
-    short_name: 'SitSmart',
+    name: 'SitRight',
+    short_name: 'SitRight',
     description:
       'A webcam posture monitor that measures forward head posture, text neck, and slouching, and alerts you only when bad posture persists.',
     start_url: '/',

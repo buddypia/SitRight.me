@@ -183,7 +183,7 @@ export function SettingsSheet({
                   showDesktopNotification(
                     `${t.alertTitle}: ${p.name}`,
                     `${p.short} — ${p.fix}`,
-                    'sitsmart-test'
+                    'sitright-test'
                   );
                 }}
               >

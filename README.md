@@ -1,14 +1,14 @@
-# SitSmart
+# SitRight
 
 **English** | [日本語](README.ja.md) | [한국어](README.ko.md)
 
-SitSmart uses nothing but your laptop webcam to measure **forward head, text neck, hunched neck and slouching**.
+SitRight uses nothing but your laptop webcam to measure **forward head, text neck, hunched neck and slouching**.
 It shows the side view of your posture that a front-facing camera cannot see, in 3D, and nudges you only when bad posture persists.
 Video never leaves your browser: pose estimation runs locally with MediaPipe.
 
 **Try it:** https://sitright.pages.dev
 
-> SitSmart is not a medical device and does not diagnose anything.
+> SitRight is not a medical device and does not diagnose anything.
 
 ![Monitoring screen with a hunched-neck alert](docs/screenshots/en-monitor.webp)
 

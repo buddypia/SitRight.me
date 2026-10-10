@@ -2,9 +2,9 @@ import { expect, type Page } from '@playwright/test';
 
 export const seedSettings = async (page: Page) => {
   await page.addInitScript(() => {
-    if (localStorage.getItem('sitsmart.v2')) return;
+    if (localStorage.getItem('sitright.v2')) return;
     localStorage.setItem(
-      'sitsmart.v2',
+      'sitright.v2',
       JSON.stringify({
         version: 1,
         state: {

@@ -132,11 +132,14 @@ export const INITIAL_LIVE: LiveState = {
  * localStorage への保存。live は毎フレーム更新されるため、保存対象が変わったときだけ書き込む。
  * ストレージが使えない環境（サイトデータのブロック等）でも起動できるよう例外は握りつぶす。
  */
+const LEGACY_STORAGE_KEY = 'sitsmart.v2';
 let lastSaved: PersistedState | null = null;
 const storage: PersistStorage<PersistedState> = {
   getItem: (name) => {
     try {
-      const raw = localStorage.getItem(name);
+      // 旧名 SitSmart 時代のキーからも読み込む（次回保存で新キーへ移る）
+      const raw =
+        localStorage.getItem(name) ?? localStorage.getItem(LEGACY_STORAGE_KEY);
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
@@ -198,7 +201,7 @@ export const useAppStore = create<AppState>()(
         })),
     }),
     {
-      name: 'sitsmart.v2',
+      name: 'sitright.v2',
       version: 1,
       storage,
       partialize: (s): PersistedState => ({
