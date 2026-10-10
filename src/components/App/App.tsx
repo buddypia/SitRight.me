@@ -154,44 +154,49 @@ function Logo() {
       viewBox="0 0 64 64"
       fill="none"
       aria-hidden
-      className="shrink-0 drop-shadow-[0_2px_10px_rgba(255,45,85,0.4)]"
+      className="shrink-0 drop-shadow-[0_2px_10px_rgba(255,59,48,0.35)]"
     >
       <defs>
-        <linearGradient id="headerLogoBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#161a22" />
-          <stop offset="1" stopColor="#0a0c10" />
+        <linearGradient id="absLogoBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#14171f" />
+          <stop offset="1" stopColor="#090b0e" />
         </linearGradient>
-        <linearGradient id="headerSonicWave" x1="20" y1="20" x2="50" y2="50" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#ff2d55" />
-          <stop offset="0.6" stopColor="#ff7a00" />
-          <stop offset="1" stopColor="#ffcc00" />
+        <linearGradient id="absHealthy" x1="32" y1="52" x2="32" y2="34" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#10b981" />
+          <stop offset="1" stopColor="#34d399" />
+        </linearGradient>
+        <linearGradient id="absSlouch" x1="32" y1="34" x2="20" y2="18" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#ff3b30" />
+          <stop offset="1" stopColor="#ff9500" />
         </linearGradient>
       </defs>
 
-      {/* Squircle Rim Base */}
-      <rect width="64" height="64" rx="16" fill="url(#headerLogoBg)" />
+      {/* Clean Obsidian Squircle */}
+      <rect width="64" height="64" rx="16" fill="url(#absLogoBg)" />
       <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="#2d3748" strokeWidth="1.5" />
 
-      {/* Soundwave concentric rings (破裂音の視覚化) */}
-      <circle cx="34" cy="32" r="17" stroke="#ff2d55" strokeOpacity="0.35" strokeWidth="1.5" strokeDasharray="3 3" />
-      <circle cx="34" cy="32" r="10" stroke="#ff7a00" strokeOpacity="0.6" strokeWidth="2" />
-      <circle cx="34" cy="32" r="5" stroke="#ffffff" strokeOpacity="0.9" strokeWidth="2" />
+      {/* Subtle Ideal Posture Axis */}
+      <line x1="33" y1="14" x2="33" y2="50" stroke="#34d399" strokeOpacity="0.12" strokeWidth="1.5" strokeDasharray="2 3" />
 
-      {/* Upright lower spine (healthy solid green) */}
-      <path d="M34 54 L 34 33" stroke="#22c55e" strokeWidth="6" strokeLinecap="round" />
-      <circle cx="34" cy="49" r="1.8" fill="#15803d" />
-      <circle cx="34" cy="42" r="1.8" fill="#15803d" />
+      {/* Acoustic Soundwave Concentric Rings (パキッ！のミニマル幾何学音波) */}
+      <circle cx="33" cy="33" r="16" stroke="#ff3b30" strokeOpacity="0.25" strokeWidth="1.2" strokeDasharray="2 3" />
+      <circle cx="33" cy="33" r="10" stroke="#ff9500" strokeOpacity="0.5" strokeWidth="1.6" />
+      <circle cx="33" cy="33" r="5" stroke="#ffffff" strokeOpacity="0.85" strokeWidth="1.6" />
 
-      {/* Snapped cervical spine (bent forward in critical slouch) */}
-      <path d="M34 32 L 18 18" stroke="url(#headerSonicWave)" strokeWidth="6.5" strokeLinecap="round" />
+      {/* Abstract Upright Spine Ribbon */}
+      <path d="M33 51 L 33 33" stroke="url(#absHealthy)" strokeWidth="5.5" strokeLinecap="round" />
+      <circle cx="33" cy="46" r="1.5" fill="#14171f" />
+      <circle cx="33" cy="39" r="1.5" fill="#14171f" />
 
-      {/* Forward head node */}
-      <circle cx="15" cy="15" r="5.5" fill="#f1f5f9" />
+      {/* Snapped Forward Slouch Neck Ribbon */}
+      <path d="M33 33 L 19 19" stroke="url(#absSlouch)" strokeWidth="6" strokeLinecap="round" />
 
-      {/* Lightning snap fracture & central spark */}
-      <polygon points="34,31 38,24 33,28 39,21 35,27 42,23 34,33" fill="#ffffff" />
-      <circle cx="34" cy="32" r="3.5" fill="#ff2d55" />
-      <circle cx="34" cy="32" r="1.8" fill="#ffffff" />
+      {/* Minimal Apex / Head Node */}
+      <circle cx="17" cy="17" r="4.5" fill="#f8fafc" />
+      <circle cx="17" cy="17" r="2" fill="#ff3b30" fillOpacity="0.8" />
+
+      {/* Central Acoustic Spark */}
+      <circle cx="33" cy="33" r="2.5" fill="#ffffff" />
     </svg>
   );
 }
