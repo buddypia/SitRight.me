@@ -19,7 +19,7 @@
   "preflight_checks": [
     {
       "id": "PF-001",
-      "description": "init: main freshness + staged changes present + secret files blocked + gh auth + concurrency lock (30s flag mtime)",
+      "description": "init: main freshness + staged changes present + secret files blocked + gh auth + concurrency lock (30min flag mtime)",
       "blocking": true
     },
     {
