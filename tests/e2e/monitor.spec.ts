@@ -17,9 +17,10 @@ test('onboarding → calibration → monitoring detects bad posture and recovery
   const external: string[] = [];
   page.on('response', (r) => {
     const url = new URL(r.url());
+    // data: と blob:（GLB に埋め込んだテクスチャの読み込み）はブラウザ内で完結する
     if (
       !['localhost', '127.0.0.1'].includes(url.hostname) &&
-      url.protocol !== 'data:'
+      !['data:', 'blob:'].includes(url.protocol)
     )
       external.push(r.url());
   });
