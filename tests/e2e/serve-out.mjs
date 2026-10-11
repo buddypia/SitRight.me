@@ -32,6 +32,7 @@ const TYPES = {
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
   '.webp': 'image/webp',
+  '.glb': 'model/gltf-binary',
   '.txt': 'text/plain',
 };
 

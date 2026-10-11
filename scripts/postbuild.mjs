@@ -42,8 +42,9 @@ const csp = [
   "img-src 'self' data: blob:",
   "media-src 'self' blob:",
   "font-src 'self'",
-  // 外部への通信を一切許可しない（映像や計測値を送れないことをブラウザが保証する）
-  "connect-src 'self'",
+  // 外部への通信を一切許可しない（映像や計測値を送れないことをブラウザが保証する）。
+  // blob: は 3D モデルに埋め込まれたテクスチャを端末内で読み出すため（GLTFLoader が fetch する）
+  "connect-src 'self' blob:",
   // 非表示タブでも計測を続けるタイマー Worker は Blob URL から作る
   "worker-src 'self' blob:",
   "manifest-src 'self'",
