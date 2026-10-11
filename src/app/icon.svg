@@ -1,67 +1,63 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
     <!-- Dark titanium obsidian background -->
-    <linearGradient id="v5eBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+    <linearGradient id="v10bBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
       <stop stop-color="#181c24"/>
       <stop offset="1" stop-color="#090b0e"/>
     </linearGradient>
-    <linearGradient id="v5eRim" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+    <linearGradient id="v10bRim" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
       <stop stop-color="#363f52"/>
       <stop offset="1" stop-color="#141820"/>
     </linearGradient>
 
-    <!-- Monolith Shading -->
-    <linearGradient id="v5eMonolithTop" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#2a3240"/>
-      <stop offset="50%" stop-color="#181e26"/>
-      <stop offset="100%" stop-color="#0d1015"/>
-    </linearGradient>
-    <linearGradient id="v5eMonolithBot" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#242b37"/>
-      <stop offset="50%" stop-color="#141820"/>
-      <stop offset="100%" stop-color="#0a0c10"/>
+    <!-- Vertebrae Block Metal Shading -->
+    <linearGradient id="v10bBlockGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#323b4a"/>
+      <stop offset="60%" stop-color="#1e2430"/>
+      <stop offset="100%" stop-color="#12161f"/>
     </linearGradient>
 
-    <!-- 3D Solid Acoustic Cone Wedge (赤〜オレンジ〜アンバーの立体発光角錐) -->
-    <linearGradient id="v5eConeTop" x1="0" y1="0" x2="1" y2="0.5">
-      <stop offset="0%" stop-color="#ff3b30"/>
-      <stop offset="100%" stop-color="#ff7a00"/>
-    </linearGradient>
-    <linearGradient id="v5eConeBot" x1="0" y1="0" x2="1" y2="0.5">
-      <stop offset="0%" stop-color="#ff9500"/>
+    <!-- 3D Acoustic Cone Beams -->
+    <linearGradient id="v10bBeamGrad" x1="0" y1="0.5" x2="1" y2="0.5">
+      <stop offset="0%" stop-color="#ff7a00"/>
       <stop offset="100%" stop-color="#ffcc00"/>
     </linearGradient>
   </defs>
 
   <!-- Squircle Base with Subtle Beveled Rim -->
-  <rect width="64" height="64" rx="16" fill="url(#v5eBg)"/>
-  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="url(#v5eRim)" stroke-width="1.5"/>
+  <rect width="64" height="64" rx="16" fill="url(#v10bBg)"/>
+  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="url(#v10bRim)" stroke-width="1.5"/>
 
-  <!-- LEFT SOLID ACOUSTIC ARCS (左側の極太ソリッド音波アーク) -->
-  <path d="M 18,22 A 16 16 0 0 0 18,42" stroke="#ff3b30" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M 22,25 A 11 11 0 0 0 22,39" stroke="#ff9500" stroke-width="3" stroke-linecap="round"/>
+  <!-- RIGHT SOLID ACOUSTIC ARCS (右側の二重ソリッド音波アーク) -->
+  <path d="M 44,18 A 20 20 0 0 1 44,46" stroke="#ff3b30" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 40,22 A 14 14 0 0 1 40,42" stroke="#ff9500" stroke-width="3" stroke-linecap="round"/>
 
-  <!-- RIGHT SOLID ACOUSTIC ARCS (右側の極太ソリッド音波アーク) -->
-  <path d="M 45,17 A 20 20 0 0 1 47,47" stroke="#ff9500" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M 42,21 A 15 15 0 0 1 44,43" stroke="#ff3b30" stroke-width="2.8" stroke-linecap="round"/>
+  <!-- CONNECTOR JOINTS (椎骨ブロック間の関節コネクタ) -->
+  <rect x="28" y="19" width="8" height="3" rx="1" fill="#0d1117"/>
+  <rect x="28" y="43" width="8" height="3" rx="1" fill="#0d1117"/>
 
-  <!-- CENTRAL MONOLITH PILLAR (中央の直方体チタンモノリス柱) -->
-  <!-- Upper Segment (わずかに前傾して楔状に開口) -->
-  <polygon points="26,13 35,13 35,30 26,32" fill="url(#v5eMonolithTop)"/>
-  <polygon points="35,13 38,15 38,28 35,30" fill="#0d1015"/>
+  <!-- 4 VERTEBRAE BONE BLOCKS (4つのチタン椎骨ブロック) -->
+  <!-- Block 1 (Cervical / Top) -->
+  <rect x="23" y="11" width="18" height="8.5" rx="2.5" fill="url(#v10bBlockGrad)" stroke="#475569" stroke-width="0.8"/>
 
-  <!-- Lower Segment (直立ベース) -->
-  <polygon points="26,33 35,35 35,51 26,51" fill="url(#v5eMonolithBot)"/>
-  <polygon points="35,35 38,33 38,49 35,51" fill="#080a0e"/>
+  <!-- Block 2 (Thoracic Upper - 楔状に面取り) -->
+  <polygon points="23,22 41,22 41,27 27,31.5 23,31.5" fill="url(#v10bBlockGrad)" stroke="#475569" stroke-width="0.8"/>
 
-  <!-- 3D SOLID ACOUSTIC CONE WEDGE (中央の亀裂から突き出す立体音波コーン) -->
-  <!-- Upper Cone Facet (赤〜オレンジ) -->
-  <polygon points="35,30 46,24 45,33" fill="url(#v5eConeTop)"/>
-  <polygon points="46,24 48,27 45,33" fill="#ff2d55"/>
+  <!-- Block 3 (Thoracic Lower - 楔状に面取り) -->
+  <polygon points="23,32.5 27,32.5 41,37 41,42 23,42" fill="url(#v10bBlockGrad)" stroke="#475569" stroke-width="0.8"/>
 
-  <!-- Lower Cone Wedge Facet (アンバー〜ゴールド) -->
-  <polygon points="35,35 49,38 35,38" fill="url(#v5eConeBot)"/>
+  <!-- Block 4 (Lumbar / Base) -->
+  <rect x="23" y="45" width="18" height="8.5" rx="2.5" fill="url(#v10bBlockGrad)" stroke="#475569" stroke-width="0.8"/>
 
-  <!-- FRACTURE SEAM GLOW (接合面の閃光ライン) -->
-  <line x1="26" y1="32.5" x2="35" y2="32.5" stroke="#ffffff" stroke-width="1.2"/>
+  <!-- 3D SOLID ACOUSTIC CONE BEAMS (楔開口部から噴出する3本の音波コーン) -->
+  <!-- Upper Diagonal Beam -->
+  <polygon points="28,32 46,24 44,28" fill="url(#v10bBeamGrad)"/>
+  <!-- Center Main Beam -->
+  <polygon points="28,32 52,32 49,34.5" fill="#ffcc00"/>
+  <!-- Lower Diagonal Beam -->
+  <polygon points="28,32 44,36 46,40" fill="url(#v10bBeamGrad)"/>
+
+  <!-- Core Acoustic Spark -->
+  <circle cx="28" cy="32" r="2.2" fill="#ffffff"/>
+  <circle cx="28" cy="32" r="1.2" fill="#ff9500"/>
 </svg>

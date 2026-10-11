@@ -158,64 +158,55 @@ function Logo() {
     >
       <defs>
         {/* Dark titanium obsidian background */}
-        <linearGradient id="v5eHeaderBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+        <linearGradient id="v10bHeaderBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
           <stop stopColor="#181c24" />
           <stop offset="1" stopColor="#090b0e" />
         </linearGradient>
-        <linearGradient id="v5eHeaderRim" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+        <linearGradient id="v10bHeaderRim" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
           <stop stopColor="#363f52" />
           <stop offset="1" stopColor="#141820" />
         </linearGradient>
 
-        {/* Monolith Shading */}
-        <linearGradient id="v5eHeaderMonoTop" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#2a3240" />
-          <stop offset="50%" stopColor="#181e26" />
-          <stop offset="100%" stopColor="#0d1015" />
-        </linearGradient>
-        <linearGradient id="v5eHeaderMonoBot" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#242b37" />
-          <stop offset="50%" stopColor="#141820" />
-          <stop offset="100%" stopColor="#0a0c10" />
+        {/* Vertebrae Block Metal Shading */}
+        <linearGradient id="v10bHeaderBlockGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#323b4a" />
+          <stop offset="60%" stopColor="#1e2430" />
+          <stop offset="100%" stopColor="#12161f" />
         </linearGradient>
 
-        {/* 3D Solid Acoustic Cone Wedge */}
-        <linearGradient id="v5eHeaderConeTop" x1="0" y1="0" x2="1" y2="0.5">
-          <stop offset="0%" stopColor="#ff3b30" />
-          <stop offset="100%" stopColor="#ff7a00" />
-        </linearGradient>
-        <linearGradient id="v5eHeaderConeBot" x1="0" y1="0" x2="1" y2="0.5">
-          <stop offset="0%" stopColor="#ff9500" />
+        {/* 3D Acoustic Cone Beams */}
+        <linearGradient id="v10bHeaderBeamGrad" x1="0" y1="0.5" x2="1" y2="0.5">
+          <stop offset="0%" stopColor="#ff7a00" />
           <stop offset="100%" stopColor="#ffcc00" />
         </linearGradient>
       </defs>
 
       {/* Squircle Base with Subtle Beveled Rim */}
-      <rect width="64" height="64" rx="16" fill="url(#v5eHeaderBg)" />
-      <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="url(#v5eHeaderRim)" strokeWidth="1.5" />
-
-      {/* Left Solid Acoustic Arcs */}
-      <path d="M 18,22 A 16 16 0 0 0 18,42" stroke="#ff3b30" strokeWidth="3.5" strokeLinecap="round" />
-      <path d="M 22,25 A 11 11 0 0 0 22,39" stroke="#ff9500" strokeWidth="3" strokeLinecap="round" />
+      <rect width="64" height="64" rx="16" fill="url(#v10bHeaderBg)" />
+      <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="url(#v10bHeaderRim)" strokeWidth="1.5" />
 
       {/* Right Solid Acoustic Arcs */}
-      <path d="M 45,17 A 20 20 0 0 1 47,47" stroke="#ff9500" strokeWidth="3.5" strokeLinecap="round" />
-      <path d="M 42,21 A 15 15 0 0 1 44,43" stroke="#ff3b30" strokeWidth="2.8" strokeLinecap="round" />
+      <path d="M 44,18 A 20 20 0 0 1 44,46" stroke="#ff3b30" strokeWidth="3" strokeLinecap="round" />
+      <path d="M 40,22 A 14 14 0 0 1 40,42" stroke="#ff9500" strokeWidth="3" strokeLinecap="round" />
 
-      {/* Central Monolith Pillar */}
-      <polygon points="26,13 35,13 35,30 26,32" fill="url(#v5eHeaderMonoTop)" />
-      <polygon points="35,13 38,15 38,28 35,30" fill="#0d1015" />
+      {/* Connector Joints */}
+      <rect x="28" y="19" width="8" height="3" rx="1" fill="#0d1117" />
+      <rect x="28" y="43" width="8" height="3" rx="1" fill="#0d1117" />
 
-      <polygon points="26,33 35,35 35,51 26,51" fill="url(#v5eHeaderMonoBot)" />
-      <polygon points="35,35 38,33 38,49 35,51" fill="#080a0e" />
+      {/* 4 Vertebrae Bone Blocks */}
+      <rect x="23" y="11" width="18" height="8.5" rx="2.5" fill="url(#v10bHeaderBlockGrad)" stroke="#475569" strokeWidth="0.8" />
+      <polygon points="23,22 41,22 41,27 27,31.5 23,31.5" fill="url(#v10bHeaderBlockGrad)" stroke="#475569" strokeWidth="0.8" />
+      <polygon points="23,32.5 27,32.5 41,37 41,42 23,42" fill="url(#v10bHeaderBlockGrad)" stroke="#475569" strokeWidth="0.8" />
+      <rect x="23" y="45" width="18" height="8.5" rx="2.5" fill="url(#v10bHeaderBlockGrad)" stroke="#475569" strokeWidth="0.8" />
 
-      {/* 3D Solid Acoustic Cone Wedge */}
-      <polygon points="35,30 46,24 45,33" fill="url(#v5eHeaderConeTop)" />
-      <polygon points="46,24 48,27 45,33" fill="#ff2d55" />
-      <polygon points="35,35 49,38 35,38" fill="url(#v5eHeaderConeBot)" />
+      {/* 3D Solid Acoustic Cone Beams */}
+      <polygon points="28,32 46,24 44,28" fill="url(#v10bHeaderBeamGrad)" />
+      <polygon points="28,32 52,32 49,34.5" fill="#ffcc00" />
+      <polygon points="28,32 44,36 46,40" fill="url(#v10bHeaderBeamGrad)" />
 
-      {/* Fracture Seam Glow */}
-      <line x1="26" y1="32.5" x2="35" y2="32.5" stroke="#ffffff" strokeWidth="1.2" />
+      {/* Core Acoustic Spark */}
+      <circle cx="28" cy="32" r="2.2" fill="#ffffff" />
+      <circle cx="28" cy="32" r="1.2" fill="#ff9500" />
     </svg>
   );
 }
