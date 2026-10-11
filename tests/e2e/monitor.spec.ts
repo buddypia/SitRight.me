@@ -40,14 +40,15 @@ test('onboarding → calibration → monitoring detects bad posture and recovery
   );
   expect(baseline.state.baseline.scaleRatio).toBeGreaterThan(0);
 
-  // 映像が悪い姿勢の区間に入ると、通知（トースト）と崩れ方の表示が出る
-  const toast = page.getByRole('status').filter({ hasText: '姿勢をチェック' });
+  // 映像が悪い姿勢の区間に入ると、崩れ方の名前を付けた通知（トースト）が出る
+  const toast = page
+    .getByRole('status')
+    .filter({ hasText: /首猫背|ストレートネック|猫背/ });
   await expect(toast).toBeVisible({ timeout: 110_000 });
   const toastText = await toast.innerText();
   console.log(
     `[e2e] alert at ${elapsed()}s: ${toastText.replace(/\s+/g, ' ')}`
   );
-  expect(toastText).toMatch(/首猫背|ストレートネック|猫背/);
 
   const forward = await page
     .getByText('頭の前方突出')
