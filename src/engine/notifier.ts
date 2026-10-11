@@ -1,3 +1,5 @@
+import type { SoundTheme } from '@/stores/appStore';
+
 /** 通知チャネル（デスクトップ通知・効果音・タブタイトル） */
 
 let audioCtx: AudioContext | null = null;
@@ -15,20 +17,61 @@ const ctx = () => {
   return audioCtx;
 };
 
-/** ユーザー操作の中で呼び、以後の効果音を鳴らせるようにする */
+const SOUND_FILE_MAP: Record<SoundTheme, string | null> = {
+  'snap-horn': '/sounds/snap-c-acoustic-horn.wav',
+  'snap-bio': '/sounds/snap-a-bio-crack.wav',
+  'snap-click': '/sounds/snap-b-titanium-click.wav',
+  'snap-pop': '/sounds/snap-d-subtle-pop.wav',
+  chime: null,
+};
+
+const bufferCache = new Map<string, AudioBuffer>();
+const loadingPromises = new Map<string, Promise<AudioBuffer | null>>();
+
+async function loadSoundBuffer(
+  c: AudioContext,
+  url: string
+): Promise<AudioBuffer | null> {
+  const cached = bufferCache.get(url);
+  if (cached) return cached;
+  const inFlight = loadingPromises.get(url);
+  if (inFlight) return inFlight;
+
+  const promise = (async () => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      const arrayBuffer = await res.arrayBuffer();
+      const decoded = await c.decodeAudioData(arrayBuffer);
+      bufferCache.set(url, decoded);
+      return decoded;
+    } catch {
+      return null;
+    } finally {
+      loadingPromises.delete(url);
+    }
+  })();
+
+  loadingPromises.set(url, promise);
+  return promise;
+}
+
+/** ユーザー操作の中で呼び、以後の効果音を鳴らせるようにする。同時に既定音をプリロード */
 export function unlockAudio(): void {
   const c = ctx();
   if (c && c.state === 'suspended') void c.resume();
+  if (c) {
+    const defaultUrl = SOUND_FILE_MAP['snap-horn'];
+    if (defaultUrl) void loadSoundBuffer(c, defaultUrl);
+  }
 }
 
-/** 柔らかいチャイム。tone: 'alert' は下降2音、'good' は上昇2音 */
-export function playChime(
+/** 従来のプロシージャルサイン波チャイム（フォールバック用） */
+function playSyntheticChime(
+  c: AudioContext,
   tone: 'alert' | 'good' | 'break',
   volume = 0.5
 ): void {
-  const c = ctx();
-  if (!c || volume <= 0) return;
-  if (c.state === 'suspended') void c.resume();
   const notes =
     tone === 'alert'
       ? [659.25, 523.25]
@@ -57,6 +100,52 @@ export function playChime(
     osc.stop(t + 1);
     overtone.stop(t + 1);
   });
+}
+
+/** サウンド効果音再生。alert は設定のサウンドテーマ（パキッ！）、good/break はチャイム */
+export function playChime(
+  tone: 'alert' | 'good' | 'break',
+  volume = 0.5,
+  theme: SoundTheme = 'snap-horn'
+): void {
+  const c = ctx();
+  if (!c || volume <= 0) return;
+  if (c.state === 'suspended') void c.resume();
+
+  // alert かつ snap テーマが選ばれている場合はパキッ！サウンドを再生
+  if (tone === 'alert') {
+    const soundUrl = SOUND_FILE_MAP[theme];
+    if (soundUrl) {
+      const cached = bufferCache.get(soundUrl);
+      if (cached) {
+        const source = c.createBufferSource();
+        source.buffer = cached;
+        const gainNode = c.createGain();
+        gainNode.gain.value = volume;
+        source.connect(gainNode).connect(c.destination);
+        source.start(c.currentTime);
+        return;
+      }
+
+      // 未キャッシュ時はロードして再生、失敗時はサイン波へフォールバック
+      void loadSoundBuffer(c, soundUrl).then((buf) => {
+        if (buf && c.state !== 'closed') {
+          const source = c.createBufferSource();
+          source.buffer = buf;
+          const gainNode = c.createGain();
+          gainNode.gain.value = volume;
+          source.connect(gainNode).connect(c.destination);
+          source.start(c.currentTime);
+        } else {
+          playSyntheticChime(c, tone, volume);
+        }
+      });
+      return;
+    }
+  }
+
+  // デフォルトの合成チャイム（good, break, または chime テーマ）
+  playSyntheticChime(c, tone, volume);
 }
 
 export const notificationsSupported = () =>
