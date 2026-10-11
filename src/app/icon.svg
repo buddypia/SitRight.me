@@ -1,43 +1,67 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
     <!-- Dark titanium obsidian background -->
-    <linearGradient id="v8aBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#12151d"/>
-      <stop offset="1" stop-color="#07090c"/>
+    <linearGradient id="v5eBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#181c24"/>
+      <stop offset="1" stop-color="#090b0e"/>
     </linearGradient>
-    <linearGradient id="v8aRim" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#2d3545"/>
-      <stop offset="1" stop-color="#10131a"/>
+    <linearGradient id="v5eRim" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#363f52"/>
+      <stop offset="1" stop-color="#141820"/>
     </linearGradient>
 
-    <!-- Platinum & Slate Ribbon Gradients -->
-    <linearGradient id="sRibbonUpper" x1="16" y1="12" x2="48" y2="36" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#ffffff"/>
-      <stop offset="100%" stop-color="#94a3b8"/>
+    <!-- Monolith Shading -->
+    <linearGradient id="v5eMonolithTop" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2a3240"/>
+      <stop offset="50%" stop-color="#181e26"/>
+      <stop offset="100%" stop-color="#0d1015"/>
     </linearGradient>
-    <linearGradient id="sRibbonLower" x1="16" y1="28" x2="48" y2="52" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#475569"/>
-      <stop offset="100%" stop-color="#1e293b"/>
+    <linearGradient id="v5eMonolithBot" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#242b37"/>
+      <stop offset="50%" stop-color="#141820"/>
+      <stop offset="100%" stop-color="#0a0c10"/>
+    </linearGradient>
+
+    <!-- 3D Solid Acoustic Cone Wedge (赤〜オレンジ〜アンバーの立体発光角錐) -->
+    <linearGradient id="v5eConeTop" x1="0" y1="0" x2="1" y2="0.5">
+      <stop offset="0%" stop-color="#ff3b30"/>
+      <stop offset="100%" stop-color="#ff7a00"/>
+    </linearGradient>
+    <linearGradient id="v5eConeBot" x1="0" y1="0" x2="1" y2="0.5">
+      <stop offset="0%" stop-color="#ff9500"/>
+      <stop offset="100%" stop-color="#ffcc00"/>
     </linearGradient>
   </defs>
 
   <!-- Squircle Base with Subtle Beveled Rim -->
-  <rect width="64" height="64" rx="16" fill="url(#v8aBg)"/>
-  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="url(#v8aRim)" stroke-width="1.5"/>
+  <rect width="64" height="64" rx="16" fill="url(#v5eBg)"/>
+  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="url(#v5eRim)" stroke-width="1.5"/>
 
-  <!-- ACOUSTIC SHOCKWAVE PULSE (極小サイズでもパキッ！の音響衝撃を伝える波紋) -->
-  <circle cx="32" cy="32" r="13" stroke="#ff3b30" stroke-width="1.8" stroke-opacity="0.35" stroke-dasharray="5 3"/>
-  <circle cx="32" cy="32" r="8" stroke="#ff9500" stroke-width="1.8" stroke-opacity="0.55"/>
+  <!-- LEFT SOLID ACOUSTIC ARCS (左側の極太ソリッド音波アーク) -->
+  <path d="M 18,22 A 16 16 0 0 0 18,42" stroke="#ff3b30" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M 22,25 A 11 11 0 0 0 22,39" stroke="#ff9500" stroke-width="3" stroke-linecap="round"/>
 
-  <!-- GEOMETRIC S-GLYPH RIBBON (SitRight & Spineの超抽象S字キネティックグリフ) -->
-  <!-- Upper Curve (Forward flexion arc - 姿勢の前傾・頸椎) -->
-  <path d="M 44,16 C 30,12 18,20 22,30 C 24,35 29,34 32,32" stroke="url(#sRibbonUpper)" stroke-width="5.5" stroke-linecap="round"/>
-  
-  <!-- Lower Curve (Upright base arc - 直立する骨盤・腰椎) -->
-  <path d="M 32,32 C 35,30 40,29 42,34 C 46,44 34,52 20,48" stroke="url(#sRibbonLower)" stroke-width="5.5" stroke-linecap="round"/>
+  <!-- RIGHT SOLID ACOUSTIC ARCS (右側の極太ソリッド音波アーク) -->
+  <path d="M 45,17 A 20 20 0 0 1 47,47" stroke="#ff9500" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M 42,21 A 15 15 0 0 1 44,43" stroke="#ff3b30" stroke-width="2.8" stroke-linecap="round"/>
 
-  <!-- RADIANT EQUILIBRIUM PIVOT & SNAP SPARK (中央で均衡とパキッ！の破断臨界点を告げるダイヤモンド閃光) -->
-  <polygon points="32,23 34.5,29.5 41,32 34.5,34.5 32,41 29.5,34.5 23,32 29.5,29.5" fill="#ff9500"/>
-  <polygon points="32,26 33.5,30.5 38,32 33.5,33.5 32,38 30.5,33.5 26,32 30.5,30.5" fill="#ffffff"/>
-  <circle cx="32" cy="32" r="2.2" fill="#ffcc00"/>
+  <!-- CENTRAL MONOLITH PILLAR (中央の直方体チタンモノリス柱) -->
+  <!-- Upper Segment (わずかに前傾して楔状に開口) -->
+  <polygon points="26,13 35,13 35,30 26,32" fill="url(#v5eMonolithTop)"/>
+  <polygon points="35,13 38,15 38,28 35,30" fill="#0d1015"/>
+
+  <!-- Lower Segment (直立ベース) -->
+  <polygon points="26,33 35,35 35,51 26,51" fill="url(#v5eMonolithBot)"/>
+  <polygon points="35,35 38,33 38,49 35,51" fill="#080a0e"/>
+
+  <!-- 3D SOLID ACOUSTIC CONE WEDGE (中央の亀裂から突き出す立体音波コーン) -->
+  <!-- Upper Cone Facet (赤〜オレンジ) -->
+  <polygon points="35,30 46,24 45,33" fill="url(#v5eConeTop)"/>
+  <polygon points="46,24 48,27 45,33" fill="#ff2d55"/>
+
+  <!-- Lower Cone Wedge Facet (アンバー〜ゴールド) -->
+  <polygon points="35,35 49,38 35,38" fill="url(#v5eConeBot)"/>
+
+  <!-- FRACTURE SEAM GLOW (接合面の閃光ライン) -->
+  <line x1="26" y1="32.5" x2="35" y2="32.5" stroke="#ffffff" stroke-width="1.2"/>
 </svg>
