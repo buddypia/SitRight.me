@@ -22,7 +22,12 @@ import {
   type Avatar,
 } from '@/components/PostureScene/models';
 import type { CameraErrorKind } from '@/engine/camera';
-import type { Locale } from '@/i18n/messages';
+import {
+  DEFAULT_LOCALE,
+  detectBrowserLocale,
+  isSupportedLocale,
+  type Locale,
+} from '@/i18n/messages';
 
 export type Phase = 'welcome' | 'setup' | 'calibrate' | 'monitor';
 
@@ -95,15 +100,6 @@ interface AppState extends PersistedState {
   markHydrated: () => void;
 }
 
-/** ブラウザの言語が日本語・韓国語ならそれを、それ以外は英語を使う */
-const defaultLocale = (): Locale => {
-  if (typeof navigator === 'undefined') return 'en';
-  const lang = navigator.language.toLowerCase();
-  if (lang.startsWith('ja')) return 'ja';
-  if (lang.startsWith('ko')) return 'ko';
-  return 'en';
-};
-
 export const DEFAULT_SETTINGS: Settings = {
   sensitivity: 'standard',
   alertDelaySec: 20,
@@ -116,7 +112,7 @@ export const DEFAULT_SETTINGS: Settings = {
   showCamera: true,
   xray: true,
   avatar: DEFAULT_AVATAR,
-  locale: 'en',
+  locale: DEFAULT_LOCALE,
   cameraId: null,
 };
 
@@ -184,7 +180,7 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       hydrated: false,
       phase: 'welcome',
-      settings: { ...DEFAULT_SETTINGS, locale: defaultLocale() },
+      settings: { ...DEFAULT_SETTINGS, locale: detectBrowserLocale() },
       baseline: null,
       history: [],
       live: INITIAL_LIVE,
@@ -221,6 +217,9 @@ export const useAppStore = create<AppState>()(
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<PersistedState>;
         const settings = { ...current.settings, ...(p.settings ?? {}) };
+        if (!isSupportedLocale(settings.locale)) {
+          settings.locale = detectBrowserLocale();
+        }
         // 削除されたモデルなど、知らない値は既定のモデルに戻す
         if (!isAvatar(settings.avatar)) settings.avatar = DEFAULT_AVATAR;
         const validThemes: SoundTheme[] = [

@@ -1,6 +1,68 @@
 import type { FrameIssue, PosturePattern } from '@/core/types';
 
-export type Locale = 'en' | 'ja' | 'ko';
+export const SUPPORTED_LOCALES = ['en', 'ja', 'ko'] as const;
+export type Locale = (typeof SUPPORTED_LOCALES)[number];
+export const DEFAULT_LOCALE: Locale = 'en';
+
+export interface LocaleInfo {
+  code: Locale;
+  nativeName: string;
+  bcp47: string;
+}
+
+export const LOCALE_REGISTRY: Record<Locale, LocaleInfo> = {
+  en: { code: 'en', nativeName: 'English', bcp47: 'en-US' },
+  ja: { code: 'ja', nativeName: '日本語', bcp47: 'ja-JP' },
+  ko: { code: 'ko', nativeName: '한국어', bcp47: 'ko-KR' },
+};
+
+export const LOCALE_OPTIONS = SUPPORTED_LOCALES.map((code) => ({
+  value: code,
+  label: LOCALE_REGISTRY[code].nativeName,
+}));
+
+export function isSupportedLocale(val: unknown): val is Locale {
+  return (
+    typeof val === 'string' &&
+    (SUPPORTED_LOCALES as readonly string[]).includes(val)
+  );
+}
+
+export function resolveLocale(
+  candidates: readonly (string | undefined | null | unknown)[]
+): Locale {
+  for (const raw of candidates) {
+    if (typeof raw !== 'string') continue;
+    const clean = raw.trim().toLowerCase();
+    if (!clean) continue;
+
+    if (isSupportedLocale(clean)) {
+      return clean;
+    }
+
+    const primary = clean.split('-')[0]?.split('_')[0];
+    if (primary && isSupportedLocale(primary)) {
+      return primary;
+    }
+  }
+  return DEFAULT_LOCALE;
+}
+
+export function detectBrowserLocale(): Locale {
+  if (typeof navigator === 'undefined') {
+    return DEFAULT_LOCALE;
+  }
+
+  const preferred: string[] = [];
+  if (Array.isArray(navigator.languages) && navigator.languages.length > 0) {
+    preferred.push(...navigator.languages);
+  }
+  if (navigator.language) {
+    preferred.push(navigator.language);
+  }
+
+  return resolveLocale(preferred);
+}
 
 const ja = {
   appTagline: '首と背中の姿勢を、横から見える形に。',
@@ -42,6 +104,8 @@ const ja = {
   setupNext: '次へ：基準姿勢を記録',
   setupTip: 'ノートPCなら画面を少し後ろに倒すと肩まで映りやすくなります。',
   cameraSelect: 'カメラ',
+  cameraDefault: '標準',
+  cameraNumbered: 'カメラ {n}',
 
   // camera errors
   cameraError_denied:
@@ -97,6 +161,7 @@ const ja = {
   sideView: '横から見たあなたの姿勢',
   sideViewHint: 'ドラッグで回転',
   resetView: '視点をリセット',
+  modelLoadFailed: '3Dモデルの読み込みに失敗しました',
   xray: '骨格',
   avatar: '3Dモデル',
   avatar_man: '男性',
@@ -115,6 +180,8 @@ const ja = {
   cameraHidden: 'カメラ映像は非表示です（計測は継続中）',
   sitting: '連続着席',
   minutes: '{n}分',
+  durationHoursMinutes: '{h}時間{m}分',
+  durationMinutes: '{m}分',
   baselineSuspect:
     '基準姿勢より大きく後ろに下がっています。基準を取り直すと精度が上がります。',
 
@@ -127,6 +194,7 @@ const ja = {
   recoveryRate: '復帰率 {n}%',
   times: '{n}回',
   timelineTitle: '直近60分',
+  timelineNow: '現在',
   breakdownTitle: '多かった崩れ方',
   noBreakdown: 'まだ崩れた記録はありません',
   weekTitle: '過去7日',
@@ -150,6 +218,8 @@ const ja = {
   // alerts
   alertTitle: '姿勢をチェック',
   recoveredToast: 'いい姿勢に戻りました',
+  recoveredBody: '頸椎と背骨のアライメントが整いました。',
+  fixed: '直した！',
   breakTitle: 'ひと休みしましょう',
   breakBody: '{n}分座り続けています。立ち上がって首と肩を回しましょう。',
   enableNotifications: 'デスクトップ通知を有効にする',
@@ -279,6 +349,8 @@ const en: Messages = {
   setupTip:
     'On a laptop, tilting the lid back a little helps fit your shoulders in view.',
   cameraSelect: 'Camera',
+  cameraDefault: 'Default',
+  cameraNumbered: 'Camera {n}',
 
   cameraError_denied:
     'Camera access was blocked. Allow it from the camera icon in the address bar.',
@@ -329,6 +401,7 @@ const en: Messages = {
   sideView: 'Your posture from the side',
   sideViewHint: 'Drag to rotate',
   resetView: 'Reset view',
+  modelLoadFailed: '3D model failed to load.',
   xray: 'Skeleton',
   avatar: '3D model',
   avatar_man: 'Man',
@@ -347,6 +420,8 @@ const en: Messages = {
   cameraHidden: 'Camera preview hidden (still measuring)',
   sitting: 'Sitting',
   minutes: '{n} min',
+  durationHoursMinutes: '{h}h {m}m',
+  durationMinutes: '{m}m',
   baselineSuspect:
     'You are sitting well behind your baseline. Recalibrating will improve accuracy.',
 
@@ -358,6 +433,7 @@ const en: Messages = {
   recoveryRate: '{n}% recovered',
   times: '{n}',
   timelineTitle: 'Last 60 minutes',
+  timelineNow: 'now',
   breakdownTitle: 'Most common',
   noBreakdown: 'No posture slips recorded yet',
   weekTitle: 'Last 7 days',
@@ -380,6 +456,8 @@ const en: Messages = {
 
   alertTitle: 'Posture check',
   recoveredToast: 'Back to good posture',
+  recoveredBody: 'Your cervical and spinal alignment is restored.',
+  fixed: 'Fixed!',
   breakTitle: 'Time for a break',
   breakBody:
     'You have been sitting for {n} minutes. Stand up and roll your neck and shoulders.',
@@ -505,6 +583,8 @@ const ko: Messages = {
   setupNext: '다음: 기준 자세 기록',
   setupTip: '노트북이라면 화면을 조금 뒤로 젖히면 어깨까지 잘 나와요.',
   cameraSelect: '카메라',
+  cameraDefault: '기본',
+  cameraNumbered: '카메라 {n}',
 
   // camera errors
   cameraError_denied:
@@ -561,6 +641,7 @@ const ko: Messages = {
   sideView: '옆에서 본 내 자세',
   sideViewHint: '드래그로 회전',
   resetView: '시점 초기화',
+  modelLoadFailed: '3D 모델을 불러오지 못했어요.',
   xray: '골격',
   avatar: '3D 모델',
   avatar_man: '남성',
@@ -579,6 +660,8 @@ const ko: Messages = {
   cameraHidden: '카메라 영상은 숨겨져 있어요 (측정은 계속 중)',
   sitting: '연속 착석',
   minutes: '{n}분',
+  durationHoursMinutes: '{h}시간 {m}분',
+  durationMinutes: '{m}분',
   baselineSuspect:
     '기준 자세보다 많이 뒤로 물러나 있어요. 기준을 다시 잡으면 정확도가 올라가요.',
 
@@ -591,6 +674,7 @@ const ko: Messages = {
   recoveryRate: '복귀율 {n}%',
   times: '{n}회',
   timelineTitle: '최근 60분',
+  timelineNow: '지금',
   breakdownTitle: '자주 무너진 자세',
   noBreakdown: '아직 무너진 기록이 없어요',
   weekTitle: '지난 7일',
@@ -614,6 +698,8 @@ const ko: Messages = {
   // alerts
   alertTitle: '자세를 확인하세요',
   recoveredToast: '좋은 자세로 돌아왔어요',
+  recoveredBody: '경추와 척추의 정렬이 맞춰졌어요.',
+  fixed: '고쳤어요!',
   breakTitle: '잠깐 쉬어요',
   breakBody: '{n}분째 앉아 있어요. 일어나서 목과 어깨를 돌려 보세요.',
   enableNotifications: '데스크톱 알림 켜기',
@@ -705,4 +791,14 @@ export function format(
   vars: Record<string, string | number>
 ): string {
   return template.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ''));
+}
+
+export function formatDuration(sec: number, t: Messages): string {
+  const safeSec = Math.max(0, Math.floor(Number.isFinite(sec) ? sec : 0));
+  const h = Math.floor(safeSec / 3600);
+  const m = Math.floor((safeSec % 3600) / 60);
+  if (h > 0) {
+    return format(t.durationHoursMinutes, { h, m });
+  }
+  return format(t.durationMinutes, { m });
 }
