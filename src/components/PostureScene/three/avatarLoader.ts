@@ -128,6 +128,42 @@ function fixGltfMaterials(model: THREE.Object3D, asset: AvatarAsset) {
   });
 }
 
+/**
+ * 髪は切り抜きだけだと生え際や毛先がギザギザになる。
+ * 濃い部分は切り抜きのまま奥行きを書き、残りの薄い縁だけを半透明で重ねて肌になじませる。
+ */
+function addSoftHairPass(model: THREE.Object3D) {
+  const hair: THREE.SkinnedMesh[] = [];
+  model.traverse((o) => {
+    const mesh = o as THREE.SkinnedMesh;
+    const mat = mesh.material as THREE.MeshStandardMaterial;
+    if (
+      mesh.isSkinnedMesh &&
+      !Array.isArray(mat) &&
+      mat.alphaToCoverage &&
+      !/eyebrow|eyelash/i.test(mat.name)
+    )
+      hair.push(mesh);
+  });
+  for (const mesh of hair) {
+    const core = mesh.material as THREE.MeshStandardMaterial;
+    core.alphaTest = 0.6;
+    const edge = core.clone();
+    edge.alphaTest = 0.2;
+    edge.alphaToCoverage = false;
+    edge.transparent = true;
+    edge.depthWrite = false;
+    const soft = mesh.clone();
+    soft.material = edge;
+    soft.userData.softHair = true;
+    // 影は本体の切り抜きで足りる
+    soft.castShadow = false;
+    // 不透明の物より後、ゴーストより前に描く
+    soft.renderOrder = 1;
+    mesh.parent?.add(soft);
+  }
+}
+
 /** モデルを読み込んで姿勢を付けられる状態にする（シーンごとに別のインスタンスを作る） */
 export async function loadAvatar(asset: AvatarAsset): Promise<LoadedAvatar> {
   const loader = new GLTFLoader();
@@ -158,6 +194,7 @@ export async function loadAvatar(asset: AvatarAsset): Promise<LoadedAvatar> {
       o.frustumCulled = false;
     }
   });
+  addSoftHairPass(model);
 
   // +z 向きのモデルを、x 前（机の方向）に向ける
   const root = new THREE.Group();
@@ -182,15 +219,15 @@ export async function loadAvatar(asset: AvatarAsset): Promise<LoadedAvatar> {
     height,
     dispose: () => {
       gltf.scene.traverse((o) => {
-          const mesh = o as THREE.Mesh;
-          if (mesh.isMesh) {
-            mesh.geometry.dispose();
-            (Array.isArray(mesh.material)
-              ? mesh.material
-              : [mesh.material]
-            ).forEach((m) => m.dispose());
-          }
-        });
+        const mesh = o as THREE.Mesh;
+        if (mesh.isMesh) {
+          mesh.geometry.dispose();
+          (Array.isArray(mesh.material)
+            ? mesh.material
+            : [mesh.material]
+          ).forEach((m) => m.dispose());
+        }
+      });
     },
   };
 }

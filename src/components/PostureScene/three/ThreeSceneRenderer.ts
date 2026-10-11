@@ -343,7 +343,9 @@ export class ThreeSceneRenderer {
       const mats = Array.isArray(mesh.material)
         ? mesh.material
         : [mesh.material];
-      if (mats.some((m) => GHOST_HIDDEN.test(m.name))) mesh.visible = false;
+      // 髪の半透明の縁（addSoftHairPass）は本体と重なるので描かない
+      if (mesh.userData.softHair || mats.some((m) => GHOST_HIDDEN.test(m.name)))
+        mesh.visible = false;
       mesh.material = this.ghostMat;
       mesh.castShadow = false;
       mesh.receiveShadow = false;
