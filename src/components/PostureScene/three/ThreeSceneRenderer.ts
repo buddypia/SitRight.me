@@ -364,7 +364,6 @@ export class ThreeSceneRenderer {
         (mesh.parent ?? ghostRoot).add(depth);
       }
     });
-    ghostSrc.vrm?.springBoneManager?.reset();
     ghostSrc.poser.apply(IDEAL_RIG, makeTargets());
     // 首の付け根より下は描かない（体と重なって読みにくくなるため）
     const neck = ghostSrc.poser.worldPos('neck');
@@ -440,11 +439,6 @@ export class ThreeSceneRenderer {
       const { model } = inst;
       inst.targets.breath = s.breath;
       model.poser.apply(s.rig, inst.targets);
-      if (model.vrm) {
-        model.vrm.springBoneManager?.update(Math.min(s.dt, 1 / 20));
-        model.vrm.expressionManager?.update();
-        model.vrm.lookAt?.update(s.dt);
-      }
       const poser = model.poser;
       const scale = AVATAR_ASSETS[inst.id].scale ?? 1;
 

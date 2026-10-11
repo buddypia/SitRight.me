@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { IDEAL_RIG, solveSkeleton, type RigParams } from '@/core/rig';
 
 /**
- * リグ付きモデル（VRM / glTF）を、姿勢パラメータから「座ってノートPCを打つ姿」に組む。
+ * リグ付きモデル（glTF）を、姿勢パラメータから「座ってノートPCを打つ姿」に組む。
  *
  * ワールド座標は m。x: 前（机の方向）, y: 上, z: 本人の右（カメラ側）。
  * モデルの初期姿勢（T/A ポーズ）からの回転をワールド空間で与えるので、

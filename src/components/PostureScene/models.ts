@@ -2,7 +2,7 @@
  * 3D シーンで表示できるモデルの一覧。
  *
  * モデルを追加するときは
- * 1. public/avatars/<id>.vrm（VRM）か <id>.glb（MakeHuman の game_engine リグ）を置く
+ * 1. public/avatars/<id>.glb（MakeHuman の game_engine リグか、VRM と同じ骨名のリグ）を置く
  * 2. ここに id と AVATAR_ASSETS の設定を足す
  * 3. i18n の avatar_<id> と public/avatars/<id>.webp（サムネイル）を足す
  * 出典とライセンスは THIRD_PARTY_NOTICES に記す。
@@ -14,9 +14,6 @@ export const AVATARS = [
   'womanSporty',
   'hamu',
   'dino',
-  'animeBob',
-  'animeUniform',
-  'animePonytail',
 ] as const;
 
 export type Avatar = (typeof AVATARS)[number];
@@ -33,11 +30,11 @@ export interface AvatarAsset {
   ear: [number, number, number];
   /** 股関節から座面までの高さ（m） */
   seatClear?: number;
-  /** 髪・まつ毛など、透過の切り抜きで描くマテリアル名（glTF のみ） */
+  /** 髪・まつ毛など、透過の切り抜きで描くマテリアル名 */
   cutout?: RegExp;
-  /** マテリアル名に一致するものの色を掛け合わせる（髪色など, glTF のみ）。3 つ目は明るさの倍率（白髪など） */
+  /** マテリアル名に一致するものの色を掛け合わせる（髪色など）。3 つ目は明るさの倍率（白髪など） */
   tint?: [RegExp, number, number?][];
-  /** 半透明のまま描くマテリアル名（glTF のみ） */
+  /** 半透明のまま描くマテリアル名 */
   blend?: RegExp;
   /** 小柄なキャラクター用に座面へ重ねるクッションの厚み（m） */
   booster?: number;
@@ -89,9 +86,6 @@ export const AVATAR_ASSETS: Record<Avatar, AvatarAsset> = {
     deskGap: 0.1,
     blend: /blush/i,
   },
-  animeBob: { url: '/avatars/animeBob.vrm', ear: [0, 0.05, 0.07] },
-  animeUniform: { url: '/avatars/animeUniform.vrm', ear: [0, 0.05, 0.07] },
-  animePonytail: { url: '/avatars/animePonytail.vrm', ear: [0, 0.05, 0.07] },
 };
 
 export function isAvatar(v: unknown): v is Avatar {

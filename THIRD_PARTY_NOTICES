@@ -9,15 +9,6 @@ MediaPipe Tasks Vision 0.10.35 (https://github.com/google-ai-edge/mediapipe)
   Copyright Google LLC. Licensed under the Apache License, Version 2.0.
   These files are distributed unmodified.
 
-VRoid sample avatars (https://vroid.pixiv.help/hc/ja/articles/4402394424089)
-  public/avatars/animeBob.vrm       「ビビ」 (AvatarSample_E)
-  public/avatars/animeUniform.vrm   「千駄ヶ谷 渋」 (AvatarSample_D)
-  public/avatars/animePonytail.vrm  「ヴィクトリア・ルービン」 (AvatarSample_G)
-  Author: VRoid Project (pixiv Inc.). Distributed under the VRoid Hub
-  conditions of use embedded in each file: redistribution and modification
-  allowed, commercial use allowed, credit not required. Textures were
-  downscaled (scripts/avatars/compress_vrm.py).
-
 MakeHuman assets via MPFB 2 (https://static.makehumancommunity.org/)
   public/avatars/{woman,man,senior,womanSporty}.glb
   Body, skins, hair, clothes, eyes, eyebrows and eyelashes from the

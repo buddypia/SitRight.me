@@ -33,7 +33,6 @@ const TYPES = {
   '.png': 'image/png',
   '.webp': 'image/webp',
   '.glb': 'model/gltf-binary',
-  '.vrm': 'model/gltf-binary',
   '.txt': 'text/plain',
 };
 

@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { VRMLoaderPlugin, VRMUtils, type VRM } from '@pixiv/three-vrm';
 import type { AvatarAsset } from '../models';
 import { HumanoidPoser, type BoneMap, type HumanBone } from './humanoidPose';
 
@@ -9,7 +8,6 @@ export interface LoadedAvatar {
   /** 向きと位置を合わせるための外枠（x 前向きに回してある） */
   root: THREE.Group;
   poser: HumanoidPoser;
-  vrm: VRM | null;
   /** 頭の骨から右耳（外耳孔）までのずれ（初期姿勢のワールド向き, m） */
   earOffset: THREE.Vector3;
   /** モデルの身長（m） */
@@ -17,7 +15,7 @@ export interface LoadedAvatar {
   dispose: () => void;
 }
 
-const VRM_BONES: HumanBone[] = [
+const BONES: HumanBone[] = [
   'hips',
   'spine',
   'chest',
@@ -35,10 +33,10 @@ for (const s of ['left', 'right'] as const) {
     'LowerLeg',
     'Foot',
   ] as const)
-    VRM_BONES.push(`${s}${b}`);
+    BONES.push(`${s}${b}`);
   for (const f of ['Thumb', 'Index', 'Middle', 'Ring', 'Little'] as const)
     for (const seg of ['Proximal', 'Intermediate', 'Distal'] as const)
-      VRM_BONES.push(`${s}${f}${seg}`);
+      BONES.push(`${s}${f}${seg}`);
 }
 
 /** MakeHuman / MPFB の game_engine リグの骨名 */
@@ -135,33 +133,18 @@ export async function loadAvatar(asset: AvatarAsset): Promise<LoadedAvatar> {
   const loader = new GLTFLoader();
   // GLB は gltf-transform の meshopt 圧縮で軽くしてある
   loader.setMeshoptDecoder(MeshoptDecoder);
-  loader.register(
-    (parser) => new VRMLoaderPlugin(parser, { autoUpdateHumanBones: false })
-  );
   const gltf = await loader.loadAsync(asset.url);
-  const vrm = (gltf.userData.vrm as VRM | undefined) ?? null;
-  const model = vrm ? vrm.scene : gltf.scene;
+  const model = gltf.scene;
   const bones: BoneMap = {};
-  if (vrm) {
-    VRMUtils.removeUnnecessaryVertices(model);
-    VRMUtils.combineSkeletons(model);
-    // VRM 0.x は -z 向きなので +z 向きにそろえる
-    VRMUtils.rotateVRM0(vrm);
-    for (const b of VRM_BONES) {
-      const node = vrm.humanoid.getRawBoneNode(b as never);
-      if (node) bones[b] = node;
-    }
-  } else {
-    const byName = new Map<string, THREE.Object3D>();
-    model.traverse((o) => byName.set(o.name, o));
-    for (const b of VRM_BONES) {
-      // VRM と同じ骨名ならそのまま、なければ MakeHuman の名前で探す
-      const name = mpfbBoneName(b);
-      const node = byName.get(b) ?? (name ? byName.get(name) : undefined);
-      if (node) bones[b] = node;
-    }
+  const byName = new Map<string, THREE.Object3D>();
+  model.traverse((o) => byName.set(o.name, o));
+  for (const b of BONES) {
+    // VRM と同じ骨名（自作キャラ）ならそのまま、なければ MakeHuman の名前で探す
+    const name = mpfbBoneName(b);
+    const node = byName.get(b) ?? (name ? byName.get(name) : undefined);
+    if (node) bones[b] = node;
   }
-  if (!vrm) fixGltfMaterials(model, asset);
+  fixGltfMaterials(model, asset);
   model.traverse((o) => {
     const mesh = o as THREE.Mesh;
     if (mesh.isMesh) {
@@ -195,13 +178,10 @@ export async function loadAvatar(asset: AvatarAsset): Promise<LoadedAvatar> {
   return {
     root,
     poser,
-    vrm,
     earOffset,
     height,
     dispose: () => {
-      if (vrm) VRMUtils.deepDispose(vrm.scene);
-      else
-        gltf.scene.traverse((o) => {
+      gltf.scene.traverse((o) => {
           const mesh = o as THREE.Mesh;
           if (mesh.isMesh) {
             mesh.geometry.dispose();
