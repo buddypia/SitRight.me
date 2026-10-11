@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { HEAD_KG, neckLoadKg } from '@/core/load';
 import { IDEAL_RIG, solveSkeleton, type RigParams } from '@/core/rig';
 import type { Severities } from '@/core/types';
-import type { Messages } from '@/i18n/messages';
+import { format, type Messages } from '@/i18n/messages';
 import { DEFAULT_AVATAR, type Avatar } from './models';
 import {
   DEFAULT_CAMERA,
@@ -27,6 +28,8 @@ export interface PostureSceneProps {
   lowPower?: boolean;
   /** 初期の視点（確認用ページで近景を見るときなど） */
   initialCamera?: Partial<OrbitCamera>;
+  /** 首にかかる負荷を頭の上の重り（5 kg のプレート）と kg で表示する */
+  loadWeights?: boolean;
   /** デモ表示で姿勢が切り替わったとき */
   onDemoPattern?: (pattern: DemoPattern) => void;
   className?: string;
@@ -111,6 +114,7 @@ export function PostureScene({
   avatar = DEFAULT_AVATAR,
   guides = true,
   demo = false,
+  loadWeights = false,
   lowPower = false,
   onDemoPattern,
   initialCamera,
@@ -122,6 +126,7 @@ export function PostureScene({
   const offsetLabelRef = useRef<HTMLDivElement>(null);
   const idealLabelRef = useRef<HTMLDivElement>(null);
   const gaugeRef = useRef<SVGSVGElement>(null);
+  const loadLabelRef = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>(
     'loading'
@@ -129,7 +134,15 @@ export function PostureScene({
   const [dragging, setDragging] = useState(false);
 
   // 毎フレーム参照する値は ref に入れて、React の再描画と描画ループを切り離す
-  const target = useRef({ rig, severity, xray, guides, lowPower, avatar });
+  const target = useRef({
+    rig,
+    severity,
+    xray,
+    guides,
+    lowPower,
+    avatar,
+    loadWeights,
+  });
   const homeCamera = { ...DEFAULT_CAMERA, ...initialCamera };
   const cam = useRef<OrbitCamera>(homeCamera);
   const camTarget = useRef<OrbitCamera>({ ...homeCamera });
@@ -139,7 +152,15 @@ export function PostureScene({
   const demoCallback = useRef(onDemoPattern);
   // 描画ループより先に実行されるよう、ループを作る effect より前に置く
   useEffect(() => {
-    target.current = { rig, severity, xray, guides, lowPower, avatar };
+    target.current = {
+      rig,
+      severity,
+      xray,
+      guides,
+      lowPower,
+      avatar,
+      loadWeights,
+    };
     tRef.current = t;
     demoCallback.current = onDemoPattern;
   });
@@ -171,6 +192,8 @@ export function PostureScene({
     let sevLean = 0;
     let xrayCur = target.current.xray ? 1 : 0;
     let ghostCur = target.current.guides ? 1 : 0;
+    let weightsCur = target.current.loadWeights ? 1 : 0;
+    let loadKg = HEAD_KG;
     let raf = 0;
     // rAF の時刻は描画先 window の時間軸なので、基準もそちらの performance から取る
     let last = win.performance.now();
@@ -249,6 +272,24 @@ export function PostureScene({
         label.textContent = `${offsetCm >= 0 ? '+' : '−'}${Math.abs(offsetCm).toFixed(1)} cm`;
         label.style.opacity =
           Math.abs(offsetCm) >= 0.8 && ghostCur > 0.5 ? '1' : '0';
+      }
+      const loadLabel = loadLabelRef.current;
+      if (loadLabel) {
+        const top = p(pts.loadTop);
+        // 理想姿勢のラベル（頭の左上）と重ならないよう、重りの右上に置く
+        loadLabel.style.transform = `translate(${top.x + 18}px, ${top.y}px) translate(0, -60%)`;
+        loadLabel.style.opacity = weightsCur > 0.5 ? '1' : '0';
+        const ratio = loadKg / HEAD_KG;
+        loadLabel.dataset.level =
+          ratio >= 3 ? 'poor' : ratio >= 1.8 ? 'fair' : 'good';
+        const kg = loadLabel.querySelector('[data-id="kg"]');
+        const rel = loadLabel.querySelector('[data-id="ratio"]');
+        const kgText = `${Math.round(loadKg)} kg`;
+        const relText = format(tRef.current.neckLoadRatio, {
+          ratio: ratio.toFixed(1),
+        });
+        if (kg && kg.textContent !== kgText) kg.textContent = kgText;
+        if (rel && rel.textContent !== relText) rel.textContent = relText;
       }
       const idealLabel = idealLabelRef.current;
       if (idealLabel) {
@@ -341,6 +382,9 @@ export function PostureScene({
       sev[3] = Math.max(sev[3], sevLean * 0.6);
       xrayCur += ((tgt.xray ? 1 : 0) - xrayCur) * (1 - Math.exp(-dt * 6));
       ghostCur += ((tgt.guides ? 1 : 0) - ghostCur) * (1 - Math.exp(-dt * 6));
+      weightsCur +=
+        ((tgt.loadWeights ? 1 : 0) - weightsCur) * (1 - Math.exp(-dt * 6));
+      loadKg = neckLoadKg(cur);
 
       const c = cam.current;
       const ct = camTarget.current;
@@ -377,6 +421,8 @@ export function PostureScene({
         breath: Math.sin((time * Math.PI * 2) / 4.6),
         time,
         dt: frameDt,
+        neckLoadKg: loadKg,
+        weights: weightsCur,
       });
       if (perf) {
         renderer.finish();
@@ -479,6 +525,19 @@ export function PostureScene({
         ref={offsetLabelRef}
         className="pointer-events-none absolute left-0 top-0 rounded-md bg-[#ffbe5c] px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums text-[#1a1306] shadow-sm transition-opacity duration-300"
       />
+      <div
+        ref={loadLabelRef}
+        className="group pointer-events-none absolute left-0 top-0 whitespace-nowrap rounded-lg border border-white/10 bg-black/55 px-2 py-1 text-left leading-tight opacity-0 backdrop-blur-sm transition-opacity duration-300"
+      >
+        <span className="block text-[10px] tracking-wide text-white/60">
+          {t.neckLoad}
+        </span>
+        <span
+          data-id="kg"
+          className="block font-mono text-good group-data-[level=fair]:text-fair group-data-[level=poor]:text-poor text-[15px] font-semibold tabular-nums"
+        />
+        <span data-id="ratio" className="block text-[10px] text-white/55" />
+      </div>
       <div
         ref={idealLabelRef}
         className="pointer-events-none absolute left-0 top-0 whitespace-nowrap text-[11px] font-medium tracking-wide text-[#4deac4] transition-opacity duration-300"

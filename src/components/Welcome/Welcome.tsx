@@ -92,6 +92,7 @@ export function Welcome() {
           avatar={avatar}
           t={t}
           demo
+          loadWeights
           onDemoPattern={setDemo}
           className="h-full w-full"
         />
