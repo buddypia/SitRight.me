@@ -154,48 +154,56 @@ function Logo() {
       viewBox="0 0 64 64"
       fill="none"
       aria-hidden
-      className="shrink-0 drop-shadow-[0_2px_10px_rgba(255,45,85,0.4)]"
+      className="shrink-0 drop-shadow-[0_2px_8px_rgba(255,149,0,0.3)]"
     >
       <defs>
-        <linearGradient id="favHeaderBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#141822" />
-          <stop offset="1" stopColor="#080a0e" />
+        {/* Dark titanium obsidian background */}
+        <linearGradient id="pureMonoHeaderBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#12151d" />
+          <stop offset="1" stopColor="#07090c" />
+        </linearGradient>
+        <linearGradient id="pureMonoHeaderRim" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#2d3545" />
+          <stop offset="1" stopColor="#10131a" />
+        </linearGradient>
+
+        {/* Sleek Monolith Segment Shading (Matte Graphite) */}
+        <linearGradient id="graphiteHeaderSegment" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#3a4454" />
+          <stop offset="100%" stopColor="#1e2430" />
+        </linearGradient>
+
+        <linearGradient id="tiltedHeaderSegment" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#4a5568" />
+          <stop offset="100%" stopColor="#242c3b" />
         </linearGradient>
       </defs>
 
-      {/* Squircle Rim Base */}
-      <rect width="64" height="64" rx="16" fill="url(#favHeaderBg)" />
-      <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="#2d3748" strokeWidth="1.5" />
+      {/* Squircle Base with Subtle Beveled Rim */}
+      <rect width="64" height="64" rx="16" fill="url(#pureMonoHeaderBg)" />
+      <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="url(#pureMonoHeaderRim)" strokeWidth="1.5" />
 
-      {/* Soundwave Concentric Rings (ファビコンでも抜ける太い同心円リング) */}
-      <circle cx="34" cy="31" r="18" stroke="#ff2d55" strokeOpacity="0.35" strokeWidth="2" strokeDasharray="3 3" />
-      <circle cx="34" cy="31" r="11" stroke="#ff9500" strokeOpacity="0.65" strokeWidth="2.5" />
-      <circle cx="34" cy="31" r="5.5" stroke="#ffffff" strokeOpacity="0.95" strokeWidth="2" />
+      {/* Paper-Thin Acoustic Shockwave Rings (抽象案4の極薄光輪音波リング) */}
+      <circle cx="34" cy="30" r="18" stroke="#ff3b30" strokeOpacity="0.25" strokeWidth="1.2" strokeDasharray="2 3" />
+      <circle cx="34" cy="30" r="12" stroke="#ff9500" strokeOpacity="0.5" strokeWidth="1.5" />
+      <circle cx="34" cy="30" r="6" stroke="#ffffff" strokeOpacity="0.9" strokeWidth="1.5" />
 
-      {/* Lower Upright Monolith Vertebrae (直立した健康なモノリス椎骨ブロック) */}
-      <rect x="27" y="49" width="14" height="5" rx="2.5" fill="#10b981" />
-      <rect x="32" y="47" width="4" height="3" rx="1" fill="#059669" />
+      {/* Lower 3 Upright Monolith Segments (整然と直立した浮遊モノリス柱) */}
+      <rect x="28" y="50" width="12" height="4.5" rx="2" fill="url(#graphiteHeaderSegment)" />
+      <rect x="28" y="43" width="12" height="4.5" rx="2" fill="url(#graphiteHeaderSegment)" />
+      <rect x="28" y="36" width="12" height="4.5" rx="2" fill="url(#graphiteHeaderSegment)" />
 
-      <rect x="27.5" y="41" width="13" height="5" rx="2.5" fill="#34d399" />
-      <rect x="32.5" y="39" width="3" height="3" rx="1" fill="#10b981" />
-
-      <rect x="28" y="33" width="12" height="5" rx="2.5" fill="#4deac4" />
-
-      {/* Forward-Tilted Cervical Monoliths (前傾・悪姿勢でパキッとズレた頸椎ブロック) */}
-      <g transform="rotate(-35 32 26)">
-        <rect x="25" y="23" width="13" height="5.5" rx="2.75" fill="#ff7a00" />
-        <rect x="30" y="21" width="3" height="3" rx="1" fill="#ea580c" />
+      {/* Upper 2 Tilted Monolith Segments (悪姿勢で前方にズレ・傾斜した浮遊ブロック) */}
+      <g transform="rotate(-30 31 29)">
+        <rect x="25" y="27" width="12" height="4.5" rx="2" fill="url(#tiltedHeaderSegment)" />
+      </g>
+      <g transform="rotate(-48 24 20)">
+        <rect x="18" y="17" width="12" height="4.5" rx="2" fill="#e2e8f0" />
       </g>
 
-      <g transform="rotate(-52 23 15)">
-        <rect x="17" y="11" width="14" height="6.5" rx="3.25" fill="#ff2d55" />
-        <circle cx="24" cy="14" r="2" fill="#ffffff" />
-      </g>
-
-      {/* Lightning Snap Flash (パキッ！の瞬間閃光) */}
-      <polygon points="34,29 39,21 33,26 40,18 35,24 43,20 34,31" fill="#ffffff" />
-      <circle cx="34" cy="31" r="3" fill="#ffcc00" />
-      <circle cx="34" cy="31" r="1.5" fill="#ffffff" />
+      {/* Pure Acoustic Spark (中心の繊細な純白光点) */}
+      <circle cx="34" cy="30" r="2.2" fill="#ffffff" />
+      <circle cx="34" cy="30" r="1" fill="#ffcc00" />
     </svg>
   );
 }

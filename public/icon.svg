@@ -1,59 +1,56 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
     <!-- Dark titanium obsidian background -->
-    <linearGradient id="favMonolithBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#141822"/>
-      <stop offset="1" stop-color="#080a0e"/>
+    <linearGradient id="pureMonoBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#12151d"/>
+      <stop offset="1" stop-color="#07090c"/>
     </linearGradient>
-    <linearGradient id="favMonolithRim" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#3d495c"/>
-      <stop offset="1" stop-color="#151b26"/>
+    <linearGradient id="pureMonoRim" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2d3545"/>
+      <stop offset="1" stop-color="#10131a"/>
     </linearGradient>
 
-    <!-- Sonic Burst Wave Gradient -->
-    <linearGradient id="favBurstGrad" x1="20" y1="20" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#ff2d55"/>
-      <stop offset="0.6" stop-color="#ff9500"/>
-      <stop offset="1" stop-color="#ffcc00"/>
+    <!-- Sleek Monolith Segment Shading (Matte Graphite) -->
+    <linearGradient id="graphiteSegment" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3a4454"/>
+      <stop offset="100%" stop-color="#1e2430"/>
+    </linearGradient>
+
+    <linearGradient id="tiltedSegment" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4a5568"/>
+      <stop offset="100%" stop-color="#242c3b"/>
     </linearGradient>
   </defs>
 
-  <!-- Squircle Base with Metallic Rim -->
-  <rect width="64" height="64" rx="16" fill="url(#favMonolithBg)"/>
-  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="url(#favMonolithRim)" stroke-width="1.5"/>
+  <!-- Squircle Base with Subtle Beveled Rim -->
+  <rect width="64" height="64" rx="16" fill="url(#pureMonoBg)"/>
+  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="url(#pureMonoRim)" stroke-width="1.5"/>
 
-  <!-- SOUNDWAVE ACOUSTIC BLAST (ファビコンでも抜ける太い同心円リング) -->
-  <circle cx="34" cy="31" r="18" stroke="#ff2d55" stroke-opacity="0.35" stroke-width="2" stroke-dasharray="3 3"/>
-  <circle cx="34" cy="31" r="11" stroke="#ff9500" stroke-opacity="0.65" stroke-width="2.5"/>
-  <circle cx="34" cy="31" r="5.5" stroke="#ffffff" stroke-opacity="0.95" stroke-width="2"/>
+  <!-- PAPER-THIN ACOUSTIC SHOCKWAVE RINGS (抽象案4の極薄光輪音波リング) -->
+  <circle cx="34" cy="30" r="18" stroke="#ff3b30" stroke-opacity="0.25" stroke-width="1.2" stroke-dasharray="2 3"/>
+  <circle cx="34" cy="30" r="12" stroke="#ff9500" stroke-opacity="0.5" stroke-width="1.5"/>
+  <circle cx="34" cy="30" r="6" stroke="#ffffff" stroke-opacity="0.9" stroke-width="1.5"/>
 
-  <!-- LOWER MONOLITH VERTEBRAE (直立した健康なモノリス椎骨ブロック) -->
-  <!-- Lumbar Monolith 1 -->
-  <rect x="27" y="49" width="14" height="5" rx="2.5" fill="#10b981"/>
-  <rect x="32" y="47" width="4" height="3" rx="1" fill="#059669"/>
+  <!-- LOWER 3 UPRIGHT MONOLITH SEGMENTS (整然と直立した浮遊モノリス柱) -->
+  <!-- Segment 1 (Lowest) -->
+  <rect x="28" y="50" width="12" height="4.5" rx="2" fill="url(#graphiteSegment)"/>
+  <!-- Segment 2 (Middle) -->
+  <rect x="28" y="43" width="12" height="4.5" rx="2" fill="url(#graphiteSegment)"/>
+  <!-- Segment 3 (Pivot) -->
+  <rect x="28" y="36" width="12" height="4.5" rx="2" fill="url(#graphiteSegment)"/>
 
-  <!-- Thoracic Monolith 2 -->
-  <rect x="27.5" y="41" width="13" height="5" rx="2.5" fill="#34d399"/>
-  <rect x="32.5" y="39" width="3" height="3" rx="1" fill="#10b981"/>
-
-  <!-- Thoracic Pivot Monolith 3 -->
-  <rect x="28" y="33" width="12" height="5" rx="2.5" fill="#4deac4"/>
-
-  <!-- FORWARD-TILTED CERVICAL MONOLITHS (前傾・悪姿勢でパキッとズレた頸椎ブロック) -->
-  <!-- Cervical Monolith 4 (Tilted -35 deg) -->
-  <g transform="rotate(-35 32 26)">
-    <rect x="25" y="23" width="13" height="5.5" rx="2.75" fill="#ff7a00"/>
-    <rect x="30" y="21" width="3" height="3" rx="1" fill="#ea580c"/>
+  <!-- UPPER 2 TILTED MONOLITH SEGMENTS (悪姿勢で前方にズレ・傾斜した浮遊ブロック) -->
+  <!-- Segment 4 (Cervical - Tilted -30 deg) -->
+  <g transform="rotate(-30 31 29)">
+    <rect x="25" y="27" width="12" height="4.5" rx="2" fill="url(#tiltedSegment)"/>
   </g>
 
-  <!-- Head / Atlas Monolith 5 (Tilted -50 deg) -->
-  <g transform="rotate(-52 23 15)">
-    <rect x="17" y="11" width="14" height="6.5" rx="3.25" fill="#ff2d55"/>
-    <circle cx="24" cy="14" r="2" fill="#ffffff"/>
+  <!-- Segment 5 (Top Apex - Tilted -48 deg) -->
+  <g transform="rotate(-48 24 20)">
+    <rect x="18" y="17" width="12" height="4.5" rx="2" fill="#e2e8f0"/>
   </g>
 
-  <!-- LIGHTNING SNAP FLASH (パキッ！の瞬間閃光) -->
-  <polygon points="34,29 39,21 33,26 40,18 35,24 43,20 34,31" fill="#ffffff"/>
-  <circle cx="34" cy="31" r="3" fill="#ffcc00"/>
-  <circle cx="34" cy="31" r="1.5" fill="#ffffff"/>
+  <!-- PURE ACOUSTIC SPARK (中心の繊細な純白光点) -->
+  <circle cx="34" cy="30" r="2.2" fill="#ffffff"/>
+  <circle cx="34" cy="30" r="1" fill="#ffcc00"/>
 </svg>
