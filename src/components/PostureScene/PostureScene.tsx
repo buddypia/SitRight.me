@@ -1,25 +1,16 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { IDEAL_RIG, type RigParams } from '@/core/rig';
+import { IDEAL_RIG, solveSkeleton, type RigParams } from '@/core/rig';
 import type { Severities } from '@/core/types';
 import type { Messages } from '@/i18n/messages';
-import {
-  DEFAULT_AVATAR,
-  HEAD_SCALE,
-  avatarDefines,
-  type Avatar,
-} from './models';
-import { SceneRenderer } from './renderer';
+import { DEFAULT_AVATAR, type Avatar } from './models';
 import {
   DEFAULT_CAMERA,
-  IDEAL_ANCHORS,
-  bendPoint,
-  buildAnchors,
-  cameraBasis,
-  projectPoint,
+  ThreeSceneRenderer,
   type OrbitCamera,
-} from './sceneMath';
+  type OverlayPoints,
+} from './three/ThreeSceneRenderer';
 
 export interface PostureSceneProps {
   rig: RigParams;
@@ -34,6 +25,8 @@ export interface PostureSceneProps {
   demo?: boolean;
   /** 低フレームレートで描画（省電力） */
   lowPower?: boolean;
+  /** 初期の視点（確認用ページで近景を見るときなど） */
+  initialCamera?: Partial<OrbitCamera>;
   /** デモ表示で姿勢が切り替わったとき */
   onDemoPattern?: (pattern: DemoPattern) => void;
   className?: string;
@@ -120,6 +113,7 @@ export function PostureScene({
   demo = false,
   lowPower = false,
   onDemoPattern,
+  initialCamera,
   className,
 }: PostureSceneProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -129,12 +123,17 @@ export function PostureScene({
   const idealLabelRef = useRef<HTMLDivElement>(null);
   const gaugeRef = useRef<SVGSVGElement>(null);
   const [failed, setFailed] = useState(false);
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>(
+    'loading'
+  );
   const [dragging, setDragging] = useState(false);
 
   // 毎フレーム参照する値は ref に入れて、React の再描画と描画ループを切り離す
   const target = useRef({ rig, severity, xray, guides, lowPower, avatar });
-  const cam = useRef<OrbitCamera>({ ...DEFAULT_CAMERA });
-  const camTarget = useRef<OrbitCamera>({ ...DEFAULT_CAMERA });
+  const homeCamera = { ...DEFAULT_CAMERA, ...initialCamera };
+  const cam = useRef<OrbitCamera>(homeCamera);
+  const camTarget = useRef<OrbitCamera>({ ...homeCamera });
+  const homeRef = useRef(homeCamera);
   const resetViewRef = useRef<() => void>(() => undefined);
   const tRef = useRef(t);
   const demoCallback = useRef(onDemoPattern);
@@ -152,16 +151,11 @@ export function PostureScene({
     // 小窓（Document PiP）に描画するときは、そちらの window の rAF と表示状態に従う
     const doc = wrap.ownerDocument;
     const win = (doc.defaultView ?? window) as typeof window;
-    const strip = new URLSearchParams(win.location.search).get('strip');
-    const stripDefines = strip
-      ? strip.split(',').map((d) => `NO_${d.toUpperCase()}`)
-      : [];
-    const definesFor = (a: Avatar) => [...avatarDefines(a), ...stripDefines];
-    let renderer: SceneRenderer;
-    // モデルの切り替えは描画ループ内でシェーダーだけ差し替え、姿勢や視点の状態は保つ
+    // モデルの切り替えは描画ループ内で行い、姿勢や視点の状態は保つ
     let shownAvatar = target.current.avatar;
+    let renderer: ThreeSceneRenderer;
     try {
-      renderer = new SceneRenderer(canvas, definesFor(shownAvatar));
+      renderer = new ThreeSceneRenderer(canvas);
     } catch (error) {
       console.error('[scene] WebGL init failed', error);
       // WebGL（外部システム）の初期化に失敗したことを画面に反映する
@@ -169,6 +163,8 @@ export function PostureScene({
       setFailed(true);
       return;
     }
+    renderer.onStatus = setStatus;
+    renderer.setAvatar(shownAvatar);
 
     const cur: RigParams = { ...IDEAL_RIG };
     const sev = [0, 0, 0, 0] as [number, number, number, number];
@@ -182,9 +178,7 @@ export function PostureScene({
     let visible = true;
     // ソフトウェア描画の環境では解像度とフレームレートを大きく下げる
     const software = renderer.software;
-    let quality = software ? 0.5 : 1;
-    let slowFrames = 0;
-    let fastFrames = 0;
+    const quality = software ? 0.5 : 1;
     let cssW = 0;
     let cssH = 0;
     let demoIdx = -1;
@@ -211,51 +205,33 @@ export function PostureScene({
     io.observe(wrap);
 
     resetViewRef.current = () => {
-      camTarget.current = { ...DEFAULT_CAMERA };
+      camTarget.current = { ...homeRef.current };
     };
 
-    const updateOverlay = (
-      anchors: ReturnType<typeof buildAnchors>,
-      basis: ReturnType<typeof cameraBasis>
-    ) => {
+    const updateOverlay = (pts: OverlayPoints | null) => {
       const svg = overlayRef.current;
       if (!svg) return;
-      const sk = anchors.skeleton;
-      const show = ghostCur > 0.5 ? '1' : '0';
+      const show = ghostCur > 0.5 && pts ? '1' : '0';
       svg.style.opacity = show;
-      const p = (x: number, y: number, z: number) =>
-        projectPoint(basis, [x, y, z], cssW, cssH);
-      // 左右の傾きはシェーダーと同じ変形をかけて、マーカーを体に追従させる
-      const lean = anchors.leanRad;
-      const roll = anchors.headRollRad;
-      // 頭が大きいモデルでは耳も頭の付け根から離れる
-      const hs = HEAD_SCALE[shownAvatar];
-      const earY = (sk.ear.y - sk.skullPivot.y) * hs;
-      const earZ = 7.8 * hs;
-      const earLocal: [number, number, number] = [
-        sk.skullPivot.x + (sk.ear.x - sk.skullPivot.x) * hs,
-        sk.skullPivot.y + earY * Math.cos(roll) - earZ * Math.sin(roll),
-        earY * Math.sin(roll) + earZ * Math.cos(roll),
-      ];
-      const earW = bendPoint(earLocal, lean);
-      const acrW = bendPoint([sk.acromion.x, sk.acromion.y, 17], lean);
-      const ear = p(...earW);
-      const acr = p(...acrW);
-      const plumbTop = p(acrW[0], earW[1] + 9, earW[2]);
-      const plumbBottom = acr;
-      const plumbAtEar = p(acrW[0], earW[1], earW[2]);
+      updateGauge();
+      if (!pts) return;
+      const p = (v: OverlayPoints['ear']) => renderer.project(v, cssW, cssH);
+      const ear = p(pts.ear);
+      const acr = p(pts.acromion);
+      // 鉛直線は肩峰から耳の高さの少し上まで
+      const plumbTop = p(
+        pts.acromion
+          .clone()
+          .setY(pts.ear.y + (pts.ear.y - pts.acromion.y) * 0.45)
+      );
+      const plumbAtEar = p(pts.acromion.clone().setY(pts.ear.y));
       const set = (id: string, attrs: Record<string, number | string>) => {
         const el = svg.querySelector(`[data-id="${id}"]`);
         if (el)
           for (const [k, v] of Object.entries(attrs))
             el.setAttribute(k, String(v));
       };
-      set('plumb', {
-        x1: plumbBottom.x,
-        y1: plumbBottom.y,
-        x2: plumbTop.x,
-        y2: plumbTop.y,
-      });
+      set('plumb', { x1: acr.x, y1: acr.y, x2: plumbTop.x, y2: plumbTop.y });
       set('offset', {
         x1: plumbAtEar.x,
         y1: plumbAtEar.y,
@@ -264,6 +240,8 @@ export function PostureScene({
       });
       set('ear', { cx: ear.x, cy: ear.y });
       set('acromion', { cx: acr.x, cy: acr.y });
+      // 表示する前方へのずれは、計測値から解いた骨格の値（cm）
+      const sk = solveSkeleton(cur);
       const offsetCm = sk.ear.x - sk.acromion.x - 0.4;
       const label = offsetLabelRef.current;
       if (label) {
@@ -274,21 +252,19 @@ export function PostureScene({
       }
       const idealLabel = idealLabelRef.current;
       if (idealLabel) {
-        const g = IDEAL_ANCHORS.skeleton.skullPivot;
-        const top = p(g.x - 6, g.y + 17, 0);
+        const top = p(pts.idealHeadTop);
         idealLabel.style.transform = `translate(${top.x}px, ${top.y}px) translate(-100%, -50%)`;
         idealLabel.style.opacity = ghostCur > 0.5 ? '1' : '0';
       }
-      updateGauge(anchors);
     };
 
     // 横からの3Dでは見えにくい左右の傾きを、後ろから見た模式図で示す
-    const updateGauge = (anchors: ReturnType<typeof buildAnchors>) => {
+    const updateGauge = () => {
       const g = gaugeRef.current;
       if (!g) return;
       g.style.opacity = ghostCur > 0.5 ? '1' : '0';
-      const leanDeg = (anchors.leanRad * 180) / Math.PI;
-      const rollDeg = (anchors.headRollRad * 180) / Math.PI;
+      const leanDeg = cur.leanDeg;
+      const rollDeg = cur.headRollDeg;
       const headDeg = leanDeg + rollDeg;
       // 後ろから見るので、本人の右（正）は画面でも右（時計回り）
       g.querySelector('[data-id="trunk"]')?.setAttribute(
@@ -326,7 +302,7 @@ export function PostureScene({
       const tgt = target.current;
       if (tgt.avatar !== shownAvatar) {
         shownAvatar = tgt.avatar;
-        renderer.setDefines(definesFor(shownAvatar));
+        renderer.setAvatar(shownAvatar);
         lastRender = 0;
       }
       let goalRig = tgt.rig;
@@ -384,52 +360,29 @@ export function PostureScene({
             : 20;
       if (now - lastRender < 1000 / fpsCap - 1) return;
 
-      // 描画が重い端末では解像度を自動で調整する（GPU 時間を計測できる場合のみ）
-      const gpu = renderer.gpuMs;
-      if (!software && gpu !== null) {
-        if (gpu > 12) slowFrames += 1;
-        else if (gpu < 5) fastFrames += 1;
-        if (slowFrames > 30 && quality > 0.6) {
-          quality = Math.max(0.6, quality - 0.1);
-          slowFrames = 0;
-          fastFrames = 0;
-          resize();
-        } else if (fastFrames > 120 && quality < 1) {
-          quality = Math.min(1, quality + 0.1);
-          slowFrames = 0;
-          fastFrames = 0;
-          resize();
-        }
-      }
+      const frameDt = lastRender ? (now - lastRender) / 1000 : 0;
       lastRender = now;
 
-      const anchors = buildAnchors(cur);
-      // 縦長の表示枠では人物と机が切れないよう引きで撮る
-      const aspect = cssW / Math.max(1, cssH);
-      const basis = cameraBasis({
-        ...c,
-        distance: c.distance * Math.max(1, 1.2 / aspect),
-      });
       const time = Math.max(0, now - start) / 1000;
       const perf = (window as unknown as { __scenePerf?: number[] })
         .__scenePerf;
       const t0 = perf ? performance.now() : 0;
-      renderer.render({
-        anchors,
-        ghost: IDEAL_ANCHORS,
-        camera: basis,
+      const pts = renderer.render({
+        rig: cur,
+        camera: c,
         severity: sev,
         leanSeverity: sevLean,
         xray: xrayCur,
         ghostOpacity: ghostCur,
         breath: Math.sin((time * Math.PI * 2) / 4.6),
         time,
+        dt: frameDt,
       });
       if (perf) {
         renderer.finish();
         perf.push(performance.now() - t0);
       }
-      updateOverlay(anchors, basis);
+      updateOverlay(pts);
     };
     raf = win.requestAnimationFrame(loop);
 
@@ -479,7 +432,17 @@ export function PostureScene({
         className="absolute inset-0 h-full w-full"
         role="img"
         aria-label={t.sideView}
+        aria-busy={status === 'loading'}
       />
+      {status !== 'ready' && (
+        <div className="pointer-events-none absolute inset-0 grid place-items-center">
+          {status === 'loading' ? (
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/15 border-t-white/70" />
+          ) : (
+            <span className="text-sm text-ink-3">3D model failed to load.</span>
+          )}
+        </div>
+      )}
       <svg
         ref={overlayRef}
         className="pointer-events-none absolute inset-0 h-full w-full transition-opacity duration-500"
