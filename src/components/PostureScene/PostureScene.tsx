@@ -504,7 +504,7 @@ export function PostureScene({
           {status === 'loading' ? (
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/15 border-t-white/70" />
           ) : (
-            <span className="text-sm text-ink-3">3D model failed to load.</span>
+            <span className="text-sm text-ink-3">{t.modelLoadFailed}</span>
           )}
         </div>
       )}

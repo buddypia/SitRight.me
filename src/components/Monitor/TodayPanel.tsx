@@ -9,25 +9,16 @@ import {
   type DayStats,
 } from '@/core/stats';
 import type { PosturePattern } from '@/core/types';
-import type { Locale, Messages } from '@/i18n/messages';
-import { format } from '@/i18n/messages';
+import {
+  format,
+  formatDuration,
+  LOCALE_REGISTRY,
+  type Locale,
+  type Messages,
+} from '@/i18n/messages';
 
 const scoreColor = (s: number) =>
   s >= 70 ? 'var(--good)' : s >= 40 ? 'var(--fair)' : 'var(--poor)';
-
-const DATE_LOCALE: Record<Locale, string> = {
-  en: 'en-US',
-  ja: 'ja-JP',
-  ko: 'ko-KR',
-};
-
-const fmtDuration = (sec: number, locale: Locale) => {
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  if (locale === 'ja') return h > 0 ? `${h}時間${m}分` : `${m}分`;
-  if (locale === 'ko') return h > 0 ? `${h}시간 ${m}분` : `${m}분`;
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
-};
 
 export function TodayPanel({
   history,
@@ -94,7 +85,7 @@ export function TodayPanel({
       const stats = history.find((h) => h.date === key);
       return {
         key,
-        label: d.toLocaleDateString(DATE_LOCALE[locale], {
+        label: d.toLocaleDateString(LOCALE_REGISTRY[locale].bcp47, {
           weekday: 'short',
         }),
         ratio: stats && stats.monitoredSec > 60 ? goodRatio(stats) : null,
@@ -123,7 +114,7 @@ export function TodayPanel({
           <div>
             <dt className="text-ink-3">{t.monitored}</dt>
             <dd className="mt-0.5 font-mono text-sm tabular-nums text-ink-1">
-              {fmtDuration(today?.monitoredSec ?? 0, locale)}
+              {formatDuration(today?.monitoredSec ?? 0, t)}
             </dd>
           </div>
           <div>
@@ -190,7 +181,7 @@ export function TodayPanel({
         <div className="mt-1.5 flex justify-between text-[10px] text-ink-3">
           <span>−60</span>
           <span>−30</span>
-          <span>now</span>
+          <span>{t.timelineNow}</span>
         </div>
       </div>
 
@@ -205,7 +196,7 @@ export function TodayPanel({
                 <div className="flex justify-between text-xs">
                   <span className="text-ink-1">{t.pattern[p].name}</span>
                   <span className="font-mono tabular-nums text-ink-3">
-                    {fmtDuration(sec, locale)}
+                    {formatDuration(sec, t)}
                   </span>
                 </div>
                 <div className="mt-1.5 h-1 rounded-full bg-white/6">

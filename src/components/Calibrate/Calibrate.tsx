@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { getController } from '@/engine/controller';
 import { playChime } from '@/engine/notifier';
 import { useT } from '@/hooks/useT';
+import { format } from '@/i18n/messages';
 import { useAppStore } from '@/stores/appStore';
 import { CameraPreview } from '../CameraPreview';
 import { Button } from '../ui';
@@ -74,7 +75,7 @@ export function Calibrate() {
 
       <section className="animate-fade-up">
         <p className="text-xs font-medium tracking-wide text-ink-3">
-          {t.setupStep.replace('{n}', '2')}
+          {format(t.setupStep, { n: 2 })}
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">
           {t.calibrateTitle}

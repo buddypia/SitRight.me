@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { cameraPermission, listCameras } from '@/engine/camera';
 import { getController } from '@/engine/controller';
 import { useT } from '@/hooks/useT';
+import { format } from '@/i18n/messages';
 import { useAppStore } from '@/stores/appStore';
 import { CameraPreview } from '../CameraPreview';
 import { Button } from '../ui';
@@ -118,7 +119,7 @@ export function Setup() {
 
       <section className="animate-fade-up">
         <p className="text-xs font-medium tracking-wide text-ink-3">
-          {t.setupStep.replace('{n}', '1')}
+          {format(t.setupStep, { n: 1 })}
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">
           {t.setupTitle}
@@ -145,10 +146,10 @@ export function Setup() {
               }
               className="mt-1.5 block w-full rounded-xl border border-line bg-s2 px-3 py-2 text-sm text-ink-1"
             >
-              <option value="">Default</option>
+              <option value="">{t.cameraDefault}</option>
               {cameras.map((c, i) => (
                 <option key={c.deviceId} value={c.deviceId}>
-                  {c.label || `Camera ${i + 1}`}
+                  {c.label || format(t.cameraNumbered, { n: i + 1 })}
                 </option>
               ))}
             </select>
