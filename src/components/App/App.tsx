@@ -158,55 +158,66 @@ function Logo() {
     >
       <defs>
         {/* Dark titanium obsidian background */}
-        <linearGradient id="v10bHeaderBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+        <linearGradient id="v10cHeaderBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
           <stop stopColor="#181c24" />
           <stop offset="1" stopColor="#090b0e" />
         </linearGradient>
-        <linearGradient id="v10bHeaderRim" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+        <linearGradient id="v10cHeaderRim" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
           <stop stopColor="#363f52" />
           <stop offset="1" stopColor="#141820" />
         </linearGradient>
 
         {/* Vertebrae Block Metal Shading */}
-        <linearGradient id="v10bHeaderBlockGrad" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#323b4a" />
-          <stop offset="60%" stopColor="#1e2430" />
+        <linearGradient id="v10cHeaderBlockGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#384356" />
+          <stop offset="50%" stopColor="#222a38" />
           <stop offset="100%" stopColor="#12161f" />
         </linearGradient>
+        <linearGradient id="v10cHeaderBlockTilted" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#445268" />
+          <stop offset="50%" stopColor="#2a3446" />
+          <stop offset="100%" stopColor="#141a24" />
+        </linearGradient>
 
-        {/* 3D Acoustic Cone Beams */}
-        <linearGradient id="v10bHeaderBeamGrad" x1="0" y1="0.5" x2="1" y2="0.5">
+        {/* 3D Acoustic Cone Horn Wedge */}
+        <linearGradient id="v10cHeaderHornGrad" x1="0" y1="0.5" x2="1" y2="0.5">
           <stop offset="0%" stopColor="#ff7a00" />
-          <stop offset="100%" stopColor="#ffcc00" />
+          <stop offset="100%" stopColor="#ff9500" />
         </linearGradient>
       </defs>
 
       {/* Squircle Base with Subtle Beveled Rim */}
-      <rect width="64" height="64" rx="16" fill="url(#v10bHeaderBg)" />
-      <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="url(#v10bHeaderRim)" strokeWidth="1.5" />
+      <rect width="64" height="64" rx="16" fill="url(#v10cHeaderBg)" />
+      <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="url(#v10cHeaderRim)" strokeWidth="1.5" />
 
-      {/* Right Solid Acoustic Arcs */}
-      <path d="M 44,18 A 20 20 0 0 1 44,46" stroke="#ff3b30" strokeWidth="3" strokeLinecap="round" />
+      {/* Double Solid Acoustic Arcs */}
+      <path d="M 45,18 A 20 20 0 0 1 45,46" stroke="#ff3b30" strokeWidth="3.5" strokeLinecap="round" />
       <path d="M 40,22 A 14 14 0 0 1 40,42" stroke="#ff9500" strokeWidth="3" strokeLinecap="round" />
 
-      {/* Connector Joints */}
-      <rect x="28" y="19" width="8" height="3" rx="1" fill="#0d1117" />
-      <rect x="28" y="43" width="8" height="3" rx="1" fill="#0d1117" />
+      {/* Lower 2 Upright Vertebrae */}
+      <g>
+        <rect x="23" y="41" width="14" height="11" rx="2.5" fill="url(#v10cHeaderBlockGrad)" stroke="#475569" strokeWidth="0.8" />
+        <rect x="17" y="44" width="7" height="5.5" rx="1.5" fill="url(#v10cHeaderBlockGrad)" stroke="#475569" strokeWidth="0.8" />
+      </g>
 
-      {/* 4 Vertebrae Bone Blocks */}
-      <rect x="23" y="11" width="18" height="8.5" rx="2.5" fill="url(#v10bHeaderBlockGrad)" stroke="#475569" strokeWidth="0.8" />
-      <polygon points="23,22 41,22 41,27 27,31.5 23,31.5" fill="url(#v10bHeaderBlockGrad)" stroke="#475569" strokeWidth="0.8" />
-      <polygon points="23,32.5 27,32.5 41,37 41,42 23,42" fill="url(#v10bHeaderBlockGrad)" stroke="#475569" strokeWidth="0.8" />
-      <rect x="23" y="45" width="18" height="8.5" rx="2.5" fill="url(#v10bHeaderBlockGrad)" stroke="#475569" strokeWidth="0.8" />
+      <g>
+        <rect x="23" y="27" width="14" height="11" rx="2.5" fill="url(#v10cHeaderBlockGrad)" stroke="#475569" strokeWidth="0.8" />
+        <rect x="17" y="30" width="7" height="5.5" rx="1.5" fill="url(#v10cHeaderBlockGrad)" stroke="#475569" strokeWidth="0.8" />
+      </g>
 
-      {/* 3D Solid Acoustic Cone Beams */}
-      <polygon points="28,32 46,24 44,28" fill="url(#v10bHeaderBeamGrad)" />
-      <polygon points="28,32 52,32 49,34.5" fill="#ffcc00" />
-      <polygon points="28,32 44,36 46,40" fill="url(#v10bHeaderBeamGrad)" />
+      {/* Upper Forward-Tilted Vertebra */}
+      <g transform="rotate(-18 28 26)">
+        <rect x="22" y="13" width="14" height="11" rx="2.5" fill="url(#v10cHeaderBlockTilted)" stroke="#475569" strokeWidth="0.8" />
+        <rect x="16" y="16" width="7" height="5.5" rx="1.5" fill="url(#v10cHeaderBlockTilted)" stroke="#475569" strokeWidth="0.8" />
+      </g>
+
+      {/* 3D Acoustic Cone Horn */}
+      <polygon points="26,27 40,20 40,34" fill="url(#v10cHeaderHornGrad)" />
+      <polygon points="26,27 40,20 34,26" fill="#ffcc00" />
 
       {/* Core Acoustic Spark */}
-      <circle cx="28" cy="32" r="2.2" fill="#ffffff" />
-      <circle cx="28" cy="32" r="1.2" fill="#ff9500" />
+      <circle cx="26" cy="27" r="2.2" fill="#ffffff" />
+      <circle cx="26" cy="27" r="1.2" fill="#ff9500" />
     </svg>
   );
 }
