@@ -8,7 +8,8 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$DIR/../../.." && pwd)"
 curl -sfL -o "$DIR/portrait.jpg" https://storage.googleapis.com/mediapipe-assets/portrait.jpg
 python3 "$DIR/make_posture_video.py"
-ffmpeg -loglevel error -y -framerate 15 -i "$DIR/frames/%05d.jpg" -c:v mjpeg -q:v 4 "$DIR/posture.mjpeg"
+# Chrome は MJPEG ファイルを 30fps として再生するので、30fps に複製して実時間で流す
+ffmpeg -loglevel error -y -framerate 15 -i "$DIR/frames/%05d.jpg" -r 30 -c:v mjpeg -q:v 4 "$DIR/posture.mjpeg"
 mkdir -p "$ROOT/public/dev"
 ffmpeg -loglevel error -y -framerate 15 -i "$DIR/frames/%05d.jpg" -c:v libx264 -pix_fmt yuv420p -crf 23 "$ROOT/public/dev/posture.mp4"
 rm -rf "$DIR/frames"

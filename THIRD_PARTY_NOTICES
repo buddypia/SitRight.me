@@ -9,6 +9,16 @@ MediaPipe Tasks Vision 0.10.35 (https://github.com/google-ai-edge/mediapipe)
   Copyright Google LLC. Licensed under the Apache License, Version 2.0.
   These files are distributed unmodified.
 
+MakeHuman assets via MPFB 2 (https://static.makehumancommunity.org/)
+  public/avatars/{woman,man,senior,womanSporty}.glb
+  Body, skins, hair, clothes, eyes, eyebrows and eyelashes from the
+  MakeHuman system assets and community asset packs released under CC0 1.0.
+  Assembled with scripts/avatars/build_mpfb.py.
+
+Original characters
+  public/avatars/{hamu,dino}.glb are original models made for this project
+  (scripts/avatars/build_chibi.py).
+
 The full license text follows.
 
                                  Apache License
