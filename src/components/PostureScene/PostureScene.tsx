@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { HEAD_KG, neckLoadKg } from '@/core/load';
 import { IDEAL_RIG, solveSkeleton, type RigParams } from '@/core/rig';
 import type { Severities } from '@/core/types';
-import type { Messages } from '@/i18n/messages';
+import { format, type Messages } from '@/i18n/messages';
 import { DEFAULT_AVATAR, type Avatar } from './models';
 import {
   DEFAULT_CAMERA,
@@ -27,6 +28,8 @@ export interface PostureSceneProps {
   lowPower?: boolean;
   /** 初期の視点（確認用ページで近景を見るときなど） */
   initialCamera?: Partial<OrbitCamera>;
+  /** 首にかかる負荷を頭の上の重り（5 kg のプレート）と kg で表示する */
+  loadWeights?: boolean;
   /** デモ表示で姿勢が切り替わったとき */
   onDemoPattern?: (pattern: DemoPattern) => void;
   className?: string;
@@ -111,6 +114,7 @@ export function PostureScene({
   avatar = DEFAULT_AVATAR,
   guides = true,
   demo = false,
+  loadWeights = false,
   lowPower = false,
   onDemoPattern,
   initialCamera,
@@ -122,6 +126,7 @@ export function PostureScene({
   const offsetLabelRef = useRef<HTMLDivElement>(null);
   const idealLabelRef = useRef<HTMLDivElement>(null);
   const gaugeRef = useRef<SVGSVGElement>(null);
+  const loadLabelRef = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>(
     'loading'
@@ -129,7 +134,15 @@ export function PostureScene({
   const [dragging, setDragging] = useState(false);
 
   // 毎フレーム参照する値は ref に入れて、React の再描画と描画ループを切り離す
-  const target = useRef({ rig, severity, xray, guides, lowPower, avatar });
+  const target = useRef({
+    rig,
+    severity,
+    xray,
+    guides,
+    lowPower,
+    avatar,
+    loadWeights,
+  });
   const homeCamera = { ...DEFAULT_CAMERA, ...initialCamera };
   const cam = useRef<OrbitCamera>(homeCamera);
   const camTarget = useRef<OrbitCamera>({ ...homeCamera });
@@ -139,7 +152,15 @@ export function PostureScene({
   const demoCallback = useRef(onDemoPattern);
   // 描画ループより先に実行されるよう、ループを作る effect より前に置く
   useEffect(() => {
-    target.current = { rig, severity, xray, guides, lowPower, avatar };
+    target.current = {
+      rig,
+      severity,
+      xray,
+      guides,
+      lowPower,
+      avatar,
+      loadWeights,
+    };
     tRef.current = t;
     demoCallback.current = onDemoPattern;
   });
@@ -171,6 +192,8 @@ export function PostureScene({
     let sevLean = 0;
     let xrayCur = target.current.xray ? 1 : 0;
     let ghostCur = target.current.guides ? 1 : 0;
+    let weightsCur = target.current.loadWeights ? 1 : 0;
+    let loadKg = HEAD_KG;
     let raf = 0;
     // rAF の時刻は描画先 window の時間軸なので、基準もそちらの performance から取る
     let last = win.performance.now();
@@ -250,6 +273,24 @@ export function PostureScene({
         label.style.opacity =
           Math.abs(offsetCm) >= 0.8 && ghostCur > 0.5 ? '1' : '0';
       }
+      const loadLabel = loadLabelRef.current;
+      if (loadLabel) {
+        const top = p(pts.loadTop);
+        // 理想姿勢のラベル（頭の左上）と重ならないよう、重りの右上に置く
+        loadLabel.style.transform = `translate(${top.x + 18}px, ${top.y}px) translate(0, -60%)`;
+        loadLabel.style.opacity = weightsCur > 0.5 ? '1' : '0';
+        const ratio = loadKg / HEAD_KG;
+        loadLabel.dataset.level =
+          ratio >= 3 ? 'poor' : ratio >= 1.8 ? 'fair' : 'good';
+        const kg = loadLabel.querySelector('[data-id="kg"]');
+        const rel = loadLabel.querySelector('[data-id="ratio"]');
+        const kgText = `${Math.round(loadKg)} kg`;
+        const relText = format(tRef.current.neckLoadRatio, {
+          ratio: ratio.toFixed(1),
+        });
+        if (kg && kg.textContent !== kgText) kg.textContent = kgText;
+        if (rel && rel.textContent !== relText) rel.textContent = relText;
+      }
       const idealLabel = idealLabelRef.current;
       if (idealLabel) {
         const top = p(pts.idealHeadTop);
@@ -291,6 +332,25 @@ export function PostureScene({
           ? '0°'
           : `${main > 0 ? tRef.current.sideRight : tRef.current.sideLeft} ${deg}°`;
       if (label && label.textContent !== text) label.textContent = text;
+
+      // 傾きを示す上部ティルトアークの動的更新
+      const arc = g.querySelector<SVGPathElement>('[data-id="arc"]');
+      if (arc) {
+        if (deg >= 1) {
+          const clamped = Math.max(-30, Math.min(30, main));
+          const rad = (clamped * Math.PI) / 180;
+          const x = 48 + 54 * Math.sin(rad);
+          const y = 72 - 54 * Math.cos(rad);
+          const sweep = clamped > 0 ? 1 : 0;
+          arc.setAttribute(
+            'd',
+            `M48 18 A54 54 0 0 ${sweep} ${x.toFixed(2)} ${y.toFixed(2)}`
+          );
+          arc.style.opacity = '0.9';
+        } else {
+          arc.style.opacity = '0';
+        }
+      }
     };
 
     const loop = (now: number) => {
@@ -341,6 +401,9 @@ export function PostureScene({
       sev[3] = Math.max(sev[3], sevLean * 0.6);
       xrayCur += ((tgt.xray ? 1 : 0) - xrayCur) * (1 - Math.exp(-dt * 6));
       ghostCur += ((tgt.guides ? 1 : 0) - ghostCur) * (1 - Math.exp(-dt * 6));
+      weightsCur +=
+        ((tgt.loadWeights ? 1 : 0) - weightsCur) * (1 - Math.exp(-dt * 6));
+      loadKg = neckLoadKg(cur);
 
       const c = cam.current;
       const ct = camTarget.current;
@@ -377,6 +440,8 @@ export function PostureScene({
         breath: Math.sin((time * Math.PI * 2) / 4.6),
         time,
         dt: frameDt,
+        neckLoadKg: loadKg,
+        weights: weightsCur,
       });
       if (perf) {
         renderer.finish();
@@ -480,6 +545,19 @@ export function PostureScene({
         className="pointer-events-none absolute left-0 top-0 rounded-md bg-[#ffbe5c] px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums text-[#1a1306] shadow-sm transition-opacity duration-300"
       />
       <div
+        ref={loadLabelRef}
+        className="group pointer-events-none absolute left-0 top-0 whitespace-nowrap rounded-lg border border-white/10 bg-black/55 px-2 py-1 text-left leading-tight opacity-0 backdrop-blur-sm transition-opacity duration-300"
+      >
+        <span className="block text-[10px] tracking-wide text-white/60">
+          {t.neckLoad}
+        </span>
+        <span
+          data-id="kg"
+          className="block font-mono text-good group-data-[level=fair]:text-fair group-data-[level=poor]:text-poor text-[15px] font-semibold tabular-nums"
+        />
+        <span data-id="ratio" className="block text-[10px] text-white/55" />
+      </div>
+      <div
         ref={idealLabelRef}
         className="pointer-events-none absolute left-0 top-0 whitespace-nowrap text-[11px] font-medium tracking-wide text-[#4deac4] transition-opacity duration-300"
       >
@@ -488,50 +566,182 @@ export function PostureScene({
       <svg
         ref={gaugeRef}
         viewBox="0 0 96 96"
-        className="pointer-events-none absolute bottom-12 right-3 h-24 w-24 rounded-2xl border border-white/10 bg-black/35 backdrop-blur-sm transition-opacity duration-500"
+        className="pointer-events-none absolute bottom-12 right-3 h-28 w-28 rounded-2xl border border-white/10 bg-[#0d1014]/85 backdrop-blur-md shadow-2xl transition-opacity duration-500"
         style={{ '--gauge': 'var(--good)' } as React.CSSProperties}
         role="img"
         aria-label={t.backView}
       >
+        <defs>
+          {/* 負担警告時のソフトグロー */}
+          <filter id="gaugeGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
+
+        {/* ヘッダー: 「後ろから」ラベル & 角度バッジ */}
         <text
           x="8"
-          y="14"
-          fontSize="9"
-          fill="rgba(255,255,255,0.55)"
-          className="tracking-wide"
+          y="13"
+          fontSize="8.5"
+          fill="rgba(255,255,255,0.6)"
+          className="font-medium tracking-wide"
         >
           {t.backView}
         </text>
+        <rect
+          x="58"
+          y="4.5"
+          width="32"
+          height="12"
+          rx="6"
+          fill="rgba(255,255,255,0.06)"
+          stroke="rgba(255,255,255,0.1)"
+          strokeWidth="0.75"
+        />
         <text
           data-id="value"
-          x="88"
-          y="14"
-          fontSize="9"
-          textAnchor="end"
+          x="74"
+          y="13"
+          fontSize="8"
+          textAnchor="middle"
           fill="var(--gauge)"
           className="font-mono font-semibold"
         >
           0°
         </text>
-        {/* 理想の正中線 */}
+
+        {/* 角度目盛りスケール (-20°〜+20°) */}
+        <g stroke="rgba(255,255,255,0.2)" strokeWidth="0.75" strokeLinecap="round">
+          {/* -20° */}
+          <line x1="29.5" y1="21.5" x2="31.2" y2="23.2" />
+          {/* -10° */}
+          <line x1="38.6" y1="19.1" x2="39.5" y2="21.0" />
+          {/* 0° (中央基準) */}
+          <line x1="48" y1="17" x2="48" y2="19.5" stroke="rgba(77,234,196,0.7)" strokeWidth="1" />
+          {/* +10° */}
+          <line x1="57.4" y1="19.1" x2="56.5" y2="21.0" />
+          {/* +20° */}
+          <line x1="66.5" y1="21.5" x2="64.8" y2="23.2" />
+        </g>
+
+        {/* 動的ティルトアーク（傾きガイド） */}
+        <path
+          data-id="arc"
+          d="M48 18 A54 54 0 0 1 48 18"
+          fill="none"
+          stroke="var(--gauge)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          className="transition-opacity duration-200"
+          style={{ opacity: 0 }}
+        />
+
+        {/* 理想の正中線 (Vertical Midline) */}
         <line
           x1="48"
-          y1="20"
+          y1="19"
           x2="48"
-          y2="82"
-          stroke="rgba(77,234,196,0.6)"
+          y2="80"
+          stroke="rgba(77,234,196,0.3)"
           strokeWidth="1"
-          strokeDasharray="3 3"
+          strokeDasharray="2 3"
         />
-        {/* 骨盤（座面） */}
+
+        {/* 理想姿勢のゴースト（薄いシアンの直立シルエット） */}
+        <g opacity="0.22" stroke="rgba(77,234,196,1)">
+          {/* 理想の頭部 */}
+          <path
+            d="M48 20 C40.5 20, 35.5 24, 35.5 29 C35.5 33.5, 39 37, 43 38.5 L43 42 L53 42 L53 38.5 C57 37, 60.5 33.5, 60.5 29 C60.5 24, 55.5 20, 48 20 Z"
+            fill="none"
+            strokeWidth="1"
+            strokeDasharray="2 2"
+          />
+          {/* 理想の肩 */}
+          <path
+            d="M20 46 C30 44.5, 39 43, 48 42 C57 43, 66 44.5, 76 46"
+            fill="none"
+            strokeWidth="1"
+            strokeDasharray="2 2"
+          />
+          {/* 理想の背骨 */}
+          <line
+            x1="48"
+            y1="42"
+            x2="48"
+            y2="72"
+            strokeWidth="1"
+            strokeDasharray="1.5 2.5"
+          />
+        </g>
+
+        {/* 静的ベース: 座面・骨盤クレードル */}
         <path
-          d="M30 78 Q48 70 66 78"
+          d="M24 81 Q48 78 72 81"
           fill="none"
-          stroke="rgba(255,255,255,0.35)"
-          strokeWidth="3"
+          stroke="rgba(255,255,255,0.3)"
+          strokeWidth="2.5"
           strokeLinecap="round"
         />
+        <path
+          d="M27 83.5 Q48 81.5 69 83.5"
+          fill="none"
+          stroke="rgba(255,255,255,0.12)"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        {/* 骨盤クレードル */}
+        <path
+          d="M38 75 C42 73, 46 72, 48 72 C50 72, 54 73, 58 75"
+          fill="none"
+          stroke="rgba(255,255,255,0.4)"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        <circle cx="48" cy="72" r="1.5" fill="rgba(255,255,255,0.5)" />
+
+        {/* 体幹グループ (Trunk Group - ピボット: 48, 72) */}
         <g data-id="trunk">
+          {/* 背中の広背筋・体幹シルエット（柔らかな半透明フィル） */}
+          <path
+            d="M36 68 L24 47 C34 44.5, 42 43, 48 42 C54 43, 62 44.5, 72 47 L60 68 Z"
+            fill="var(--gauge)"
+            fillOpacity="0.07"
+          />
+
+          {/* 肩甲骨（Scapulae guides） */}
+          <path
+            d="M34 49 Q37 54 35 59"
+            fill="none"
+            stroke="var(--gauge)"
+            strokeWidth="1"
+            strokeOpacity="0.35"
+            strokeLinecap="round"
+          />
+          <path
+            d="M62 49 Q59 54 61 59"
+            fill="none"
+            stroke="var(--gauge)"
+            strokeWidth="1"
+            strokeOpacity="0.35"
+            strokeLinecap="round"
+          />
+
+          {/* 僧帽筋〜肩ライン (Shoulder & Trapezius line) */}
+          <path
+            d="M20 46 C30 44.5, 39 43, 48 42 C57 43, 66 44.5, 76 46"
+            fill="none"
+            stroke="var(--gauge)"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          />
+          {/* 左右の肩峰ノード (Acromion markers) */}
+          <circle cx="20" cy="46" r="2.5" fill="var(--gauge)" />
+          <circle cx="20" cy="46" r="1" fill="#0d1014" />
+          <circle cx="76" cy="46" r="2.5" fill="var(--gauge)" />
+          <circle cx="76" cy="46" r="1" fill="#0d1014" />
+
+          {/* 背骨コアライン (Spinal column line) */}
           <line
             x1="48"
             y1="72"
@@ -541,16 +751,16 @@ export function PostureScene({
             strokeWidth="2.5"
             strokeLinecap="round"
           />
-          <line
-            x1="30"
-            y1="44"
-            x2="66"
-            y2="44"
-            stroke="var(--gauge)"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-          />
+
+          {/* 椎骨セグメント (Vertebrae disks: 腰椎・胸椎の節) */}
+          <rect x="45" y="64.5" width="6" height="2.5" rx="1.25" fill="var(--gauge)" fillOpacity="0.75" />
+          <rect x="44.5" y="57" width="7" height="2.5" rx="1.25" fill="var(--gauge)" fillOpacity="0.75" />
+          <rect x="44" y="49.5" width="8" height="2.5" rx="1.25" fill="var(--gauge)" fillOpacity="0.75" />
+          <rect x="45" y="43" width="6" height="2.5" rx="1.25" fill="var(--gauge)" fillOpacity="0.75" />
+
+          {/* 頭部・首グループ (Head Group - ピボット: 48, 42) */}
           <g data-id="head">
+            {/* 頚椎 (Cervical Spine) */}
             <line
               x1="48"
               y1="42"
@@ -560,13 +770,36 @@ export function PostureScene({
               strokeWidth="2.5"
               strokeLinecap="round"
             />
-            <circle
-              cx="48"
-              cy="28"
-              r="7"
+            <rect x="46" y="37.5" width="4" height="2" rx="1" fill="var(--gauge)" fillOpacity="0.85" />
+
+            {/* 後頭部シルエット (Anatomical Cranium from behind) */}
+            <path
+              d="M48 20 C40.5 20, 35.5 24, 35.5 29 C35.5 33.5, 39 37, 43 38.5 L43 42 L53 42 L53 38.5 C57 37, 60.5 33.5, 60.5 29 C60.5 24, 55.5 20, 48 20 Z"
+              fill="var(--gauge)"
+              fillOpacity="0.14"
+              stroke="var(--gauge)"
+              strokeWidth="1.75"
+              strokeLinejoin="round"
+            />
+
+            {/* 後頭部の立体感アクセント（うなじライン＆正中溝） */}
+            <path
+              d="M44 34.5 Q48 36.5 52 34.5"
               fill="none"
               stroke="var(--gauge)"
-              strokeWidth="2"
+              strokeWidth="1"
+              strokeOpacity="0.45"
+              strokeLinecap="round"
+            />
+            {/* 頭頂部センターポインター */}
+            <line
+              x1="48"
+              y1="18.5"
+              x2="48"
+              y2="21.5"
+              stroke="var(--gauge)"
+              strokeWidth="1.5"
+              strokeLinecap="round"
             />
           </g>
         </g>

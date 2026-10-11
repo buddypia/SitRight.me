@@ -6,6 +6,7 @@ import { loadAvatar, type LoadedAvatar } from './avatarLoader';
 import type { HumanBone, HumanoidPoser, PoseTargets } from './humanoidPose';
 import { buildProps, DESK, LAPTOP, SEAT_TOP, type Props } from './props';
 import { SpineXray } from './spine';
+import { NeckWeights } from './weights';
 
 export interface OrbitCamera {
   yaw: number;
@@ -39,6 +40,10 @@ export interface RenderState {
   breath: number;
   time: number;
   dt: number;
+  /** 首にかかる負荷（kg 換算）。頭の上の重りの枚数に使う */
+  neckLoadKg: number;
+  /** 重りの表示（0..1） */
+  weights: number;
 }
 
 /** オーバーレイ（耳-肩の線など）に使うワールド座標 */
@@ -46,6 +51,8 @@ export interface OverlayPoints {
   ear: THREE.Vector3;
   acromion: THREE.Vector3;
   idealHeadTop: THREE.Vector3;
+  /** 頭の上に積んだ重りの上端 */
+  loadTop: THREE.Vector3;
 }
 
 /** 輪郭ほど濃くなる半透明の発光（理想姿勢のゴーストと負担の発光に使う） */
@@ -110,6 +117,9 @@ interface AvatarInstance {
   auraNeck: THREE.ShaderMaterial;
   auraBack: THREE.ShaderMaterial;
   targets: PoseTargets;
+  /** 頭を球とみなしたときの中心（頭の骨からの初期姿勢でのずれ）と半径 */
+  headCenter: [number, number, number];
+  headRadius: number;
 }
 
 export class ThreeSceneRenderer {
@@ -121,6 +131,7 @@ export class ThreeSceneRenderer {
   private camera = new THREE.PerspectiveCamera(30, 1, 0.05, 30);
   private props: Props;
   private spine = new SpineXray();
+  private weights = new NeckWeights();
   private ghostMat = fresnelMaterial(0x4deac4);
   private ghostClip = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   private ghostDepthMat = new THREE.MeshBasicMaterial({
@@ -226,6 +237,7 @@ export class ThreeSceneRenderer {
     this.props = buildProps();
     this.scene.add(this.props.group);
     this.scene.add(this.spine.group);
+    this.scene.add(this.weights.group);
     this.ghostMat.clippingPlanes = [this.ghostClip];
     Object.assign(this.ghostMat, {
       polygonOffset: true,
@@ -295,6 +307,14 @@ export class ThreeSceneRenderer {
     const wristY = DESK.top + 0.035;
     const wristX = LAPTOP.x - 0.075;
     let hipX = DESK.front - 0.3;
+    // 頭のてっぺん（髪を含む）。うつむいても重りが頭に埋まらないよう、頭を球とみなす
+    const crownY = new THREE.Box3().setFromObject(model.root).max.y;
+    const headCenter: [number, number, number] = [
+      model.earOffset.x + 0.005 * s,
+      model.earOffset.y + 0.035 * s,
+      0,
+    ];
+    const headRadius = crownY - p.worldPos('head').y - headCenter[1];
 
     const makeTargets = (): PoseTargets => {
       const ankleX = hipX + p.lengths.rightLeg1 * 0.92;
@@ -397,6 +417,8 @@ export class ThreeSceneRenderer {
       auraNeck,
       auraBack,
       targets: makeTargets(),
+      headCenter,
+      headRadius,
     };
   }
 
@@ -496,9 +518,20 @@ export class ThreeSceneRenderer {
       const idealHeadTop = this.earPoint(inst.ghost.poser, model.earOffset).add(
         new THREE.Vector3(-0.04 * h, 0.12 * h, 0)
       );
-      overlay = { ear, acromion, idealHeadTop };
+      const crown = this.bonePoint(poser, 'head', inst.headCenter);
+      // 髪の上に軽く沈ませて、浮いて見えないようにする
+      crown.y += inst.headRadius - 0.006 * scale;
+      const loadTop = this.weights.update(
+        crown,
+        scale,
+        s.neckLoadKg,
+        s.weights,
+        s.dt
+      );
+      overlay = { ear, acromion, idealHeadTop, loadTop };
     } else {
       this.spine.group.visible = false;
+      this.weights.group.visible = false;
     }
     this.renderer.render(this.scene, this.camera);
     return overlay;
@@ -534,6 +567,7 @@ export class ThreeSceneRenderer {
     this.current = null;
     this.props.dispose();
     this.spine.dispose();
+    this.weights.dispose();
     this.ghostMat.dispose();
     this.ghostDepthMat.dispose();
     this.envTex.dispose();
