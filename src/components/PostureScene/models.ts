@@ -8,17 +8,15 @@
  * 出典とライセンスは THIRD_PARTY_NOTICES に記す。
  */
 export const AVATARS = [
-  'woman',
   'man',
+  'woman',
   'senior',
   'womanSporty',
-  'hamu',
-  'dino',
 ] as const;
 
 export type Avatar = (typeof AVATARS)[number];
 
-export const DEFAULT_AVATAR: Avatar = 'woman';
+export const DEFAULT_AVATAR: Avatar = 'man';
 
 export interface AvatarAsset {
   url: string;
@@ -43,17 +41,17 @@ export interface AvatarAsset {
 }
 
 export const AVATAR_ASSETS: Record<Avatar, AvatarAsset> = {
-  woman: {
-    url: '/avatars/woman.glb',
-    ear: [0, 0.05, 0.075],
-    cutout: /bob|short|long|ponytail|braid|afro|eyebrow|eyelash/i,
-    tint: [[/ponytail|eyebrow|eyelash/i, 0x3a2a22]],
-  },
   man: {
     url: '/avatars/man.glb',
     ear: [0, 0.05, 0.08],
     cutout: /bob|short|long|ponytail|braid|afro|eyebrow|eyelash/i,
     tint: [[/short|eyebrow|eyelash/i, 0x2a211c]],
+  },
+  woman: {
+    url: '/avatars/woman.glb',
+    ear: [0, 0.05, 0.075],
+    cutout: /bob|short|long|ponytail|braid|afro|eyebrow|eyelash/i,
+    tint: [[/ponytail|eyebrow|eyelash/i, 0x3a2a22]],
   },
   senior: {
     url: '/avatars/senior.glb',
@@ -69,22 +67,6 @@ export const AVATAR_ASSETS: Record<Avatar, AvatarAsset> = {
     ear: [0, 0.05, 0.075],
     cutout: /bob|short|long|ponytail|braid|afro|eyebrow|eyelash/i,
     tint: [[/afro|eyebrow|eyelash/i, 0x231a15]],
-  },
-  hamu: {
-    url: '/avatars/hamu.glb',
-    ear: [0, 0.2, 0.15],
-    seatClear: 0.05,
-    booster: 0.16,
-    deskGap: 0.1,
-    blend: /blush/i,
-  },
-  dino: {
-    url: '/avatars/dino.glb',
-    ear: [0, 0.2, 0.15],
-    seatClear: 0.05,
-    booster: 0.16,
-    deskGap: 0.1,
-    blend: /blush/i,
   },
 };
 
