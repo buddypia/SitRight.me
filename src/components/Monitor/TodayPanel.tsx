@@ -1,7 +1,13 @@
 'use client';
 
 import { useMemo } from 'react';
-import { goodRatio, localDateKey, type DayStats } from '@/core/stats';
+import {
+  findPeakCollapseHour,
+  goodRatio,
+  localDateKey,
+  recoveryRate,
+  type DayStats,
+} from '@/core/stats';
 import type { PosturePattern } from '@/core/types';
 import type { Locale, Messages } from '@/i18n/messages';
 import { format } from '@/i18n/messages';
@@ -38,6 +44,12 @@ export function TodayPanel({
   const today = history.find((d) => d.date === todayKey);
   const ratio = today ? goodRatio(today) : 0;
 
+  const peak = useMemo(
+    () => (today ? findPeakCollapseHour(today.timeline) : null),
+    [today]
+  );
+  const recRate = useMemo(() => (today ? recoveryRate(today) : null), [today]);
+
   const minuteNow = (() => {
     const d = new Date();
     return d.getHours() * 60 + d.getMinutes();
@@ -61,6 +73,18 @@ export function TodayPanel({
       .slice(0, 3)
       .map(([p, sec]) => ({ p, sec, share: total ? sec / total : 0 }));
   }, [today]);
+
+  const topPattern = breakdown[0]?.p ?? null;
+  const insightText = useMemo(() => {
+    if (!today || today.monitoredSec < 60) return null;
+    if (breakdown.length === 0 || ratio >= 0.85) {
+      return t.insightGood;
+    }
+    if (topPattern && t.insightTips[topPattern]) {
+      return t.insightTips[topPattern];
+    }
+    return null;
+  }, [today, breakdown, ratio, topPattern, t]);
 
   const week = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => {
@@ -95,11 +119,17 @@ export function TodayPanel({
           <span className="ml-1 text-lg text-ink-3">%</span>
         </p>
         <p className="mt-1 text-xs text-ink-3">{t.goodRatio}</p>
-        <dl className="mt-4 grid grid-cols-3 gap-3 text-xs">
+        <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
           <div>
             <dt className="text-ink-3">{t.monitored}</dt>
             <dd className="mt-0.5 font-mono text-sm tabular-nums text-ink-1">
               {fmtDuration(today?.monitoredSec ?? 0, locale)}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-ink-3">{t.sitting}</dt>
+            <dd className="mt-0.5 font-mono text-sm tabular-nums text-ink-1">
+              {format(t.minutes, { n: Math.floor(sittingMin) })}
             </dd>
           </div>
           <div>
@@ -109,16 +139,31 @@ export function TodayPanel({
             </dd>
           </div>
           <div>
-            <dt className="text-ink-3">{t.sitting}</dt>
-            <dd className="mt-0.5 font-mono text-sm tabular-nums text-ink-1">
-              {format(t.minutes, { n: Math.floor(sittingMin) })}
+            <dt className="text-ink-3">{t.resetsCount}</dt>
+            <dd className="mt-0.5 font-mono text-sm tabular-nums text-good flex items-baseline gap-1">
+              <span>{format(t.times, { n: today?.recoveries ?? 0 })}</span>
+              {recRate !== null && (
+                <span className="text-[11px] font-sans text-ink-3">
+                  ({Math.round(recRate * 100)}%)
+                </span>
+              )}
             </dd>
           </div>
         </dl>
       </div>
 
       <div className="min-w-0">
-        <p className="text-[13px] font-medium text-ink-2">{t.timelineTitle}</p>
+        <div className="flex items-center justify-between">
+          <p className="text-[13px] font-medium text-ink-2">{t.timelineTitle}</p>
+          {peak && (
+            <span className="text-[11px] font-mono tabular-nums text-fair/90">
+              {format(t.peakCollapse, {
+                start: peak.startHour,
+                end: peak.endHour,
+              })}
+            </span>
+          )}
+        </div>
         <div
           className="mt-4 flex h-[92px] items-end gap-[2px]"
           role="img"
@@ -210,6 +255,25 @@ export function TodayPanel({
           ))}
         </div>
       </div>
+
+      {insightText && (
+        <div className="col-span-full mt-2 rounded-xl border border-white/8 bg-s2/60 p-3.5 backdrop-blur-xs">
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-good/10 px-2 py-0.5 text-[11px] font-medium text-good">
+                <span className="h-1.5 w-1.5 rounded-full bg-good" />
+                {t.insightTitle}
+              </span>
+              {topPattern && ratio < 0.85 && (
+                <span className="text-xs font-semibold text-ink-1">
+                  {t.pattern[topPattern].name}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-ink-2 leading-relaxed">{insightText}</p>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

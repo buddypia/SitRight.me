@@ -123,12 +123,29 @@ const ja = {
   goodRatio: '良い姿勢の割合',
   monitored: '計測時間',
   alertsCount: '通知',
+  resetsCount: 'リセット',
+  recoveryRate: '復帰率 {n}%',
   times: '{n}回',
   timelineTitle: '直近60分',
   breakdownTitle: '多かった崩れ方',
   noBreakdown: 'まだ崩れた記録はありません',
   weekTitle: '過去7日',
   noData: 'データなし',
+  insightTitle: '改善アドバイス',
+  insightGood:
+    '素晴らしい姿勢を維持できています！定期的に伸びをしてリフレッシュしましょう。',
+  peakCollapse: '崩れのピーク: {start}〜{end}時',
+  insightTips: {
+    straight_neck:
+      '画面が遠いか文字が小さい可能性があります。画面を手前に引くか拡大し、あごを軽く引いてみましょう。',
+    text_neck:
+      'うつむきが続いています。モニタースタンド等で画面を目の高さに上げると、首への負担が軽減されます。',
+    neck_hunch:
+      '頭が前に落ちています。胸を軽く開き、肩甲骨を寄せてから頭のてっぺんを天井へ引き上げる意識を持ちましょう。',
+    slouch:
+      '骨盤が後ろに倒れて背中が丸まっています。椅子の奥まで深く座り、骨盤を立てて背筋を伸ばしましょう。',
+    lean: '体や首が片側に偏っています。両足の裏を床につけ、左右の坐骨に均等に体重を分散させましょう。',
+  },
 
   // alerts
   alertTitle: '姿勢をチェック',
@@ -337,12 +354,29 @@ const en: Messages = {
   goodRatio: 'Good posture',
   monitored: 'Monitored',
   alertsCount: 'Alerts',
+  resetsCount: 'Resets',
+  recoveryRate: '{n}% recovered',
   times: '{n}',
   timelineTitle: 'Last 60 minutes',
   breakdownTitle: 'Most common',
   noBreakdown: 'No posture slips recorded yet',
   weekTitle: 'Last 7 days',
   noData: 'No data',
+  insightTitle: 'Actionable Insight',
+  insightGood:
+    'Great posture maintained! Take regular stretch breaks to stay refreshed.',
+  peakCollapse: 'Peak slump: {start}:00–{end}:00',
+  insightTips: {
+    straight_neck:
+      'Screen may be too far or text too small. Bring screen closer, enlarge text, and tuck your chin slightly.',
+    text_neck:
+      'Prolonged downward tilt detected. Elevate your monitor to eye level with a stand to relieve neck strain.',
+    neck_hunch:
+      'Head dropping forward and down. Open your chest, squeeze shoulder blades, and lift the crown of your head.',
+    slouch:
+      'Pelvis tilted backward causing rounded back. Sit all the way back in your chair and sit tall on your sit bones.',
+    lean: 'Weight tilted to one side. Place both feet flat on the floor and distribute weight evenly across both hips.',
+  },
 
   alertTitle: 'Posture check',
   recoveredToast: 'Back to good posture',
@@ -553,12 +587,29 @@ const ko: Messages = {
   goodRatio: '좋은 자세 비율',
   monitored: '측정 시간',
   alertsCount: '알림',
+  resetsCount: '리셋',
+  recoveryRate: '복귀율 {n}%',
   times: '{n}회',
   timelineTitle: '최근 60분',
   breakdownTitle: '자주 무너진 자세',
   noBreakdown: '아직 무너진 기록이 없어요',
   weekTitle: '지난 7일',
   noData: '데이터 없음',
+  insightTitle: '개선 가이드',
+  insightGood:
+    '훌륭한 자세를 유지하고 있습니다! 정기적으로 스트레칭을 하여 몸을 풀어주세요.',
+  peakCollapse: '자세 무너짐 피크: {start}~{end}시',
+  insightTips: {
+    straight_neck:
+      '화면이 멀거나 글자가 작을 수 있습니다. 화면을 조금 앞으로 당기거나 글자 크기를 키우고, 턱을 가볍게 당겨보세요.',
+    text_neck:
+      '고개를 숙이는 시간이 깁니다. 모니터 받침대로 화면을 눈높이에 맞추면 목 부담이 크게 줄어듭니다.',
+    neck_hunch:
+      '머리가 앞과 아래로 처지고 있습니다. 가슴을 펴고 견갑골을 모은 뒤, 정수리를 위로 당기듯 앉아보세요.',
+    slouch:
+      '골반이 뒤로 눕혀져 등이 굽어지고 있습니다. 의자 깊숙이 앉아 골반을 세우고 허리를 곧게 펴보세요.',
+    lean: '몸이나 목이 한쪽으로 기울어 있습니다. 양발을 바닥에 나란히 두고 양쪽 엉덩이에 균등하게 무게를 실어보세요.',
+  },
 
   // alerts
   alertTitle: '자세를 확인하세요',

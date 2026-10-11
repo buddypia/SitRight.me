@@ -449,6 +449,13 @@ class PostureController {
 
   private notifyRecovered() {
     const { settings } = this.store;
+    if (this.today) {
+      this.today = {
+        ...this.today,
+        recoveries: (this.today.recoveries ?? 0) + 1,
+      };
+      this.flushStats();
+    }
     this.emit({ kind: 'recovered' });
     if (settings.sound) playChime('good', 0.35);
   }
