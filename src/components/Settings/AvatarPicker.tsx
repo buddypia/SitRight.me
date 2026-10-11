@@ -16,7 +16,7 @@ export function AvatarPicker({
     <div
       role="radiogroup"
       aria-label={t.avatar}
-      className="grid grid-cols-3 gap-2"
+      className="grid grid-cols-2 gap-2"
     >
       {AVATARS.map((id) => {
         const selected = id === value;

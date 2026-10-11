@@ -14,7 +14,10 @@ const publicPath = (url: string) =>
 
 describe('avatars', () => {
   it('既定のモデルは一覧に含まれる', () => {
+    expect(DEFAULT_AVATAR).toBe('man');
     expect(isAvatar(DEFAULT_AVATAR)).toBe(true);
+    expect(isAvatar('hamu')).toBe(false);
+    expect(isAvatar('dino')).toBe(false);
     expect(isAvatar('dragon')).toBe(false);
     expect(isAvatar(undefined)).toBe(false);
   });
