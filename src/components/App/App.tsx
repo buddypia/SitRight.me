@@ -158,48 +158,41 @@ function Logo() {
     >
       <defs>
         {/* Dark titanium obsidian background */}
-        <linearGradient id="snapAngularHeaderBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+        <linearGradient id="v8aHeaderBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
           <stop stopColor="#12151d" />
           <stop offset="1" stopColor="#07090c" />
         </linearGradient>
-        <linearGradient id="snapAngularHeaderRim" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+        <linearGradient id="v8aHeaderRim" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
           <stop stopColor="#2d3545" />
           <stop offset="1" stopColor="#10131a" />
         </linearGradient>
 
-        {/* Matte Graphite Pillar Shading */}
-        <linearGradient id="snapAngularHeaderGraphite" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#3a4454" />
-          <stop offset="100%" stopColor="#1e2430" />
+        {/* Platinum & Slate Ribbon Gradients */}
+        <linearGradient id="sRibbonUpperHeader" x1="16" y1="12" x2="48" y2="36" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#94a3b8" />
         </linearGradient>
-        <linearGradient id="snapAngularHeaderTilted" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#4a5568" />
-          <stop offset="100%" stopColor="#242c3b" />
+        <linearGradient id="sRibbonLowerHeader" x1="16" y1="28" x2="48" y2="52" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#475569" />
+          <stop offset="100%" stopColor="#1e293b" />
         </linearGradient>
       </defs>
 
       {/* Squircle Base with Subtle Beveled Rim */}
-      <rect width="64" height="64" rx="16" fill="url(#snapAngularHeaderBg)" />
-      <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="url(#snapAngularHeaderRim)" strokeWidth="1.5" />
+      <rect width="64" height="64" rx="16" fill="url(#v8aHeaderBg)" />
+      <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="url(#v8aHeaderRim)" strokeWidth="1.5" />
 
-      {/* Macro Acoustic Burst Rings (16px/28pxでも消えない太めの衝撃音波) */}
-      <circle cx="32" cy="32" r="14" stroke="#ff3b30" strokeOpacity="0.3" strokeWidth="2" strokeDasharray="8 6" />
-      <circle cx="32" cy="32" r="9" stroke="#ff9500" strokeOpacity="0.6" strokeWidth="2.2" />
+      {/* Acoustic Shockwave Pulse */}
+      <circle cx="32" cy="32" r="13" stroke="#ff3b30" strokeWidth="1.8" strokeOpacity="0.35" strokeDasharray="5 3" />
+      <circle cx="32" cy="32" r="8" stroke="#ff9500" strokeWidth="1.8" strokeOpacity="0.55" />
 
-      {/* Lower 3 Vertical Segments (整然と直立した下部柱) */}
-      <rect x="29" y="50" width="13" height="4.5" rx="2" fill="url(#snapAngularHeaderGraphite)" />
-      <rect x="29" y="43" width="13" height="4.5" rx="2" fill="url(#snapAngularHeaderGraphite)" />
-      <rect x="29" y="36" width="13" height="4.5" rx="2" fill="url(#snapAngularHeaderGraphite)" />
+      {/* Geometric S-Glyph Ribbon */}
+      <path d="M 44,16 C 30,12 18,20 22,30 C 24,35 29,34 32,32" stroke="url(#sRibbonUpperHeader)" strokeWidth="5.5" strokeLinecap="round" />
+      <path d="M 32,32 C 35,30 40,29 42,34 C 46,44 34,52 20,48" stroke="url(#sRibbonLowerHeader)" strokeWidth="5.5" strokeLinecap="round" />
 
-      {/* Upper 2 Dramatically Snapped Segments (約42°の大胆な「く」の字破断) */}
-      <g transform="rotate(-42 32 32)">
-        <rect x="27" y="27" width="13" height="4.5" rx="2" fill="url(#snapAngularHeaderTilted)" />
-        <rect x="27" y="20" width="13" height="4.5" rx="2" fill="#e2e8f0" />
-      </g>
-
-      {/* Solid Burst Star & Prongs (破断頂点で弾ける極太のパキッ！閃光スター) */}
-      <polygon points="32,23 35,29 43,32 35,35 32,41 29,35 21,32 29,29" fill="#ff9500" />
-      <polygon points="32,26 34,30 39,32 34,34 32,38 30,34 25,32 30,30" fill="#ffffff" />
+      {/* Radiant Equilibrium Pivot & Snap Spark */}
+      <polygon points="32,23 34.5,29.5 41,32 34.5,34.5 32,41 29.5,34.5 23,32 29.5,29.5" fill="#ff9500" />
+      <polygon points="32,26 33.5,30.5 38,32 33.5,33.5 32,38 30.5,33.5 26,32 30.5,30.5" fill="#ffffff" />
       <circle cx="32" cy="32" r="2.2" fill="#ffcc00" />
     </svg>
   );
