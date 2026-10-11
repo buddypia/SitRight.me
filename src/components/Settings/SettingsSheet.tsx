@@ -10,7 +10,7 @@ import {
   showDesktopNotification,
 } from '@/engine/notifier';
 import { useT } from '@/hooks/useT';
-import { format, type Locale } from '@/i18n/messages';
+import { format, LOCALE_OPTIONS, type Locale } from '@/i18n/messages';
 import { useAppStore, type SoundTheme } from '@/stores/appStore';
 import { Button, Segmented, Toggle } from '../ui';
 import { AvatarPicker } from './AvatarPicker';
@@ -227,11 +227,7 @@ export function SettingsSheet({
               label={t.language}
               value={settings.locale}
               onChange={(v) => update({ locale: v })}
-              options={[
-                { value: 'en', label: 'English' },
-                { value: 'ja', label: '日本語' },
-                { value: 'ko', label: '한국어' },
-              ]}
+              options={LOCALE_OPTIONS}
             />
           </Field>
 

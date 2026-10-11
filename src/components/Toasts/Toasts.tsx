@@ -59,11 +59,11 @@ function Toast({
     badgeText = p.name;
   } else if (shown.kind === 'recovered') {
     title = t.recoveredToast;
-    body = '頸椎と背骨のアライメントが整いました。';
+    body = t.recoveredBody;
   } else {
     title = t.breakTitle;
     body = format(t.breakBody, { n: shown.minutes });
-    badgeText = `${shown.minutes}m`;
+    badgeText = format(t.minutesShort, { n: shown.minutes });
   }
 
   const isAlert = shown.kind === 'alert';
@@ -141,7 +141,7 @@ function Toast({
               onClick={onDismiss}
               className="rounded-lg bg-fair/20 px-2.5 py-0.5 text-xs font-bold text-fair transition-all hover:bg-fair hover:text-bg"
             >
-              直した！
+              {t.fixed}
             </button>
           </div>
         )}
