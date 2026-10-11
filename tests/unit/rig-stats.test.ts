@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { IDEAL_RIG, solveSkeleton } from '@/core/rig';
-import { accumulate, emptyDay, goodRatio, pruneHistory } from '@/core/stats';
+import {
+  accumulate,
+  emptyDay,
+  findPeakCollapseHour,
+  goodRatio,
+  pruneHistory,
+  recoveryRate,
+} from '@/core/stats';
 import type { PostureAssessment } from '@/core/types';
 
 describe('posture rig', () => {
@@ -77,6 +84,53 @@ describe('daily stats', () => {
       [616, 80, 2],
     ]);
     expect(d.patternSec.slouch).toBe(1);
+  });
+
+  it('calculates recovery rate correctly', () => {
+    const d = emptyDay('2026-10-03');
+    expect(recoveryRate(d)).toBeNull();
+    d.alerts = 5;
+    d.recoveries = 4;
+    expect(recoveryRate(d)).toBe(0.8);
+    d.recoveries = 10;
+    expect(recoveryRate(d)).toBe(1);
+  });
+
+  it('identifies peak collapse hour when slump occurs', () => {
+    // Insufficient timeline points
+    expect(findPeakCollapseHour([])).toBeNull();
+    expect(
+      findPeakCollapseHour([
+        [600, 50, 60],
+        [601, 50, 60],
+      ])
+    ).toBeNull();
+
+    // 14:00 (minute 840) to 14:05 (minute 844) has low scores and >= 120s sample
+    const timeline: [number, number, number][] = [
+      [600, 90, 60],
+      [601, 85, 60],
+      [602, 90, 60],
+      [840, 45, 60],
+      [841, 40, 60],
+      [842, 50, 60],
+    ];
+    const peak = findPeakCollapseHour(timeline);
+    expect(peak).not.toBeNull();
+    expect(peak?.startHour).toBe(14);
+    expect(peak?.endHour).toBe(15);
+    expect(peak?.avgScore).toBe(45);
+  });
+
+  it('returns null for peak collapse when posture is consistently good', () => {
+    const goodTimeline: [number, number, number][] = [
+      [600, 95, 60],
+      [601, 90, 60],
+      [602, 85, 60],
+      [603, 90, 60],
+      [604, 92, 60],
+    ];
+    expect(findPeakCollapseHour(goodTimeline)).toBeNull();
   });
 
   it('keeps 14 days, newest first, and adds today', () => {
