@@ -11,7 +11,7 @@ import {
 } from '@/engine/notifier';
 import { useT } from '@/hooks/useT';
 import { format, type Locale } from '@/i18n/messages';
-import { useAppStore } from '@/stores/appStore';
+import { useAppStore, type SoundTheme } from '@/stores/appStore';
 import { Button, Segmented, Toggle } from '../ui';
 import { AvatarPicker } from './AvatarPicker';
 
@@ -150,10 +150,32 @@ export function SettingsSheet({
                 label={t.sound}
                 onChange={(v) => {
                   update({ sound: v });
-                  if (v) playChime('good', 0.4);
+                  if (v) playChime('alert', 0.5, settings.soundTheme);
                 }}
               />
             </Row>
+            {settings.sound && (
+              <div className="pt-1">
+                <p className="mb-2 text-xs font-medium text-ink-3">
+                  {t.soundTheme}
+                </p>
+                <Segmented<SoundTheme>
+                  label={t.soundTheme}
+                  value={settings.soundTheme}
+                  onChange={(v) => {
+                    update({ soundTheme: v });
+                    playChime('alert', 0.5, v);
+                  }}
+                  options={[
+                    { value: 'snap-horn', label: t.soundTheme_snap_horn },
+                    { value: 'snap-bio', label: t.soundTheme_snap_bio },
+                    { value: 'snap-click', label: t.soundTheme_snap_click },
+                    { value: 'snap-pop', label: t.soundTheme_snap_pop },
+                    { value: 'chime', label: t.soundTheme_chime },
+                  ]}
+                />
+              </div>
+            )}
             {notificationsSupported() && (
               <Row
                 label={t.desktopNotify}

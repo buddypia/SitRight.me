@@ -26,11 +26,19 @@ import type { Locale } from '@/i18n/messages';
 
 export type Phase = 'welcome' | 'setup' | 'calibrate' | 'monitor';
 
+export type SoundTheme =
+  | 'snap-horn'
+  | 'snap-bio'
+  | 'snap-click'
+  | 'snap-pop'
+  | 'chime';
+
 export interface Settings {
   sensitivity: Sensitivity;
   alertDelaySec: number;
   cooldownSec: number;
   sound: boolean;
+  soundTheme: SoundTheme;
   desktopNotify: boolean;
   breakIntervalMin: number;
   powerSaver: boolean;
@@ -101,6 +109,7 @@ export const DEFAULT_SETTINGS: Settings = {
   alertDelaySec: 20,
   cooldownSec: 120,
   sound: true,
+  soundTheme: 'snap-horn',
   desktopNotify: false,
   breakIntervalMin: 45,
   powerSaver: false,
@@ -214,6 +223,15 @@ export const useAppStore = create<AppState>()(
         const settings = { ...current.settings, ...(p.settings ?? {}) };
         // 削除されたモデルなど、知らない値は既定のモデルに戻す
         if (!isAvatar(settings.avatar)) settings.avatar = DEFAULT_AVATAR;
+        const validThemes: SoundTheme[] = [
+          'snap-horn',
+          'snap-bio',
+          'snap-click',
+          'snap-pop',
+          'chime',
+        ];
+        if (!validThemes.includes(settings.soundTheme))
+          settings.soundTheme = 'snap-horn';
         return {
           ...current,
           settings,

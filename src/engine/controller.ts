@@ -437,7 +437,7 @@ class PostureController {
       this.today = { ...this.today, alerts: this.today.alerts + 1 };
     this.flushStats();
     this.emit({ kind: 'alert', pattern });
-    if (settings.sound) playChime('alert');
+    if (settings.sound) playChime('alert', 0.5, settings.soundTheme);
     if (settings.desktopNotify && !document.hasFocus()) {
       const p = t.pattern[pattern];
       showDesktopNotification(
