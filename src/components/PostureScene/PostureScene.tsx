@@ -486,11 +486,42 @@ export function PostureScene({
         aria-busy={status === 'loading'}
       />
       {status !== 'ready' && (
-        <div className="pointer-events-none absolute inset-0 grid place-items-center">
+        <div className="pointer-events-none absolute inset-0 grid place-items-center bg-black/40 backdrop-blur-[2px] transition-opacity duration-300">
           {status === 'loading' ? (
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/15 border-t-white/70" />
+            <div className="flex flex-col items-center gap-3.5 rounded-2xl border border-white/10 bg-[#14171c]/90 px-6 py-5 shadow-2xl backdrop-blur-md">
+              <div className="relative grid h-12 w-12 place-items-center">
+                <span className="absolute inset-0 animate-ping rounded-full bg-good/20 opacity-40 duration-1000" />
+                <span className="absolute inset-0 animate-spin rounded-full border-2 border-white/10 border-t-good" />
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  className="text-good"
+                  aria-hidden
+                >
+                  <path
+                    d="M12 2v20M5 7l7-4 7 4M5 17l7 4 7-4M5 12l7-2 7 2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <div className="text-center">
+                <p className="text-xs font-medium tracking-wide text-ink-1">
+                  {t.modelLoadingScene}
+                </p>
+                <p className="mt-1 text-[11px] text-ink-3">
+                  {t.loading}
+                </p>
+              </div>
+            </div>
           ) : (
-            <span className="text-sm text-ink-3">{t.modelLoadFailed}</span>
+            <div className="rounded-xl border border-poor/30 bg-poor/10 px-4 py-3 text-center text-sm text-poor">
+              {t.modelLoadFailed}
+            </div>
           )}
         </div>
       )}
