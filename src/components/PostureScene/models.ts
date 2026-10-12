@@ -9,12 +9,43 @@
  */
 export const AVATARS = [
   'man',
-  'woman',
+  'manBusiness',
+  'manCasual',
   'senior',
+  'woman',
+  'womanCasual',
   'womanSporty',
+  'womanSmart',
 ] as const;
 
 export type Avatar = (typeof AVATARS)[number];
+
+export type Gender = 'male' | 'female';
+
+export const GENDER_OF: Record<Avatar, Gender> = {
+  man: 'male',
+  manBusiness: 'male',
+  manCasual: 'male',
+  senior: 'male',
+  woman: 'female',
+  womanCasual: 'female',
+  womanSporty: 'female',
+  womanSmart: 'female',
+};
+
+export const MALE_AVATARS: readonly Avatar[] = [
+  'man',
+  'manBusiness',
+  'manCasual',
+  'senior',
+];
+
+export const FEMALE_AVATARS: readonly Avatar[] = [
+  'woman',
+  'womanCasual',
+  'womanSporty',
+  'womanSmart',
+];
 
 export const DEFAULT_AVATAR: Avatar = 'man';
 
@@ -47,11 +78,17 @@ export const AVATAR_ASSETS: Record<Avatar, AvatarAsset> = {
     cutout: /bob|short|long|ponytail|braid|afro|eyebrow|eyelash/i,
     tint: [[/short|eyebrow|eyelash/i, 0x2a211c]],
   },
-  woman: {
-    url: '/avatars/woman.glb',
-    ear: [0, 0.05, 0.075],
+  manBusiness: {
+    url: '/avatars/manBusiness.glb',
+    ear: [0, 0.05, 0.08],
     cutout: /bob|short|long|ponytail|braid|afro|eyebrow|eyelash/i,
-    tint: [[/ponytail|eyebrow|eyelash/i, 0x3a2a22]],
+    tint: [[/short|eyebrow|eyelash/i, 0x1f1915]],
+  },
+  manCasual: {
+    url: '/avatars/manCasual.glb',
+    ear: [0, 0.05, 0.08],
+    cutout: /bob|short|long|ponytail|braid|afro|eyebrow|eyelash/i,
+    tint: [[/short|eyebrow|eyelash/i, 0x3d281a]],
   },
   senior: {
     url: '/avatars/senior.glb',
@@ -62,11 +99,29 @@ export const AVATAR_ASSETS: Record<Avatar, AvatarAsset> = {
       [/eyebrow|eyelash/i, 0x8a837c],
     ],
   },
+  woman: {
+    url: '/avatars/woman.glb',
+    ear: [0, 0.05, 0.075],
+    cutout: /bob|short|long|ponytail|braid|afro|eyebrow|eyelash/i,
+    tint: [[/ponytail|eyebrow|eyelash/i, 0x3a2a22]],
+  },
+  womanCasual: {
+    url: '/avatars/womanCasual.glb',
+    ear: [0, 0.05, 0.075],
+    cutout: /bob|short|long|ponytail|braid|afro|eyebrow|eyelash/i,
+    tint: [[/bob|eyebrow|eyelash/i, 0xd6d3cf, 1.2]],
+  },
   womanSporty: {
     url: '/avatars/womanSporty.glb',
     ear: [0, 0.05, 0.075],
     cutout: /bob|short|long|ponytail|braid|afro|eyebrow|eyelash/i,
     tint: [[/afro|eyebrow|eyelash/i, 0x231a15]],
+  },
+  womanSmart: {
+    url: '/avatars/womanSmart.glb',
+    ear: [0, 0.05, 0.075],
+    cutout: /bob|short|long|ponytail|braid|afro|eyebrow|eyelash/i,
+    tint: [[/long|eyebrow|eyelash/i, 0x3e271e]],
   },
 };
 
