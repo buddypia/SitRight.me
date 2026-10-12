@@ -173,7 +173,7 @@ export function PostureScene({
     const canvas = canvasRef.current;
     const wrap = wrapRef.current;
     if (!canvas || !wrap) return;
-    // 小窓（Document PiP）に描画するときは、そちらの window の rAF と表示状態に従う
+    // Picture-in-Picture（Document PiP）に描画するときは、そちらの window の rAF と表示状態に従う
     const doc = wrap.ownerDocument;
     const win = (doc.defaultView ?? window) as typeof window;
     // モデルの切り替えは描画ループ内で行い、姿勢や視点の状態は保つ

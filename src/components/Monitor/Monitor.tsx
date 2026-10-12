@@ -91,14 +91,16 @@ export function Monitor() {
               {pip.supported && (
                 <button
                   type="button"
+                  title={pip.pipWindow ? t.pipClose : t.pipOpen}
+                  aria-label={pip.pipWindow ? t.pipClose : t.pipOpen}
                   onClick={() =>
                     pip.pipWindow
                       ? pip.close()
                       : void pip.open({ width: 340, height: 400 })
                   }
-                  className="pointer-events-auto flex h-8 items-center gap-1.5 rounded-full border border-[rgba(77,234,196,0.4)] bg-[rgba(77,234,196,0.15)] px-3 text-xs font-medium text-good backdrop-blur-sm hover:bg-[rgba(77,234,196,0.25)]"
+                  className="pointer-events-auto flex h-8 shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border border-[rgba(77,234,196,0.4)] bg-[rgba(77,234,196,0.15)] px-3 text-xs font-medium text-good backdrop-blur-sm hover:bg-[rgba(77,234,196,0.25)]"
                 >
-                  <PipIcon />
+                  <PipIcon active={Boolean(pip.pipWindow)} />
                   {pip.pipWindow ? t.pipClose : t.pipOpen}
                 </button>
               )}
@@ -175,19 +177,43 @@ export function Monitor() {
   );
 }
 
-function PipIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect
-        x="3"
-        y="5"
-        width="18"
+function PipIcon({ active }: { active?: boolean }) {
+  if (active) {
+    return (
+      <svg
+        width="14"
         height="14"
-        rx="2"
+        viewBox="0 0 24 24"
+        fill="none"
         stroke="currentColor"
-        strokeWidth="1.6"
-      />
-      <rect x="12" y="11" width="7" height="6" rx="1" fill="currentColor" />
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="shrink-0"
+        aria-hidden
+      >
+        <path d="M15 3h6v6" />
+        <path d="M21 3l-7 7" />
+        <path d="M9 21H3v-6" />
+        <path d="M3 21l7-7" />
+      </svg>
+    );
+  }
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="shrink-0"
+      aria-hidden
+    >
+      <rect x="2" y="3.5" width="20" height="15" rx="2" />
+      <rect x="11.5" y="9.5" width="8.5" height="7" rx="1.2" fill="currentColor" stroke="none" />
     </svg>
   );
 }

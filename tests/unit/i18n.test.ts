@@ -200,4 +200,52 @@ describe('i18n messages', () => {
       ]);
     });
   });
+
+  describe('prohibited terminology and tone contract', () => {
+    it('enforces industry-standard PiP terminology across all locales', () => {
+      expect(MESSAGES.ja.pipOpen).toBe('ピクチャー イン ピクチャー');
+      expect(MESSAGES.ja.pipClose).toBe('ピクチャー イン ピクチャーを閉じる');
+      expect(MESSAGES.ja.pipActive).toBe('ピクチャー イン ピクチャーで表示中');
+
+      expect(MESSAGES.en.pipOpen).toBe('Picture-in-Picture');
+      expect(MESSAGES.en.pipClose).toBe('Exit Picture-in-Picture');
+      expect(MESSAGES.en.pipActive).toBe('Showing in Picture-in-Picture');
+
+      expect(MESSAGES.ko.pipOpen).toBe('PIP 모드');
+      expect(MESSAGES.ko.pipClose).toBe('PIP 모드 종료');
+      expect(MESSAGES.ko.pipActive).toBe('PIP 모드로 표시 중');
+    });
+
+    it('prohibits informal, creepy, or awkward UI anti-patterns', () => {
+      const allStrings = (loc: Locale) => JSON.stringify(MESSAGES[loc]);
+
+      // Prohibited anti-patterns in Japanese
+      expect(allStrings('ja')).not.toContain('小窓');
+      expect(allStrings('ja')).not.toContain('リアル骨');
+      expect(allStrings('ja')).not.toContain('スポーツ女性');
+      expect(allStrings('ja')).not.toContain('直した！');
+      expect(allStrings('ja')).not.toContain('いい姿勢に戻りました');
+      expect(allStrings('ja')).not.toContain('ストレートネック姿勢');
+
+      // Prohibited anti-patterns in English
+      expect(allStrings('en')).not.toContain('Pop out');
+      expect(allStrings('en')).not.toContain('Close pop-out');
+
+      // Prohibited anti-patterns in Korean
+      expect(allStrings('ko')).not.toContain('작은 창');
+    });
+
+    it('enforces ergonomic and professional terminology consistency', () => {
+      expect(MESSAGES.ja.resetsCount).toBe('姿勢改善');
+      expect(MESSAGES.en.resetsCount).toBe('Recoveries');
+      expect(MESSAGES.ko.resetsCount).toBe('자세 복귀');
+
+      expect(MESSAGES.ja.soundTheme_snap_bio).toBe('パキッ！(関節音)');
+      expect(MESSAGES.ko.soundTheme_snap_bio).toBe('뚝! (관절음)');
+
+      expect(MESSAGES.ja.avatar_womanSporty).toBe('女性（スポーティ）');
+      expect(MESSAGES.ko.avatar_womanSporty).toBe('여성 (스포티)');
+      expect(MESSAGES.en.avatar_womanSporty).toBe('Woman (sporty)');
+    });
+  });
 });

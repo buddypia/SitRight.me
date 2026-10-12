@@ -11,7 +11,7 @@ import {
   statusLabel,
 } from './StatusCard';
 
-/** 小窓（Picture-in-Picture）用の表示。3D の横姿勢と、状態・スコアだけを出す */
+/** Picture-in-Picture（PiP）用の表示。3D の横姿勢と、状態・スコアだけを出す */
 export function MiniMonitor({
   live,
   t,
