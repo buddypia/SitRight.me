@@ -449,6 +449,9 @@ export function buildProps(): Props {
     o.castShadow = true;
     o.receiveShadow = true;
   });
+  // 薄いデカール平面と発光画面は自己影アーティファクト防止のため影落としを無効化
+  logoBadge.castShadow = false;
+  screen.castShadow = false;
   group.add(laptop);
 
   // ---------- stool ----------

@@ -33,19 +33,13 @@ export const GENDER_OF: Record<Avatar, Gender> = {
   womanSmart: 'female',
 };
 
-export const MALE_AVATARS: readonly Avatar[] = [
-  'man',
-  'manBusiness',
-  'manCasual',
-  'senior',
-];
+export const MALE_AVATARS: readonly Avatar[] = AVATARS.filter(
+  (id) => GENDER_OF[id] === 'male'
+);
 
-export const FEMALE_AVATARS: readonly Avatar[] = [
-  'woman',
-  'womanCasual',
-  'womanSporty',
-  'womanSmart',
-];
+export const FEMALE_AVATARS: readonly Avatar[] = AVATARS.filter(
+  (id) => GENDER_OF[id] === 'female'
+);
 
 export const DEFAULT_AVATAR: Avatar = 'man';
 
@@ -109,7 +103,7 @@ export const AVATAR_ASSETS: Record<Avatar, AvatarAsset> = {
     url: '/avatars/womanCasual.glb',
     ear: [0, 0.05, 0.075],
     cutout: /bob|short|long|ponytail|braid|afro|eyebrow|eyelash/i,
-    tint: [[/bob|eyebrow|eyelash/i, 0xd6d3cf, 1.2]],
+    tint: [[/bob|eyebrow|eyelash/i, 0x2e231d]],
   },
   womanSporty: {
     url: '/avatars/womanSporty.glb',

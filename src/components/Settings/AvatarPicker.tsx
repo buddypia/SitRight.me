@@ -25,6 +25,16 @@ export function AvatarPicker({
   const [selectedGender, setSelectedGender] = useState<Gender>(
     () => GENDER_OF[value] ?? 'male'
   );
+  const [prevValue, setPrevValue] = useState<Avatar>(value);
+
+  // 外部からのモデル変更（リセット等）時に表示タブを自動追従（React 19推奨: render 中の状態調整）
+  if (value !== prevValue) {
+    setPrevValue(value);
+    const current = GENDER_OF[value];
+    if (current && current !== selectedGender) {
+      setSelectedGender(current);
+    }
+  }
 
   const displayedAvatars =
     selectedGender === 'male' ? MALE_AVATARS : FEMALE_AVATARS;
@@ -33,7 +43,7 @@ export function AvatarPicker({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <Segmented<Gender>
-          label={t.avatar}
+          label={t.gender}
           value={selectedGender}
           onChange={(g) => setSelectedGender(g)}
           options={[
@@ -77,13 +87,16 @@ export function AvatarPicker({
                   className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                 />
                 {selected && (
-                  <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-good text-[10px] font-bold text-bg shadow-sm">
+                  <span
+                    aria-hidden="true"
+                    className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-good text-[10px] font-bold text-bg shadow-sm"
+                  >
                     ✓
                   </span>
                 )}
               </div>
               <span
-                className={`block px-2.5 py-2 text-xs font-medium ${
+                className={`block truncate px-2.5 py-2 text-xs font-medium ${
                   selected ? 'text-good' : 'text-ink-2 group-hover:text-ink-1'
                 }`}
               >
