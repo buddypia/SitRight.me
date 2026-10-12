@@ -24,6 +24,11 @@ export const STATUS_COLOR: Record<DisplayStatus, string> = {
   checking: 'var(--ink-3)',
 };
 
+/** 計測中でかつ姿勢が崩れている（注意・要改善）状態 */
+export function isPostureCollapsed(s: DisplayStatus): boolean {
+  return s === 'fair' || s === 'poor';
+}
+
 export function statusLabel(s: DisplayStatus, t: Messages): string {
   return {
     good: t.statusGood,

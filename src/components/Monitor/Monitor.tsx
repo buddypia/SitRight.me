@@ -15,7 +15,7 @@ import { PostureScene } from '../PostureScene';
 import { Button, Toggle } from '../ui';
 import { Metrics } from './Metrics';
 import { MiniMonitor } from './MiniMonitor';
-import { StatusCard, displayStatus } from './StatusCard';
+import { StatusCard, displayStatus, isPostureCollapsed } from './StatusCard';
 import { TodayPanel } from './TodayPanel';
 
 export function Monitor() {
@@ -38,6 +38,7 @@ export function Monitor() {
       ? status
       : 'neutral';
   const measuring = tone !== 'neutral';
+  const postureCollapsed = isPostureCollapsed(status);
 
   return (
     <div className="mx-auto max-w-[1360px] px-4 pb-10 pt-2 sm:px-6">
@@ -76,6 +77,7 @@ export function Monitor() {
               xray={settings.xray}
               avatar={settings.avatar}
               lowPower={settings.powerSaver}
+              loadWeights={postureCollapsed}
               t={t}
               className="h-full w-full"
             />
