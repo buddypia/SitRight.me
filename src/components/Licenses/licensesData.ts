@@ -1,3 +1,5 @@
+export type LicenseCategory = 'core' | 'framework' | 'assets';
+
 export interface LicenseEntry {
   id: string;
   name: string;
@@ -6,14 +8,14 @@ export interface LicenseEntry {
   copyright: string;
   url?: string;
   description: string;
-  category: 'core' | 'framework' | 'assets';
+  category: LicenseCategory;
 }
 
-export interface LicenseText {
-  id: 'MIT' | 'Apache-2.0' | 'CC0-1.0';
-  name: string;
-  text: string;
-}
+export const LICENSE_CATEGORIES: readonly LicenseCategory[] = [
+  'core',
+  'framework',
+  'assets',
+] as const;
 
 export const THIRD_PARTY_PACKAGES: LicenseEntry[] = [
   {
@@ -93,7 +95,7 @@ export const THIRD_PARTY_PACKAGES: LicenseEntry[] = [
     license: 'MIT',
     copyright: 'Copyright (c) 2025 buddypia',
     description:
-      'Custom low-poly/stylized chibi models (public/avatars/{hamu,dino}.glb) created for SitRight.',
+      'Custom stylized chibi models (public/avatars/{hamu,dino}.glb) created for SitRight.',
     category: 'assets',
   },
 ];
@@ -161,3 +163,11 @@ You can copy, modify, distribute and perform the work, even for commercial purpo
 In no way are the patent or trademark rights of any person affected by CC0, nor are the rights that other persons may have in the work or in how the work is used, such as publicity or privacy rights.
 Unless expressly stated otherwise, the person who associated a work with this deed makes no warranties about the work, and disclaims liability for all uses of the work, to the fullest extent permitted by applicable law.`,
 };
+
+export function getFullLicenseNotice(pkg: LicenseEntry): string {
+  const base = LICENSE_TEXTS[pkg.license];
+  return `${pkg.name}${pkg.version ? ` (${pkg.version})` : ''}
+${pkg.copyright}
+${pkg.url ? `URL: ${pkg.url}\n` : ''}
+${base}`;
+}
