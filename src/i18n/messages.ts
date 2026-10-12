@@ -79,6 +79,25 @@ const ja = {
   privacyTitle: '映像はこの端末から出ません',
   privacyBody:
     '骨格の推定はすべてブラウザ内で行います。映像の保存・送信は一切ありません。',
+  privacyLearnMore: '詳細を見る',
+  privacyModalTitle: 'プライバシーとデータ利用について',
+  privacyCameraTitle: 'カメラ映像と生体情報',
+  privacyCameraBody:
+    'ウェブカメラ映像と姿勢推定はすべてブラウザ内（ローカル）で処理され、サーバーへの送信や保存・録画は一切行いません。また、顔認識による個人特定や生体テンプレートの作成も行いません。',
+  privacyStorageTitle: '端末内保存（localStorage）',
+  privacyStorageBody:
+    '基準姿勢、設定、日々の統計データは、本サービスの機能を維持するために利用者のブラウザ内にのみ保存されます。いつでも設定から全データを消去できます。',
+  privacyTelemetryTitle: 'サービス品質向上と外部送信（外部送信規律）',
+  privacyTelemetryIntro:
+    'サービスの安定性向上とオンボーディング改善のため、以下の非識別情報を当サービスのサーバーへ送信する場合があります。第三者の広告・トラッカーは一切使用しません。',
+  privacyTelemetryItem1:
+    '送信情報：セッション時間、セットアップ完了状況、ブラウザ・性能指標、エラーコード（IPアドレスは即時破棄）',
+  privacyTelemetryItem2: '送信先：SitRight 自社インフラ（Cloudflare）',
+  privacyTelemetryItem3:
+    '利用目的：不具合の検知・修正、機能改善および利用継続性の分析',
+  privacyControlTitle: '利用者の選択とコントロール',
+  privacyControlBody:
+    '設定画面からいつでも「匿名診断データの送信」をオフにすることができます。また、蓄積されたローカルデータはワンクリックで完全初期化できます。',
   featureMeasure: 'cm と角度で計測',
   featureMeasureBody:
     '頭が何cm前に出ているか、何度うつむいているかを数値で表示',
@@ -255,6 +274,10 @@ const ja = {
   language: '言語',
   resetData: '記録と基準をすべて削除',
   resetConfirm: 'もう一度押すと削除します',
+  privacySectionTitle: 'データとプライバシー',
+  privacyNoticeButton: 'プライバシーと外部送信について',
+  telemetryLabel: '匿名診断データの送信',
+  telemetryHint: 'サービス改善のための非識別統計のみ送信されます',
   close: '閉じる',
   testNotification: '通知をテスト',
 
@@ -323,6 +346,26 @@ const en: Messages = {
   privacyTitle: 'Video never leaves this device',
   privacyBody:
     'Pose estimation runs entirely in your browser. Video feeds and camera frames are never recorded or uploaded.',
+  privacyLearnMore: 'Learn more',
+  privacyModalTitle: 'Privacy & Data Notice',
+  privacyCameraTitle: 'Camera Feeds & Biometrics',
+  privacyCameraBody:
+    'Webcam feeds and pose estimation run 100% locally in your browser. Video is never uploaded, recorded, or saved to any server. SitRight does not perform facial recognition or generate biometric templates.',
+  privacyStorageTitle: 'Local Storage (localStorage)',
+  privacyStorageBody:
+    'Your baseline calibration, settings, and daily stats are stored strictly in your browser to provide core app features. You can clear this data at any time from Settings.',
+  privacyTelemetryTitle: 'Diagnostics & Telemetry (External Transmission)',
+  privacyTelemetryIntro:
+    'To maintain service reliability and improve the onboarding experience, we may send non-identifiable telemetry to our first-party servers. No third-party advertising or tracking networks are used.',
+  privacyTelemetryItem1:
+    'Information sent: Session length, onboarding completion status, browser performance metrics, error codes (IP addresses are discarded immediately).',
+  privacyTelemetryItem2:
+    'Destination: SitRight first-party infrastructure (Cloudflare).',
+  privacyTelemetryItem3:
+    'Purpose: Error diagnosis, performance monitoring, and usability improvements.',
+  privacyControlTitle: 'Your Rights & Controls',
+  privacyControlBody:
+    'You can opt out of sending anonymous diagnostics at any time in Settings. You can also completely reset all stored local data in one click.',
   featureMeasure: 'Measured in cm and degrees',
   featureMeasureBody:
     'See exactly how far forward your head is and how much you look down',
@@ -495,6 +538,11 @@ const en: Messages = {
   language: 'Language',
   resetData: 'Delete all history and baseline',
   resetConfirm: 'Press again to delete',
+  privacySectionTitle: 'Data & Privacy',
+  privacyNoticeButton: 'Privacy Policy & External Transmission',
+  telemetryLabel: 'Send anonymous diagnostics',
+  telemetryHint:
+    'Sends non-identifiable metrics to help fix errors and improve stability',
   close: 'Close',
   testNotification: 'Test notification',
 
@@ -560,6 +608,25 @@ const ko: Messages = {
   privacyTitle: '영상은 이 기기를 벗어나지 않아요',
   privacyBody:
     '골격 추정은 모두 브라우저 안에서 이루어져요. 영상을 저장하거나 전송하지 않아요.',
+  privacyLearnMore: '자세히 보기',
+  privacyModalTitle: '개인정보 및 데이터 처리 안내',
+  privacyCameraTitle: '카메라 영상과 생체 정보',
+  privacyCameraBody:
+    '웹캠 영상과 자세 추정은 100% 사용자 브라우저 내부에서 실시간으로 처리되며 서버로 전송되거나 저장되지 않습니다. SitRight는 안면 인식을 통한 개인 식별이나 생체 인식 템플릿 생성을 일체 수행하지 않습니다.',
+  privacyStorageTitle: '로컬 저장소 (localStorage)',
+  privacyStorageBody:
+    '기준 자세, 개인 설정 및 일별 통계는 서비스 핵심 기능을 제공하기 위해 이용자 기기의 브라우저에만 안전하게 보관됩니다. 설정에서 언제든지 모든 데이터를 삭제할 수 있습니다.',
+  privacyTelemetryTitle: '서비스 진단 및 텔레메트리 (외부송신 안내)',
+  privacyTelemetryIntro:
+    '서비스 안정성 유지 및 온보딩 품질 개선을 위해 개인을 식별할 수 없는 최소한의 진단 정보가 자사 서버로 전송될 수 있습니다. 제3자 광고나 트래커는 일체 사용하지 않습니다.',
+  privacyTelemetryItem1:
+    '수집·전송 항목: 세션 지속 시간, 단계별 완료 여부, 브라우저 성능 지표, 오류 코드 (IP 주소는 즉시 파기·익명화)',
+  privacyTelemetryItem2: '수집·전송처: SitRight 자체 인프라 (Cloudflare)',
+  privacyTelemetryItem3:
+    '이용 목적: 서비스 장애 대응, 사용성 분석 및 알고리즘 최적화',
+  privacyControlTitle: '이용자의 선택권 및 데이터 제어',
+  privacyControlBody:
+    '설정 메뉴에서 언제든지 "익명 진단 데이터 전송"을 끌 수(옵트아웃) 있으며, 저장된 모든 로컬 데이터를 원클릭으로 영구 초기화할 수 있습니다.',
   featureMeasure: 'cm와 각도로 측정',
   featureMeasureBody:
     '머리가 몇 cm 앞으로 나왔는지, 몇 도 숙였는지를 수치로 표시해요',
@@ -740,6 +807,11 @@ const ko: Messages = {
   language: '언어',
   resetData: '기록과 기준 모두 삭제',
   resetConfirm: '한 번 더 누르면 삭제해요',
+  privacySectionTitle: '데이터 및 개인정보',
+  privacyNoticeButton: '개인정보 처리 및 데이터 수집 안내',
+  telemetryLabel: '익명 진단 데이터 전송',
+  telemetryHint:
+    '품질 개선 및 오류 해결을 위한 비식별 통계만 전송됩니다',
   close: '닫기',
   testNotification: '알림 테스트',
 
