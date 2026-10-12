@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useT } from '@/hooks/useT';
 import { format } from '@/i18n/messages';
 import { useAppStore, type AppEvent } from '@/stores/appStore';
+import { Logo } from '@/components/ui';
 
 const DURATION: Record<AppEvent['kind'], number> = {
   alert: 9000,
@@ -80,29 +81,29 @@ function Toast({
             : 'border-good/40 bg-s2/95'
       }`}
     >
-      {/* 3D Visual Badge */}
+      {/* Visual Brand Badge */}
       <div className="shrink-0 pt-0.5">
-        {isAlert ? (
-          <div className="relative">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/spine-alert.png"
-              alt=""
-              width={46}
-              height={46}
-              className="rounded-xl object-contain drop-shadow-[0_0_10px_rgba(255,45,85,0.5)]"
-            />
-          </div>
-        ) : isRecovered ? (
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-good/30 bg-good/15 text-lg font-bold text-good shadow-[0_0_12px_rgba(77,234,196,0.3)]">
-            ✓
-          </div>
-        ) : (
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-good/30 bg-s3 text-lg">
-            ☕️
-          </div>
-        )}
+        <div className="relative">
+          <Logo size={44} variant={shown.kind} />
+          {isRecovered && (
+            <span
+              className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border border-[#121818] bg-good text-[10px] font-black text-[#090b0e] shadow-sm"
+              aria-hidden
+            >
+              ✓
+            </span>
+          )}
+          {shown.kind === 'break' && (
+            <span
+              className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border border-[#161920] bg-s3 text-[9px] shadow-sm"
+              aria-hidden
+            >
+              ☕
+            </span>
+          )}
+        </div>
       </div>
+
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">

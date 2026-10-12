@@ -449,6 +449,7 @@ class PostureController {
 
   private notifyRecovered() {
     const { settings } = this.store;
+    const t = MESSAGES[settings.locale];
     if (this.today) {
       this.today = {
         ...this.today,
@@ -458,7 +459,15 @@ class PostureController {
     }
     this.emit({ kind: 'recovered' });
     if (settings.sound) playChime('good', 0.35);
+    if (settings.desktopNotify && !document.hasFocus()) {
+      showDesktopNotification(
+        t.recoveredToast,
+        t.recoveredBody,
+        'sitright-posture'
+      );
+    }
   }
+
 
   private handleBreak() {
     const { settings } = this.store;

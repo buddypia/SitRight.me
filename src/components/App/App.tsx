@@ -11,7 +11,7 @@ import { SettingsSheet } from '../Settings';
 import { Setup, Spinner } from '../Setup';
 import { Toasts } from '../Toasts';
 import { Welcome } from '../Welcome';
-import { Button } from '../ui';
+import { Button, Logo } from '../ui';
 
 export function App() {
   const t = useT();
@@ -148,81 +148,7 @@ function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
   );
 }
 
-function Logo() {
-  return (
-    <svg
-      width="28"
-      height="28"
-      viewBox="0 0 64 64"
-      fill="none"
-      aria-hidden
-      className="shrink-0 drop-shadow-[0_2px_10px_rgba(255,149,0,0.35)]"
-    >
-      <defs>
-        {/* Dark titanium obsidian background */}
-        <linearGradient id="v10cHeaderBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#181c24" />
-          <stop offset="1" stopColor="#090b0e" />
-        </linearGradient>
-        <linearGradient id="v10cHeaderRim" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#363f52" />
-          <stop offset="1" stopColor="#141820" />
-        </linearGradient>
 
-        {/* Vertebrae Block Metal Shading */}
-        <linearGradient id="v10cHeaderBlockGrad" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#384356" />
-          <stop offset="50%" stopColor="#222a38" />
-          <stop offset="100%" stopColor="#12161f" />
-        </linearGradient>
-        <linearGradient id="v10cHeaderBlockTilted" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#445268" />
-          <stop offset="50%" stopColor="#2a3446" />
-          <stop offset="100%" stopColor="#141a24" />
-        </linearGradient>
-
-        {/* 3D Acoustic Cone Horn Wedge */}
-        <linearGradient id="v10cHeaderHornGrad" x1="0" y1="0.5" x2="1" y2="0.5">
-          <stop offset="0%" stopColor="#ff7a00" />
-          <stop offset="100%" stopColor="#ff9500" />
-        </linearGradient>
-      </defs>
-
-      {/* Squircle Base with Subtle Beveled Rim */}
-      <rect width="64" height="64" rx="16" fill="url(#v10cHeaderBg)" />
-      <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" stroke="url(#v10cHeaderRim)" strokeWidth="1.5" />
-
-      {/* Double Solid Acoustic Arcs */}
-      <path d="M 45,18 A 20 20 0 0 1 45,46" stroke="#ff3b30" strokeWidth="3.5" strokeLinecap="round" />
-      <path d="M 40,22 A 14 14 0 0 1 40,42" stroke="#ff9500" strokeWidth="3" strokeLinecap="round" />
-
-      {/* Lower 2 Upright Vertebrae */}
-      <g>
-        <rect x="23" y="41" width="14" height="11" rx="2.5" fill="url(#v10cHeaderBlockGrad)" stroke="#475569" strokeWidth="0.8" />
-        <rect x="17" y="44" width="7" height="5.5" rx="1.5" fill="url(#v10cHeaderBlockGrad)" stroke="#475569" strokeWidth="0.8" />
-      </g>
-
-      <g>
-        <rect x="23" y="27" width="14" height="11" rx="2.5" fill="url(#v10cHeaderBlockGrad)" stroke="#475569" strokeWidth="0.8" />
-        <rect x="17" y="30" width="7" height="5.5" rx="1.5" fill="url(#v10cHeaderBlockGrad)" stroke="#475569" strokeWidth="0.8" />
-      </g>
-
-      {/* Upper Forward-Tilted Vertebra */}
-      <g transform="rotate(-18 28 26)">
-        <rect x="22" y="13" width="14" height="11" rx="2.5" fill="url(#v10cHeaderBlockTilted)" stroke="#475569" strokeWidth="0.8" />
-        <rect x="16" y="16" width="7" height="5.5" rx="1.5" fill="url(#v10cHeaderBlockTilted)" stroke="#475569" strokeWidth="0.8" />
-      </g>
-
-      {/* 3D Acoustic Cone Horn */}
-      <polygon points="26,27 40,20 40,34" fill="url(#v10cHeaderHornGrad)" />
-      <polygon points="26,27 40,20 34,26" fill="#ffcc00" />
-
-      {/* Core Acoustic Spark */}
-      <circle cx="26" cy="27" r="2.2" fill="#ffffff" />
-      <circle cx="26" cy="27" r="1.2" fill="#ff9500" />
-    </svg>
-  );
-}
 
 function GearIcon() {
   return (

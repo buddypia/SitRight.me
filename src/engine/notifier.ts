@@ -171,6 +171,7 @@ export function showDesktopNotification(
       body,
       tag,
       icon: '/icon-192x192.png',
+      badge: '/icon-72x72.png',
       silent: true,
     });
     n.onclick = () => {

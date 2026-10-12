@@ -12,7 +12,7 @@ import { useT } from '@/hooks/useT';
 import { useAppStore } from '@/stores/appStore';
 import { CameraPreview } from '../CameraPreview';
 import { PostureScene } from '../PostureScene';
-import { Button, Toggle } from '../ui';
+import { Button, Logo, Toggle } from '../ui';
 import { Metrics } from './Metrics';
 import { MiniMonitor } from './MiniMonitor';
 import { StatusCard, displayStatus, isPostureCollapsed } from './StatusCard';
@@ -258,7 +258,9 @@ function NotificationCard() {
 
   return (
     <section className="panel flex items-start gap-3 p-4">
-      <BellIcon />
+      <div className="relative shrink-0 pt-0.5">
+        <Logo size={32} />
+      </div>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-ink-1">
           {t.enableNotifications}
@@ -292,27 +294,3 @@ function NotificationCard() {
   );
 }
 
-function BellIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      className="mt-0.5 shrink-0 text-good"
-      aria-hidden
-    >
-      <path
-        d="M6 16.5V11a6 6 0 1 1 12 0v5.5l1.5 2h-15l1.5-2Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M10 20.5a2 2 0 0 0 4 0"
-        stroke="currentColor"
-        strokeWidth="1.6"
-      />
-    </svg>
-  );
-}
