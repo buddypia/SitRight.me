@@ -8,6 +8,7 @@ import { useAppStore } from '@/stores/appStore';
 import { PostureScene } from '../PostureScene';
 import type { DemoPattern } from '../PostureScene/PostureScene';
 import { Button } from '../ui';
+import { PrivacyModal } from '../Privacy';
 
 export function Welcome() {
   const t = useT();
@@ -15,6 +16,7 @@ export function Welcome() {
   const setPhase = useAppStore((s) => s.setPhase);
   const avatar = useAppStore((s) => s.settings.avatar);
   const [demo, setDemo] = useState<DemoPattern>('ideal');
+  const [privacyOpen, setPrivacyOpen] = useState(false);
 
   const go = (phase: 'setup' | 'monitor') => {
     unlockAudio();
@@ -72,11 +74,18 @@ export function Welcome() {
 
         <div className="mt-10 flex items-start gap-3 rounded-2xl border border-line bg-s1/60 p-4">
           <LockIcon />
-          <div>
+          <div className="flex-1">
             <p className="text-sm font-medium text-ink-1">{t.privacyTitle}</p>
             <p className="mt-0.5 text-[13px] leading-relaxed text-ink-3">
               {t.privacyBody}
             </p>
+            <button
+              type="button"
+              onClick={() => setPrivacyOpen(true)}
+              className="mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-good hover:underline transition-colors cursor-pointer"
+            >
+              {t.privacyLearnMore} <span aria-hidden>→</span>
+            </button>
           </div>
         </div>
         <p className="mt-4 text-[11px] leading-relaxed text-ink-3">
@@ -103,6 +112,10 @@ export function Welcome() {
           </span>
         </div>
       </section>
+      <PrivacyModal
+        open={privacyOpen}
+        onClose={() => setPrivacyOpen(false)}
+      />
     </div>
   );
 }

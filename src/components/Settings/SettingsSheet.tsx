@@ -14,6 +14,7 @@ import { format } from '@/i18n/messages';
 import { useAppStore, type SoundTheme } from '@/stores/appStore';
 import { Button, Segmented, Toggle } from '../ui';
 import { AvatarPicker } from './AvatarPicker';
+import { PrivacyModal } from '../Privacy';
 
 export function SettingsSheet({
   open,
@@ -28,6 +29,7 @@ export function SettingsSheet({
   const resetAll = useAppStore((s) => s.resetAll);
   const [confirmReset, setConfirmReset] = useState(false);
   const [notifyDenied, setNotifyDenied] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -223,6 +225,31 @@ export function SettingsSheet({
           </Field>
 
           <div className="border-t border-line pt-6">
+            <Field label={t.privacySectionTitle}>
+              <div className="space-y-4">
+                <Row label={t.telemetryLabel} hint={t.telemetryHint}>
+                  <Toggle
+                    checked={settings.telemetry}
+                    onChange={(v) => update({ telemetry: v })}
+                    label={t.telemetryLabel}
+                  />
+                </Row>
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setPrivacyOpen(true)}
+                    className="inline-flex items-center gap-1.5 text-xs text-good hover:underline cursor-pointer"
+                  >
+                    <span>🛡️</span>
+                    <span>{t.privacyNoticeButton}</span>
+                    <span aria-hidden>→</span>
+                  </button>
+                </div>
+              </div>
+            </Field>
+          </div>
+
+          <div className="border-t border-line pt-6">
             <Button
               size="sm"
               className={
@@ -244,6 +271,10 @@ export function SettingsSheet({
           </div>
         </div>
       </div>
+      <PrivacyModal
+        open={privacyOpen}
+        onClose={() => setPrivacyOpen(false)}
+      />
     </div>
   );
 }

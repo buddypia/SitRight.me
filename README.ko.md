@@ -42,9 +42,10 @@
 
 ## 개인정보와 보안
 
-- 모든 처리는 브라우저 안에서 이뤄지며, 녹화나 업로드를 하지 않습니다. 설정·기준 자세·일별 통계는 `localStorage`에만 저장합니다.
+- **카메라 영상과 자세 분석은 100% 브라우저 내에서만 처리됩니다.** 웹캠 영상이나 얼굴·골격 랜드마크 좌표는 기기 밖으로 전송되거나 서버에 녹화·저장되지 않습니다.
+- 개인 설정, 기준 자세 및 상세 일별 기록은 브라우저(`localStorage`)에 안전하게 보관됩니다. 서비스 안정성 및 온보딩 품질 개선을 위한 비식별 익명 사용 통계(세션 지속 시간, 에러 진단 등) 외에는 어떠한 개인 식별 데이터도 수집하지 않습니다.
 - 프로덕션은 정적 빌드이며, 엄격한 Content Security Policy(`connect-src 'self'`, 인라인 스크립트는 해시로 허용, `frame-ancestors 'none'`)와 HSTS·`Permissions-Policy`·`Referrer-Policy: no-referrer`·COOP를 붙여 배포합니다(`scripts/postbuild.mjs`가 `out/_headers`를 생성).
-  MediaPipe 1.x는 60초마다 Google로 사용 통계를 보내지만 CSP가 차단합니다. E2E 테스트에서도 오리진 밖으로 나가는 요청이 없는지 확인합니다.
+  MediaPipe 1.x가 Google로 보내려는 서드파티 사용 통계 등 외부 도메인 통신은 CSP에 의해 원천 차단되며, E2E 테스트를 통해 외부 도메인 전송이 없음을 검증합니다.
 - 페이지를 불러온 뒤에는 네트워크가 끊겨도 측정을 계속합니다(`tests/e2e/offline.spec.ts`).
 - CI에서 CodeQL·gitleaks(시크릿 탐지)·dependency review·`npm audit`를 실행하고, Dependabot이 의존성과 SHA로 고정한 GitHub Actions를 업데이트합니다.
 - API 키나 시크릿은 사용하지 않습니다.

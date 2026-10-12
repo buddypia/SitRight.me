@@ -53,6 +53,7 @@ export interface Settings {
   avatar: Avatar;
   locale: Locale;
   cameraId: string | null;
+  telemetry: boolean;
 }
 
 export type AppEventInput =
@@ -114,6 +115,7 @@ export const DEFAULT_SETTINGS: Settings = {
   avatar: DEFAULT_AVATAR,
   locale: DEFAULT_LOCALE,
   cameraId: null,
+  telemetry: true,
 };
 
 export const INITIAL_LIVE: LiveState = {
@@ -217,6 +219,9 @@ export const useAppStore = create<AppState>()(
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<PersistedState>;
         const settings = { ...current.settings, ...(p.settings ?? {}) };
+        if (typeof settings.telemetry !== 'boolean') {
+          settings.telemetry = true;
+        }
         if (!isSupportedLocale(settings.locale)) {
           settings.locale = detectBrowserLocale();
         }
