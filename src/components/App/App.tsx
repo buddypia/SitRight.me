@@ -107,7 +107,7 @@ function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
           {phase === 'monitor' && (
             <>
               <span
-                className="mr-1 hidden items-center gap-2 rounded-full border border-line px-3 py-1 text-xs sm:flex"
+                className="mr-1 hidden items-center gap-2 rounded-full border border-line px-3 py-1 text-xs md:flex"
                 style={{ color: STATUS_COLOR[status] }}
               >
                 <span
