@@ -322,7 +322,7 @@ const en: Messages = {
   welcomeRecalibrate: 'Recalibrate',
   privacyTitle: 'Video never leaves this device',
   privacyBody:
-    'Pose estimation runs entirely in your browser. Nothing is recorded or uploaded.',
+    'Pose estimation runs entirely in your browser. Video feeds and camera frames are never recorded or uploaded.',
   featureMeasure: 'Measured in cm and degrees',
   featureMeasureBody:
     'See exactly how far forward your head is and how much you look down',

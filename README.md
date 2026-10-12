@@ -44,9 +44,10 @@ Each camera frame is reduced to the following measurements (`src/core/metrics.ts
 
 ## Privacy and security
 
-- All processing happens in the browser. Nothing is recorded or uploaded; settings, baseline and daily stats stay in `localStorage`.
+- **Camera feeds and posture estimation run 100% locally in your browser.** Video frames and raw facial/skeletal landmarks are never recorded, uploaded, or transmitted off your device.
+- Personal settings, baselines, and detailed daily posture records are kept locally in `localStorage`. Only privacy-preserving, anonymous product diagnostics (e.g. session length, error rates) may be collected to ensure reliability and improve onboarding, with no personally identifiable information.
 - The production build is a static export served with a strict Content Security Policy (`connect-src 'self'`, hashed inline scripts, `frame-ancestors 'none'`) plus HSTS, `Permissions-Policy`, `Referrer-Policy: no-referrer` and COOP (`scripts/postbuild.mjs` writes `out/_headers`).
-  MediaPipe 1.x sends usage telemetry to Google every 60 s; the CSP blocks it, and the E2E test asserts that no request leaves the origin.
+  Third-party telemetry (such as MediaPipe 1.x sending usage telemetry to Google) is dropped by our CSP, and E2E tests assert that no cross-origin network requests leave the device.
 - After the page has loaded, monitoring keeps working without a network connection (covered by `tests/e2e/offline.spec.ts`).
 - CI runs CodeQL, gitleaks (secret scanning), dependency review and `npm audit`; Dependabot keeps dependencies and pinned GitHub Actions up to date.
 - The app needs no API keys or secrets.

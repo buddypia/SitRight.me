@@ -1,6 +1,6 @@
 # Security Policy
 
-SitRight runs entirely in the browser. Camera frames are processed locally by MediaPipe and are never uploaded, stored, or sent anywhere. The production build enforces this with a Content Security Policy (`connect-src 'self'`), so the browser itself blocks any request to another origin.
+SitRight processes camera feeds locally in the browser using MediaPipe. Raw camera frames and facial/skeletal landmarks are never uploaded, stored, or sent anywhere. The production build enforces this with a Content Security Policy (`connect-src 'self'`), ensuring the browser blocks any request to external origins. Only privacy-preserving, anonymous product telemetry may be sent to our first-party origin to improve app reliability.
 
 ## Supported versions
 

@@ -42,9 +42,10 @@
 
 ## プライバシーとセキュリティ
 
-- 処理はすべてブラウザ内で行い、録画もアップロードもしません。設定・基準姿勢・日々の統計は `localStorage` にだけ保存します。
+- **カメラ映像と姿勢推定は 100% ブラウザ内でローカルに処理されます。** 映像フレームや顔・骨格のランドマーク座標が端末外へ送信されたり、録画・保存されることはありません。
+- 個人設定、基準姿勢、日々の詳細な姿勢記録は端末内（`localStorage`）に安全に保持されます。サービスの信頼性向上やオンボーディング改善のための非識別・匿名利用統計（セッション時間、エラー発生率など）を除き、個人を特定できる情報を収集することはありません。
 - 本番は静的書き出しで、厳しい Content Security Policy（`connect-src 'self'`、インラインスクリプトはハッシュで許可、`frame-ancestors 'none'`）と HSTS・`Permissions-Policy`・`Referrer-Policy: no-referrer`・COOP を付けて配信します（`scripts/postbuild.mjs` が `out/_headers` を出力）。
-  MediaPipe 1.x は60秒ごとに Google へ利用統計を送りますが、CSP で止まります。E2E テストでも、オリジンの外へ出る通信がないことを確認しています。
+  MediaPipe 1.x が Google へ送信しようとするサードパーティ通信などは CSP によって遮断され、E2E テストでもオリジンの外へ出る外部通信がないことを確認しています。
 - ページを読み込んだあとは、ネットワークが切れても計測を続けます（`tests/e2e/offline.spec.ts`）。
 - CI で CodeQL・gitleaks（シークレットの検出）・dependency review・`npm audit` を実行し、Dependabot が依存関係と SHA で固定した GitHub Actions を更新します。
 - API キーやシークレットは使っていません。
