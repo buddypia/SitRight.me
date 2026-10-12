@@ -280,6 +280,13 @@ const ja = {
   resetConfirm: 'もう一度押すと削除します',
   privacySectionTitle: 'データとプライバシー',
   privacyNoticeButton: 'プライバシーと外部送信について',
+  licensesNoticeButton: 'オープンソースライセンス',
+  licensesModalTitle: 'オープンソースライセンス・権利表記',
+  licensesIntro:
+    'SitRightは以下のオープンソースソフトウェアおよびアセットを活用して開発されています。各著作権者およびライセンス条項は以下の通りです。',
+  licensesSourceLink: '公式サイト',
+  licenseViewText: 'ライセンス条文を表示',
+  licenseHideText: 'ライセンス条文を閉じる',
   telemetryLabel: '匿名診断データの送信',
   telemetryHint: 'サービス改善のための非識別統計のみ送信されます',
   close: '閉じる',
@@ -548,6 +555,13 @@ const en: Messages = {
   resetConfirm: 'Press again to delete',
   privacySectionTitle: 'Data & Privacy',
   privacyNoticeButton: 'Privacy Policy & External Transmission',
+  licensesNoticeButton: 'Open Source Licenses',
+  licensesModalTitle: 'Open Source Licenses & Notices',
+  licensesIntro:
+    'SitRight is built with the following open source software and assets. Copyright notices and license terms are listed below.',
+  licensesSourceLink: 'Official website',
+  licenseViewText: 'View license text',
+  licenseHideText: 'Hide license text',
   telemetryLabel: 'Send anonymous diagnostics',
   telemetryHint:
     'Sends non-identifiable metrics to help fix errors and improve stability',
@@ -821,6 +835,13 @@ const ko: Messages = {
   resetConfirm: '한 번 더 누르면 삭제해요',
   privacySectionTitle: '데이터 및 개인정보',
   privacyNoticeButton: '개인정보 처리 및 데이터 수집 안내',
+  licensesNoticeButton: '오픈소스 라이선스',
+  licensesModalTitle: '오픈소스 라이선스 및 권리 표기',
+  licensesIntro:
+    'SitRight는 다음 오픈소스 소프트웨어 및 에셋을 활용하여 개발되었습니다. 각 저작권 표기 및 라이선스 약관은 다음과 같습니다.',
+  licensesSourceLink: '공식 사이트',
+  licenseViewText: '라이선스 전문 보기',
+  licenseHideText: '라이선스 전문 닫기',
   telemetryLabel: '익명 진단 데이터 전송',
   telemetryHint:
     '품질 개선 및 오류 해결을 위한 비식별 통계만 전송됩니다',
