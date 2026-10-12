@@ -103,10 +103,114 @@ PRESETS = {
             'shoes06/shoes06.mhclo',
         ],
     },
+    'manBusiness': {
+        'phenotype': {
+            'gender': 1.0,
+            'age': 0.38,
+            'muscle': 0.55,
+            'weight': 0.48,
+            'proportions': 0.72,
+            'height': 0.55,
+            'cupsize': 0.5,
+            'firmness': 0.5,
+            'race': {'asian': 0.8, 'caucasian': 0.2, 'african': 0.0},
+        },
+        'skin_mhmat': 'young_asian_male/young_asian_male.mhmat',
+        'hair': 'short01/short01.mhclo',
+        'eyebrows': 'mindfront_eyebrows_09/mindfront_eyebrows_09.mhclo',
+        'eyelashes': 'mindfront_eyelashes_01/mindfront_eyelashes_01.mhclo',
+        'eyes_material': 'brown',
+        'clothes': [
+            'male_elegantsuit01/male_elegantsuit01.mhclo',
+            'shoes05/shoes05.mhclo',
+        ],
+    },
+    'manCasual': {
+        'phenotype': {
+            'gender': 1.0,
+            'age': 0.36,
+            'muscle': 0.58,
+            'weight': 0.52,
+            'proportions': 0.7,
+            'height': 0.58,
+            'cupsize': 0.5,
+            'firmness': 0.5,
+            'race': {'asian': 0.2, 'caucasian': 0.8, 'african': 0.0},
+        },
+        'skin_mhmat': 'young_caucasian_male/young_caucasian_male.mhmat',
+        'hair': 'short03/short03.mhclo',
+        'eyebrows': 'mindfront_eyebrows_01/mindfront_eyebrows_01.mhclo',
+        'eyelashes': 'mindfront_eyelashes_01/mindfront_eyelashes_01.mhclo',
+        'eyes_material': 'bluegreen',
+        'clothes': [
+            'male_casualsuit02/male_casualsuit02.mhclo',
+            'shoes05/shoes05.mhclo',
+        ],
+    },
+    'womanCasual': {
+        'phenotype': {
+            'gender': 0.0,
+            'age': 0.36,
+            'muscle': 0.48,
+            'weight': 0.44,
+            'proportions': 0.75,
+            'height': 0.46,
+            'cupsize': 0.5,
+            'firmness': 0.55,
+            'race': {'asian': 0.8, 'caucasian': 0.2, 'african': 0.0},
+        },
+        'skin_mhmat': 'young_asian_female/young_asian_female.mhmat',
+        'hair': 'bob02/bob02.mhclo',
+        'eyebrows': 'mindfront_eyebrows_03/mindfront_eyebrows_03.mhclo',
+        'eyelashes': 'mindfront_eyelashes_02/mindfront_eyelashes_02.mhclo',
+        'eyes_material': 'brown',
+        'clothes': [
+            'female_casualsuit01/female_casualsuit01.mhclo',
+            'shoes04/shoes04.mhclo',
+        ],
+    },
+    'womanSmart': {
+        'phenotype': {
+            'gender': 0.0,
+            'age': 0.38,
+            'muscle': 0.48,
+            'weight': 0.43,
+            'proportions': 0.75,
+            'height': 0.48,
+            'cupsize': 0.5,
+            'firmness': 0.55,
+            'race': {'asian': 0.15, 'caucasian': 0.85, 'african': 0.0},
+        },
+        'skin_mhmat': 'young_caucasian_female/young_caucasian_female.mhmat',
+        'hair': 'long01/long01.mhclo',
+        'eyebrows': 'mindfront_eyebrows_03/mindfront_eyebrows_03.mhclo',
+        'eyelashes': 'mindfront_eyelashes_02/mindfront_eyelashes_02.mhclo',
+        'eyes_material': 'brown',
+        'clothes': [
+            'female_elegantsuit01/female_elegantsuit01.mhclo',
+            'shoes04/shoes04.mhclo',
+        ],
+    },
 }
 
 # 書き出すテクスチャの最大辺（肌は顔の細部のため大きめ）
 MAX_TEXTURE = {'skin': 2048, 'default': 1024}
+
+
+def apply_custom_textures():
+    branded_dir = os.path.abspath('tmp/branded_textures')
+    if not os.path.exists(branded_dir):
+        return
+    for f in os.listdir(branded_dir):
+        if not f.endswith('.png'):
+            continue
+        p = os.path.join(branded_dir, f)
+        base_name = f.lower()
+        for img in bpy.data.images:
+            if img.name.lower() == base_name or (img.filepath and os.path.basename(img.filepath).lower() == base_name):
+                img.filepath = p
+                img.reload()
+                print('APPLIED CUSTOM TEXTURE:', img.name, '->', p)
 
 
 def build(preset):
@@ -128,7 +232,9 @@ def build(preset):
     settings = HumanService.get_default_deserialization_settings()
     settings['subdiv_levels'] = 0
     settings['override_clothes_model'] = 'MAKESKIN'
-    return HumanService.deserialize_from_dict(info, settings)
+    res = HumanService.deserialize_from_dict(info, settings)
+    apply_custom_textures()
+    return res
 
 
 def set_eye_color(color):
