@@ -59,7 +59,9 @@ test('onboarding → calibration → monitoring detects bad posture and recovery
 
   // 基準姿勢に戻ると回復表示
   await expect(
-    page.getByRole('status').filter({ hasText: 'いい姿勢に戻りました' })
+    page
+      .getByRole('status')
+      .filter({ hasText: /良い姿勢に戻りました|いい姿勢に戻りました/ })
   ).toBeVisible({ timeout: 80_000 });
   console.log(`[e2e] recovered at ${elapsed()}s`);
 

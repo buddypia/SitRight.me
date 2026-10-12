@@ -19,7 +19,7 @@ function getApi(): DocumentPictureInPicture | null {
   );
 }
 
-/** 親ページのスタイル（Tailwind / CSS 変数）を小窓にも適用する */
+/** 親ページのスタイル（Tailwind / CSS 変数）を PiP ウィンドウにも適用する */
 function copyStyles(target: Document) {
   for (const sheet of Array.from(document.styleSheets)) {
     try {
@@ -40,7 +40,7 @@ function copyStyles(target: Document) {
   target.documentElement.lang = document.documentElement.lang;
 }
 
-/** 常に最前面に表示される小窓を開き、その window を返す（React からは createPortal で描画する） */
+/** 常に最前面に表示される Picture-in-Picture ウィンドウを開き、その window を返す（React からは createPortal で描画する） */
 export function useDocumentPip() {
   // 画面はストアの復元後（クライアント）にだけ描画されるので、初期値で判定してよい
   const [supported] = useState(() => getApi() !== null);
@@ -68,7 +68,7 @@ export function useDocumentPip() {
     setPipWindow(null);
   }, []);
 
-  // 画面を離れたら小窓も閉じる
+  // 画面を離れたら PiP ウィンドウも閉じる
   useEffect(() => () => getApi()?.window?.close(), []);
 
   return { supported, pipWindow, open, close };
