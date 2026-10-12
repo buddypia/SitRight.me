@@ -4,7 +4,12 @@ import type { Messages } from '@/i18n/messages';
 import type { LiveState } from '@/stores/appStore';
 import { PostureScene } from '../PostureScene';
 import type { Avatar } from '../PostureScene/models';
-import { STATUS_COLOR, displayStatus, statusLabel } from './StatusCard';
+import {
+  STATUS_COLOR,
+  displayStatus,
+  isPostureCollapsed,
+  statusLabel,
+} from './StatusCard';
 
 /** 小窓（Picture-in-Picture）用の表示。3D の横姿勢と、状態・スコアだけを出す */
 export function MiniMonitor({
@@ -24,6 +29,7 @@ export function MiniMonitor({
   const color = STATUS_COLOR[status];
   const a = live.assessment;
   const measuring = status === 'good' || status === 'fair' || status === 'poor';
+  const postureCollapsed = isPostureCollapsed(status);
   const pattern =
     measuring && a?.pattern && a.level !== 'good' ? t.pattern[a.pattern] : null;
 
@@ -35,6 +41,7 @@ export function MiniMonitor({
         xray={xray}
         avatar={avatar}
         lowPower={lowPower}
+        loadWeights={postureCollapsed}
         t={t}
         className="min-h-0 flex-1"
       />

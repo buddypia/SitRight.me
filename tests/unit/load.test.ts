@@ -29,3 +29,18 @@ describe('neck load', () => {
     expect(neckLoadKg({ ...IDEAL_RIG, headPitchDeg: -20 })).toBe(HEAD_KG);
   });
 });
+
+describe('posture collapsed detection for neck weights', () => {
+  it('shows weights only when posture collapses during measurement', async () => {
+    const { isPostureCollapsed } = await import(
+      '@/components/Monitor/StatusCard'
+    );
+    expect(isPostureCollapsed('good')).toBe(false);
+    expect(isPostureCollapsed('fair')).toBe(true);
+    expect(isPostureCollapsed('poor')).toBe(true);
+    expect(isPostureCollapsed('paused')).toBe(false);
+    expect(isPostureCollapsed('away')).toBe(false);
+    expect(isPostureCollapsed('checking')).toBe(false);
+  });
+});
+
