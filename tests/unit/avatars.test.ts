@@ -46,4 +46,26 @@ describe('avatars', () => {
       expect(GENDER_OF[id]).toBe('female');
     }
   });
+
+  it('性別ラベル（gender, gender_male, gender_female）が全言語で非空', () => {
+    for (const m of Object.values(MESSAGES)) {
+      expect(m.gender).toBeTruthy();
+      expect(m.gender_male).toBeTruthy();
+      expect(m.gender_female).toBeTruthy();
+    }
+  });
+
+  it('シニア以外のモデルに白髪tint（0xd6d3cf）が誤適用されていない', () => {
+    for (const id of AVATARS) {
+      if (id === 'senior') continue;
+      const asset = AVATAR_ASSETS[id];
+      if (asset.tint) {
+        for (const [, color] of asset.tint) {
+          expect(color, `${id} should not have silver grey hair`).not.toBe(
+            0xd6d3cf
+          );
+        }
+      }
+    }
+  });
 });
