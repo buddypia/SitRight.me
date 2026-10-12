@@ -81,6 +81,10 @@ const ja = {
     '骨格の推定はすべてブラウザ内で行います。映像の保存・送信は一切ありません。',
   privacyLearnMore: '詳細を見る',
   privacyModalTitle: 'プライバシーとデータ利用について',
+  privacyNeverTitle: '外部へ送信されないもの（完全ローカル処理）',
+  privacyNeverItem1: 'カメラ映像の生データ・録画データ',
+  privacyNeverItem2: '顔・骨格の3Dランドマーク座標（生データ）',
+  privacyNeverItem3: '個人を特定できる情報（氏名、IPアドレス、メールアドレス等）',
   privacyCameraTitle: 'カメラ映像と生体情報',
   privacyCameraBody:
     'ウェブカメラ映像と姿勢推定はすべてブラウザ内（ローカル）で処理され、サーバーへの送信や保存・録画は一切行いません。また、顔認識による個人特定や生体テンプレートの作成も行いません。',
@@ -348,6 +352,10 @@ const en: Messages = {
     'Pose estimation runs entirely in your browser. Video feeds and camera frames are never recorded or uploaded.',
   privacyLearnMore: 'Learn more',
   privacyModalTitle: 'Privacy & Data Notice',
+  privacyNeverTitle: 'Never Collected or Transmitted (100% Local)',
+  privacyNeverItem1: 'Raw camera video feeds or recordings',
+  privacyNeverItem2: 'Facial and skeletal 3D landmark coordinates',
+  privacyNeverItem3: 'Personally identifiable information (Name, IP, Email)',
   privacyCameraTitle: 'Camera Feeds & Biometrics',
   privacyCameraBody:
     'Webcam feeds and pose estimation run 100% locally in your browser. Video is never uploaded, recorded, or saved to any server. SitRight does not perform facial recognition or generate biometric templates.',
@@ -610,6 +618,10 @@ const ko: Messages = {
     '골격 추정은 모두 브라우저 안에서 이루어져요. 영상을 저장하거나 전송하지 않아요.',
   privacyLearnMore: '자세히 보기',
   privacyModalTitle: '개인정보 및 데이터 처리 안내',
+  privacyNeverTitle: '절대 수집·전송되지 않는 정보 (100% 기기 내 처리)',
+  privacyNeverItem1: '카메라 영상 원본 및 녹화 데이터',
+  privacyNeverItem2: '얼굴·골격의 3D 랜드마크 원시 좌표',
+  privacyNeverItem3: '개인 식별 정보 (이름, IP 주소, 이메일 등)',
   privacyCameraTitle: '카메라 영상과 생체 정보',
   privacyCameraBody:
     '웹캠 영상과 자세 추정은 100% 사용자 브라우저 내부에서 실시간으로 처리되며 서버로 전송되거나 저장되지 않습니다. SitRight는 안면 인식을 통한 개인 식별이나 생체 인식 템플릿 생성을 일체 수행하지 않습니다.',
