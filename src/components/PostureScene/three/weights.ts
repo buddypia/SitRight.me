@@ -121,9 +121,9 @@ export class NeckWeights {
       this.mats[i].depthWrite = v > 0.98;
       if (v > 0.5) top = Math.max(top, i + 1);
     });
-    const h = Math.max(1, top) * pitch;
+    const h = top * pitch;
     this.pin.position.set(base.x, base.y + h / 2 + 0.006 * scale, base.z);
-    this.pin.scale.set(scale, h + 0.012 * scale, scale);
+    this.pin.scale.set(scale, Math.max(0.001, h + 0.012 * scale), scale);
     this.pinMat.opacity = opacity;
     this.pin.visible = top > 0;
     return new THREE.Vector3(base.x, base.y + h, base.z);

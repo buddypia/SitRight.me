@@ -76,7 +76,7 @@ export function Metrics({
       label: t.metricLoad,
       value: a ? a.neckLoadKg.toFixed(1) : '–',
       unit: t.unitKg,
-      severity: a ? Math.min(1, Math.max(0, (a.neckLoadKg - 5) / 13)) : 0,
+      severity: a ? Math.min(1, Math.max(0, a.neckLoadKg / 18)) : 0,
       hint: t.metricLoadHint,
     },
   ];

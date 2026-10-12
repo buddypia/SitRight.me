@@ -3,19 +3,19 @@ import { IDEAL_RIG, solveSkeleton, type RigParams, type Skeleton } from './rig';
 /**
  * 首（頸椎）にかかる負荷の目安。
  * Hansraj (2014) "Assessment of stresses in the cervical spine caused by posture
- * and position of the head" の前傾角ごとの換算重量（0°: 10–12 lb … 60°: 60 lb）を kg にし、
- * その間を線形補間する。
+ * and position of the head" の前傾角ごとの換算重量（15°: 12.2 kg … 60°: 27.2 kg）を基に、
+ * 通常・理想姿勢（0°）を 0 kg として線形補間する。
  */
 const HANSRAJ_KG: [deg: number, kg: number][] = [
-  [0, 5],
+  [0, 0],
   [15, 12.2],
   [30, 18.1],
   [45, 22.2],
   [60, 27.2],
 ];
 
-/** 頭の重さ（kg, 成人の目安） */
-export const HEAD_KG = HANSRAJ_KG[0][1];
+/** 頭の重さ（kg, 成人の目安。負荷倍率の基準に使う） */
+export const HEAD_KG = 5;
 
 /** 頸椎の付け根（C7）から耳への向き（鉛直から前方へ, 度） */
 const neckLineDeg = (s: Skeleton) =>

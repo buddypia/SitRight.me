@@ -197,7 +197,7 @@ export function PostureScene({
     let xrayCur = target.current.xray ? 1 : 0;
     let ghostCur = target.current.guides ? 1 : 0;
     let weightsCur = target.current.loadWeights ? 1 : 0;
-    let loadKg = HEAD_KG;
+    let loadKg = 0;
     let raf = 0;
     // rAF の時刻は描画先 window の時間軸なので、基準もそちらの performance から取る
     let last = win.performance.now();
@@ -289,9 +289,12 @@ export function PostureScene({
         const kg = loadLabel.querySelector('[data-id="kg"]');
         const rel = loadLabel.querySelector('[data-id="ratio"]');
         const kgText = `${Math.round(loadKg)} kg`;
-        const relText = format(tRef.current.neckLoadRatio, {
-          ratio: ratio.toFixed(1),
-        });
+        const relText =
+          Math.round(loadKg) === 0
+            ? tRef.current.neckLoadZero
+            : format(tRef.current.neckLoadRatio, {
+                ratio: ratio.toFixed(1),
+              });
         if (kg && kg.textContent !== kgText) kg.textContent = kgText;
         if (rel && rel.textContent !== relText) rel.textContent = relText;
       }
