@@ -8,6 +8,92 @@ export interface TelemetryPayload {
 }
 
 /**
+ * Checks if a destination URL represents non-first-party telemetry or an external tracker.
+ * Only same-origin '/api/telemetry' is permitted as telemetry.
+ */
+export function isBlockedTelemetryUrl(url: string): boolean {
+  if (!url) return false;
+  // Explicitly block Google ODML (MediaPipe internal logger)
+  if (url.includes('odml.pa.googleapis.com') || url.includes('googleapis.com/v1/log')) {
+    return true;
+  }
+  // Block any non-first-party cross-origin telemetry/tracking/beacon calls
+  if (/^https?:\/\//i.test(url)) {
+    try {
+      const parsed = new URL(url);
+      const isSameOrigin =
+        typeof window !== 'undefined' && parsed.origin === window.location.origin;
+      if (!isSameOrigin) {
+        if (
+          parsed.pathname.includes('/telemetry') ||
+          parsed.pathname.includes('/log') ||
+          parsed.pathname.includes('/analytics') ||
+          parsed.pathname.includes('/collect') ||
+          parsed.pathname.includes('/metrics')
+        ) {
+          return true;
+        }
+      }
+    } catch {
+      return true;
+    }
+  }
+  return false;
+}
+
+let blockerInstalled = false;
+
+/**
+ * Installs client-side runtime interception to ensure zero third-party telemetry escapes.
+ * Silently drops any unauthorized external telemetry calls with 204 No Content or true,
+ * preventing CSP errors, network requests, and promise rejections.
+ */
+export function installThirdPartyTelemetryBlocker(): void {
+  if (blockerInstalled || typeof window === 'undefined') return;
+  blockerInstalled = true;
+
+  if (typeof window.fetch === 'function') {
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+      const url =
+        typeof input === 'string'
+          ? input
+          : 'url' in input
+            ? input.url
+            : String(input);
+      if (isBlockedTelemetryUrl(url)) {
+        return Promise.resolve(new Response(null, { status: 204 }));
+      }
+      return originalFetch(input, init);
+    };
+  }
+
+  if (
+    typeof navigator !== 'undefined' &&
+    typeof navigator.sendBeacon === 'function'
+  ) {
+    const originalSendBeacon = navigator.sendBeacon.bind(navigator);
+    navigator.sendBeacon = (url: string | URL, data?: BodyInit | null) => {
+      const urlStr = typeof url === 'string' ? url : 'href' in url ? url.href : String(url);
+      if (isBlockedTelemetryUrl(urlStr)) {
+        return true;
+      }
+      return originalSendBeacon(url, data);
+    };
+  }
+}
+
+/** Reset blocker flag for test isolation */
+export function resetTelemetryBlockerForTesting(): void {
+  blockerInstalled = false;
+}
+
+// Auto-activate in browser context
+if (typeof window !== 'undefined') {
+  installThirdPartyTelemetryBlocker();
+}
+
+/**
  * Privacy-preserving, offline-safe, non-blocking telemetry emitter.
  * 
  * Strict Guarantees:
@@ -50,3 +136,4 @@ export function sendTelemetry(payload: TelemetryPayload): void {
     // Intentionally silent: fail-open guarantee
   }
 }
+

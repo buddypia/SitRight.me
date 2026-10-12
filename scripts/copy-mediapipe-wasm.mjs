@@ -5,6 +5,7 @@
  */
 import { cpSync, mkdirSync, readdirSync } from 'node:fs';
 import path from 'node:path';
+import { disableThirdPartyTelemetry } from './disable-third-party-telemetry.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const src = path.join(root, 'node_modules/@mediapipe/tasks-vision/wasm');
@@ -16,3 +17,7 @@ for (const file of readdirSync(src)) {
   if (file.includes('_module_')) continue;
   cpSync(path.join(src, file), path.join(dest, file));
 }
+
+// Third-party telemetry must be eliminated completely per TELEMETRY_CONTRACT.md
+disableThirdPartyTelemetry(root);
+
