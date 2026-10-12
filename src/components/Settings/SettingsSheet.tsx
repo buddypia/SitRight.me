@@ -10,7 +10,7 @@ import {
   showDesktopNotification,
 } from '@/engine/notifier';
 import { useT } from '@/hooks/useT';
-import { format, LOCALE_OPTIONS, type Locale } from '@/i18n/messages';
+import { format } from '@/i18n/messages';
 import { useAppStore, type SoundTheme } from '@/stores/appStore';
 import { Button, Segmented, Toggle } from '../ui';
 import { AvatarPicker } from './AvatarPicker';
@@ -219,15 +219,6 @@ export function SettingsSheet({
               value={settings.avatar}
               onChange={(v) => update({ avatar: v })}
               t={t}
-            />
-          </Field>
-
-          <Field label={t.language}>
-            <Segmented<Locale>
-              label={t.language}
-              value={settings.locale}
-              onChange={(v) => update({ locale: v })}
-              options={LOCALE_OPTIONS}
             />
           </Field>
 

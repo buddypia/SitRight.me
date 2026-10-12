@@ -5,6 +5,7 @@ import { getController } from '@/engine/controller';
 import { useT } from '@/hooks/useT';
 import { useAppStore } from '@/stores/appStore';
 import { Calibrate } from '../Calibrate';
+import { LanguageSelector } from '../LanguageSelector';
 import { Monitor, STATUS_COLOR, displayStatus, statusLabel } from '../Monitor';
 import { SettingsSheet } from '../Settings';
 import { Setup, Spinner } from '../Setup';
@@ -131,6 +132,7 @@ function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
               </Button>
             </>
           )}
+          <LanguageSelector />
           <Button
             size="sm"
             variant="ghost"
