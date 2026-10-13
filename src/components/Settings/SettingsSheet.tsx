@@ -269,6 +269,16 @@ export function SettingsSheet({
                       <span aria-hidden>→</span>
                     </button>
                   </div>
+                  <div>
+                    <a
+                      href="mailto:contact@buddypia.com"
+                      className="inline-flex items-center gap-1.5 text-xs text-good hover:underline cursor-pointer"
+                    >
+                      <span>✉️</span>
+                      <span>{t.contactNoticeButton}</span>
+                      <span aria-hidden>↗</span>
+                    </a>
+                  </div>
                 </div>
               </div>
             </Field>

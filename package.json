@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
+  "author": "buddypia <contact@buddypia.com>",
   "engines": {
     "node": "^24.21.0"
   },
