@@ -18,7 +18,7 @@ const make = (
   score: Math.round(100 * (1 - sev)),
   level: sev >= 0.6 ? 'poor' : sev >= 0.3 ? 'fair' : 'good',
   pattern: sev >= 0.3 ? pattern : null,
-  neckLoadKg: 5,
+  neckLoadKg: 0,
   neckFlexDeg: 0,
 });
 

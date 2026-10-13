@@ -112,9 +112,9 @@ export function classifyPattern(s: Severities): PosturePattern | null {
   return f >= slump ? 'straight_neck' : 'slouch';
 }
 
-/** 首を前に倒した角度と頭の重さによる負担の目安（Hansraj 2014 の値を補間） */
+/** 首を前に倒した角度による負担の目安（通常・理想姿勢を0kgとし、Hansraj 2014 の値を補間） */
 const NECK_LOAD_TABLE: [number, number][] = [
-  [0, 5],
+  [0, 0],
   [15, 12.2],
   [30, 18.1],
   [45, 22.2],
