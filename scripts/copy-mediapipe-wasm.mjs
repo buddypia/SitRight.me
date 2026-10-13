@@ -3,14 +3,27 @@
  * JS（npm パッケージ）と wasm のバージョンがずれると読み込みに失敗するため、
  * wasm はコミットせず、dev / build の前に毎回パッケージからコピーする。
  */
+import { execSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { disableThirdPartyTelemetry } from './disable-third-party-telemetry.mjs';
 
+function resolveMainRepoRoot(startDir) {
+  try {
+    const commonDir = execSync('git rev-parse --path-format=absolute --git-common-dir', {
+      cwd: startDir,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    if (commonDir) return path.dirname(commonDir);
+  } catch {
+    // fallback
+  }
+  return startDir;
+}
+
 const root = path.resolve(import.meta.dirname, '..');
-const projectRoot = root.includes('.worktrees')
-  ? root.split(`${path.sep}.worktrees`)[0]
-  : root;
+const projectRoot = resolveMainRepoRoot(root);
 
 const candidateDirs = [
   path.join(root, 'node_modules'),

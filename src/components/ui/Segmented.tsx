@@ -2,6 +2,21 @@
 
 import { useRef } from 'react';
 
+export function getNextSegmentIndex(
+  key: string,
+  currentIndex: number,
+  length: number
+): number {
+  if (length <= 0) return -1;
+  if (key === 'ArrowRight' || key === 'ArrowDown') {
+    return (currentIndex + 1) % length;
+  }
+  if (key === 'ArrowLeft' || key === 'ArrowUp') {
+    return (currentIndex - 1 + length) % length;
+  }
+  return -1;
+}
+
 export function Segmented<T extends string | number>({
   value,
   options,
@@ -16,21 +31,16 @@ export function Segmented<T extends string | number>({
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const handleKeyDown = (e: React.KeyboardEvent, currentIndex: number) => {
-    let nextIndex = -1;
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-      e.preventDefault();
-      nextIndex = (currentIndex + 1) % options.length;
-    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      e.preventDefault();
-      nextIndex = (currentIndex - 1 + options.length) % options.length;
-    }
-
+    const nextIndex = getNextSegmentIndex(e.key, currentIndex, options.length);
     if (nextIndex >= 0) {
+      e.preventDefault();
       const nextOpt = options[nextIndex];
       onChange(nextOpt.value);
       buttonRefs.current[nextIndex]?.focus();
     }
   };
+
+  const hasActive = options.some((o) => o.value === value);
 
   return (
     <div
@@ -49,7 +59,7 @@ export function Segmented<T extends string | number>({
             type="button"
             role="radio"
             aria-checked={active}
-            tabIndex={active ? 0 : -1}
+            tabIndex={active || (!hasActive && idx === 0) ? 0 : -1}
             onKeyDown={(e) => handleKeyDown(e, idx)}
             onClick={() => onChange(o.value)}
             className={`h-7 cursor-pointer rounded-full px-3 text-xs transition ${

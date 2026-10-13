@@ -12,6 +12,7 @@
  * 2. Log entries are never buffered (a no-op flush would let the buffer grow forever).
  * 3. The remote endpoint URL is removed.
  */
+import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -32,9 +33,17 @@ export function disableThirdPartyTelemetry(baseDir = process.cwd()) {
     ['(t=t.m).error||t.i.push(e)', '(t=t.m)'],
   ];
 
-  const projectRoot = baseDir.includes('.worktrees')
-    ? baseDir.split(`${path.sep}.worktrees`)[0]
-    : baseDir;
+  let projectRoot = baseDir;
+  try {
+    const commonDir = execSync('git rev-parse --path-format=absolute --git-common-dir', {
+      cwd: baseDir,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    if (commonDir) projectRoot = path.dirname(commonDir);
+  } catch {
+    // fallback
+  }
 
   const candidateDirs = [
     path.join(baseDir, 'node_modules'),

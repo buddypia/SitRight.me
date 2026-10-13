@@ -253,5 +253,17 @@ describe('baseline validation and resilience', () => {
     expect(Number.isFinite(result.deviation.headTiltDeg)).toBe(true);
     expect(result.level).toBe('good');
   });
+
+  it('normalizes legacy baseline without headRoll to have headRoll: 0 and pass isValidBaseline', () => {
+    const legacy = { ...validBaseline } as Record<string, unknown>;
+    delete legacy.headRoll;
+    const candidate = {
+      headRoll: 0,
+      ...legacy,
+      ...(Number.isFinite(legacy.headRoll as number) ? { headRoll: legacy.headRoll } : {}),
+    };
+    expect(isValidBaseline(candidate)).toBe(true);
+    expect(candidate.headRoll).toBe(0);
+  });
 });
 
