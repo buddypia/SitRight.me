@@ -27,6 +27,11 @@ import { CameraError, openCamera, stopStream } from './camera';
 import { playChime, setTitleState, showDesktopNotification } from './notifier';
 import { HybridTicker } from './ticker';
 import { VisionEngine } from './vision';
+import {
+  recordCameraPermission,
+  recordModelLoaded,
+  sendTelemetry,
+} from './telemetry';
 
 interface ImageCaptureLike {
   grabFrame(): Promise<ImageBitmap>;
@@ -78,14 +83,20 @@ class PostureController {
 
   ensureEngine(): Promise<void> {
     if (!this.enginePromise) {
+      const startTime = performance.now();
       this.setLive({ engine: 'loading' });
       this.enginePromise = this.vision
         .init()
-        .then(() => this.setLive({ engine: 'ready' }))
+        .then(() => {
+          this.setLive({ engine: 'ready' });
+          const durationSec = (performance.now() - startTime) / 1000;
+          recordModelLoaded(durationSec);
+        })
         .catch((error) => {
           console.error('[vision] failed to initialise', error);
           this.enginePromise = null;
           this.setLive({ engine: 'error' });
+          sendTelemetry({ event: 'error', errorCode: 'vision_init_failed' });
           throw error;
         });
     }
@@ -118,6 +129,7 @@ class PostureController {
       const stream = await openCamera(
         this.store.settings.cameraId ?? undefined
       );
+      recordCameraPermission(true);
       stopStream(this.stream);
       this.stream = stream;
       if (!this.video) {
@@ -142,6 +154,7 @@ class PostureController {
     } catch (error) {
       const kind = error instanceof CameraError ? error.kind : 'unknown';
       this.setLive({ camera: 'error', cameraError: kind });
+      recordCameraPermission(false, kind);
       return;
     }
     await enginePromise;

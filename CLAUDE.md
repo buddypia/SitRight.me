@@ -142,3 +142,13 @@ Webフロントエンド開発における品質と一貫性を保つための�
 6.  **マージとデプロイ**:
     * PRが承認されると、`main`ブランチにマージされる。
     * `main`ブランチへのマージをトリガーに、**本番環境への自動デプロイ**が実行される。
+
+---
+
+## 4. インフラ & CLI 運用方針 (Cloudflare & Tooling SSOT)
+
+Cloudflare の新世代 CLI (`cf`) と現行ホスティング環境（Cloudflare Pages）の過渡期における公式運用方針です。
+
+* **分析・監視・CLI操作**: 新統合 CLI **`cf` (`cf-cli`)** を標準採用 (`npm run analytics`, `npx cf rum`, `npx cf speed`)。
+* **ホスティング・デプロイ**: 現行 Cloudflare Pages の仕様制約（`cf pages deploy` が Legacy Pages 未サポートのため `wrangler pages deploy` を要求）に基づき、デプロイコマンドは `npm run deploy`（`wrangler pages deploy`）およびバインディング設定は `wrangler.toml` を維持。
+* **将来移行ロードマップ**: Cloudflare Workers Assets（静的配信対応 Worker）への移行完了時に、`wrangler` を完全退役させ `cf deploy` + `cloudflare.config.ts` に一本化する。

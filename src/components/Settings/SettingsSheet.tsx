@@ -9,12 +9,22 @@ import {
   requestNotificationPermission,
   showDesktopNotification,
 } from '@/engine/notifier';
+import {
+  downloadCsv,
+  downloadJson,
+  exportAllStatsToJson,
+  exportDayStatsToSummaryCsv,
+  exportDayStatsToTimelineCsv,
+} from '@/core/export';
+import { localDateKey } from '@/core/stats';
 import { useT } from '@/hooks/useT';
 import { format } from '@/i18n/messages';
 import { useAppStore, type SoundTheme } from '@/stores/appStore';
 import { Button, Segmented, Toggle } from '../ui';
 import { AvatarPicker } from './AvatarPicker';
 import { PrivacyModal } from '../Privacy';
+import { LicensesModal } from '../Licenses';
+import { DownloadIcon } from '../Monitor';
 
 export function SettingsSheet({
   open,
@@ -25,11 +35,13 @@ export function SettingsSheet({
 }) {
   const t = useT();
   const settings = useAppStore((s) => s.settings);
+  const history = useAppStore((s) => s.history);
   const update = useAppStore((s) => s.updateSettings);
   const resetAll = useAppStore((s) => s.resetAll);
   const [confirmReset, setConfirmReset] = useState(false);
   const [notifyDenied, setNotifyDenied] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [licensesOpen, setLicensesOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -234,17 +246,98 @@ export function SettingsSheet({
                     label={t.telemetryLabel}
                   />
                 </Row>
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => setPrivacyOpen(true)}
-                    className="inline-flex items-center gap-1.5 text-xs text-good hover:underline cursor-pointer"
-                  >
-                    <span>🛡️</span>
-                    <span>{t.privacyNoticeButton}</span>
-                    <span aria-hidden>→</span>
-                  </button>
+                <div className="flex flex-col gap-2 pt-1">
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setPrivacyOpen(true)}
+                      className="inline-flex items-center gap-1.5 text-xs text-good hover:underline cursor-pointer"
+                    >
+                      <span>🛡️</span>
+                      <span>{t.privacyNoticeButton}</span>
+                      <span aria-hidden>→</span>
+                    </button>
+                  </div>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setLicensesOpen(true)}
+                      className="inline-flex items-center gap-1.5 text-xs text-good hover:underline cursor-pointer"
+                    >
+                      <span>📜</span>
+                      <span>{t.licensesNoticeButton}</span>
+                      <span aria-hidden>→</span>
+                    </button>
+                  </div>
+                  <div>
+                    <a
+                      href="mailto:contact@buddypia.com"
+                      className="inline-flex items-center gap-1.5 text-xs text-good hover:underline cursor-pointer"
+                    >
+                      <span>✉️</span>
+                      <span>{t.contactNoticeButton}</span>
+                      <span aria-hidden>↗</span>
+                    </a>
+                  </div>
                 </div>
+              </div>
+            </Field>
+          </div>
+
+          <div className="border-t border-line pt-6">
+            <Field label={t.exportData}>
+              <p className="mb-3 text-xs leading-relaxed text-ink-3">
+                {t.exportHint}
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    const todayKey = localDateKey(new Date());
+                    downloadCsv(
+                      exportDayStatsToSummaryCsv(history, {
+                        locale: settings.locale,
+                        t,
+                      }),
+                      `sitright-daily-summary-${todayKey}.csv`
+                    );
+                  }}
+                >
+                  <DownloadIcon />
+                  {t.exportSummaryCsv}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    const todayKey = localDateKey(new Date());
+                    downloadCsv(
+                      exportDayStatsToTimelineCsv(history, {
+                        locale: settings.locale,
+                        t,
+                      }),
+                      `sitright-timeline-${todayKey}.csv`
+                    );
+                  }}
+                >
+                  <DownloadIcon />
+                  {t.exportTimelineCsv}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    const todayKey = localDateKey(new Date());
+                    downloadJson(
+                      exportAllStatsToJson(history),
+                      `sitright-stats-${todayKey}.json`
+                    );
+                  }}
+                >
+                  <DownloadIcon />
+                  {t.exportJson}
+                </Button>
               </div>
             </Field>
           </div>
@@ -274,6 +367,10 @@ export function SettingsSheet({
       <PrivacyModal
         open={privacyOpen}
         onClose={() => setPrivacyOpen(false)}
+      />
+      <LicensesModal
+        open={licensesOpen}
+        onClose={() => setLicensesOpen(false)}
       />
     </div>
   );
