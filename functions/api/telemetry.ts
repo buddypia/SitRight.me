@@ -36,7 +36,9 @@ export const onRequestPost = async (context: {
     const body = raw as TelemetryRequest;
     const event = typeof body.event === 'string' ? body.event.slice(0, 64) : 'unknown';
     const step = typeof body.step === 'string' ? body.step.slice(0, 64) : '';
-    const duration = typeof body.durationSec === 'number' && Number.isFinite(body.durationSec) ? body.durationSec : 0;
+    const rawDuration = typeof body.durationSec === 'number' && Number.isFinite(body.durationSec) ? body.durationSec : 0;
+    // Bound duration between 0 and 86400 (24 hours) to prevent metrics corruption
+    const duration = Math.min(Math.max(0, rawDuration), 86400);
     const errorCode = typeof body.errorCode === 'string' ? body.errorCode.slice(0, 64) : '';
 
     // Extract country from Cloudflare Request cf object if available (never IP)

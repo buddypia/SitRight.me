@@ -111,7 +111,19 @@ npm run analytics -- --json
 
 ---
 
-## 4. Cloudflare 側の事前設定手順
+## 4. `cf` CLI と `wrangler` の役割分担（運用SSOT）
+
+Cloudflare公式の新統合CLI `cf` (`cf-cli`) と現行ホスティング環境（Cloudflare Pages）の過渡期における役割分担です：
+
+| 領域 | 使用ツール | 理由・背景 |
+| :--- | :--- | :--- |
+| **分析・監視・診断** | **`cf` CLI (`cf-cli`)** | Web Analytics（`cf rum`）やパフォーマンス測定（`cf speed`）は `cf` が主役。`npm run analytics` も `cf` のプロファイル認証を直接利用可能。 |
+| **デプロイ・ホスティング** | **`wrangler` / `wrangler.toml`** | 現行の `cf` CLI (v1.0.0-beta.14) では Legacy Pages のアセットデプロイが未サポート（`cf pages deploy` 実行時に `wrangler pages deploy` を要求）。 |
+| **将来移行ロードマップ** | **`cf deploy` + `cloudflare.config.ts`** | Cloudflare Workers Assets（静的配信対応 Worker）へ移行完了時に `wrangler` を完全退役させ `cf` に一本化予定。 |
+
+---
+
+## 5. Cloudflare 側の事前設定手順
 
 CLIからデータを取得し、Pages Functionsでデータを蓄積するために必要な設定です。
 
@@ -143,7 +155,7 @@ export CLOUDFLARE_ZONE_ID="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 ---
 
-## 5. プライバシー保護・外部送信規律への対応
+## 6. プライバシー保護・外部送信規律への対応
 
 SitRight.meは `PRIVACY.md` に基づき以下の保護を徹底しています：
 

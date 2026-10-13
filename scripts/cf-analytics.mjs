@@ -13,12 +13,15 @@
  */
 
 import { existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { homedir } from 'node:os';
+import { join, resolve } from 'node:path';
 
 // Simple .env parser for convenience if present
 function loadEnv() {
-  const envPath = resolve(process.cwd(), '.env');
-  if (existsSync(envPath)) {
+  const envFiles = ['.env', '.env.local'];
+  for (const file of envFiles) {
+    const envPath = resolve(process.cwd(), file);
+    if (!existsSync(envPath)) continue;
     try {
       const content = readFileSync(envPath, 'utf8');
       for (const line of content.split('\n')) {
@@ -36,8 +39,34 @@ function loadEnv() {
 }
 loadEnv();
 
-const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN || process.env.CF_API_TOKEN;
-const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
+// Resolve from cf CLI config profile if environment variables are not explicitly set
+function resolveFromCfProfile() {
+  const home = homedir();
+  const candidates = [
+    process.env.XDG_CONFIG_HOME ? join(process.env.XDG_CONFIG_HOME, 'cloudflare/config/default.json') : null,
+    join(home, 'Library/Preferences/cloudflare/config/default.json'), // macOS
+    join(home, '.config/cloudflare/config/default.json'), // Linux
+  ].filter(Boolean);
+
+  for (const p of candidates) {
+    if (existsSync(p)) {
+      try {
+        const parsed = JSON.parse(readFileSync(p, 'utf8'));
+        return {
+          token: parsed.token || parsed.access_token || parsed.api_token || null,
+          accountId: parsed.account_id || parsed.accountId || null,
+        };
+      } catch {
+        // ignore
+      }
+    }
+  }
+  return { token: null, accountId: null };
+}
+
+const cfProfile = resolveFromCfProfile();
+const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN || process.env.CF_API_TOKEN || cfProfile.token;
+const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || cfProfile.accountId;
 const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID;
 
 const argv = process.argv.slice(2);
