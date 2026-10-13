@@ -45,6 +45,14 @@ export function recordModelLoaded(durationSec: number): void {
   });
 }
 
+const BLOCKED_PATH_SEGMENTS = new Set([
+  'telemetry',
+  'log',
+  'analytics',
+  'collect',
+  'metrics',
+]);
+
 /**
  * Checks if a destination URL represents non-first-party telemetry or an external tracker.
  * Only same-origin '/api/telemetry' is permitted as telemetry.
@@ -58,16 +66,12 @@ export function isBlockedTelemetryUrl(url: string): boolean {
       const parsed = new URL(url);
       const isSameOrigin =
         typeof window !== 'undefined' && parsed.origin === window.location.origin;
-      if (!isSameOrigin) {
-        if (
-          parsed.pathname.includes('/telemetry') ||
-          parsed.pathname.includes('/log') ||
-          parsed.pathname.includes('/analytics') ||
-          parsed.pathname.includes('/collect') ||
-          parsed.pathname.includes('/metrics')
-        ) {
-          return true;
-        }
+      // 部分文字列ではなくパスの区切りごとに比べる（'/log' が '/login' や '/blog' に当たらないように）
+      if (
+        !isSameOrigin &&
+        parsed.pathname.split('/').some((seg) => BLOCKED_PATH_SEGMENTS.has(seg))
+      ) {
+        return true;
       }
     } catch {
       return true;

@@ -9,7 +9,7 @@
  * 
  * This script strips and disables third-party telemetry in MediaPipe bundles so that:
  * 1. Periodic setInterval timers (60s flush) are neutered (zero CPU/battery waste).
- * 2. Log flush methods return immediately as no-ops.
+ * 2. Log entries are never buffered (a no-op flush would let the buffer grow forever).
  * 3. The remote endpoint URL is removed.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -25,11 +25,11 @@ export function disableThirdPartyTelemetry(baseDir = process.cwd()) {
   let patchedCount = 0;
 
   // [from, to]: 1. remove the remote ODML logging URL,
-  // 2. kill the 60s periodic flush timer, 3. short-circuit flush()
+  // 2. kill the 60s periodic flush timer, 3. never enqueue log entries
   const patches = [
     ['https://odml.pa.googleapis.com/v1/log', ''],
     ['setInterval(()=>{this.flush()},6e4)', 'void 0'],
-    ['flush(t,e){if(this.error)', 'flush(t,e){t?.();return;if(this.error)'],
+    ['(t=t.m).error||t.i.push(e)', '(t=t.m)'],
   ];
 
   for (const bundle of bundles) {

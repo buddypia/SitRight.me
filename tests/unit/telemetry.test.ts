@@ -49,6 +49,11 @@ describe('telemetry', () => {
       expect(isBlockedTelemetryUrl('/models/avatar.glb')).toBe(false);
       expect(isBlockedTelemetryUrl('blob:http://localhost:3000/123-abc')).toBe(false);
     });
+
+    it('matches whole path segments, not substrings', () => {
+      expect(isBlockedTelemetryUrl('https://cdn.example.com/login')).toBe(false);
+      expect(isBlockedTelemetryUrl('https://cdn.example.com/blog/logo.png')).toBe(false);
+    });
   });
 
   describe('installThirdPartyTelemetryBlocker', () => {
