@@ -107,6 +107,7 @@ export function isValidBaseline(b: unknown): b is Baseline {
       'neckRise',
       'headPitch',
       'shoulderTilt',
+      'headRoll',
       'shoulderY',
       'shoulderWidth',
       'headDistanceCm',

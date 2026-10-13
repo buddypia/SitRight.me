@@ -46,7 +46,17 @@ const resolve = (urlPath) => {
 };
 
 createServer((req, res) => {
-  const file = resolve(new URL(req.url, 'http://x').pathname);
+  const pathname = new URL(req.url, 'http://x').pathname;
+  if (pathname === '/api/telemetry') {
+    res.writeHead(204, {
+      ...headers,
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+    });
+    res.end();
+    return;
+  }
+  const file = resolve(pathname);
   const status = file ? 200 : 404;
   const body = file ?? path.join(root, '404.html');
   res.writeHead(status, {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { assess, neckLoadKg } from '@/core/assessment';
-import { CalibrationCollector } from '@/core/calibration';
+import { CalibrationCollector, isValidBaseline } from '@/core/calibration';
 import { extractMetrics, headPoseFromMatrix } from '@/core/metrics';
 import type { Baseline, RawMetrics, VisionFrame } from '@/core/types';
 import { synthFrame, uprightScene, type Scene } from './synthetic';
@@ -217,3 +217,41 @@ describe('neck load estimate', () => {
     expect(neckLoadKg(90)).toBeCloseTo(27.2);
   });
 });
+
+describe('baseline validation and resilience', () => {
+  const validBaseline: Baseline = {
+    scaleRatio: 0.42,
+    neckRise: 0.35,
+    headPitch: 5,
+    shoulderTilt: 0,
+    headRoll: 0,
+    shoulderY: 240,
+    shoulderWidth: 300,
+    headDistanceCm: 55,
+    capturedAt: 123456789,
+  };
+
+  it('validates a complete baseline structure', () => {
+    expect(isValidBaseline(validBaseline)).toBe(true);
+  });
+
+  it('rejects incomplete or invalid baselines', () => {
+    expect(isValidBaseline(null)).toBe(false);
+    expect(isValidBaseline({})).toBe(false);
+    expect(isValidBaseline({ ...validBaseline, headRoll: undefined })).toBe(false);
+    expect(isValidBaseline({ ...validBaseline, scaleRatio: -1 })).toBe(false);
+    expect(isValidBaseline({ ...validBaseline, neckRise: 0 })).toBe(false);
+    expect(isValidBaseline({ ...validBaseline, shoulderWidth: NaN })).toBe(false);
+  });
+
+  it('handles legacy baseline without headRoll without NaN in assessment', () => {
+    const legacy = { ...validBaseline } as Record<string, unknown>;
+    delete legacy.headRoll;
+    const m = metricsOf(synthFrame(uprightScene()));
+    const result = assess(m, legacy as unknown as Baseline, 'standard');
+    expect(Number.isFinite(result.score)).toBe(true);
+    expect(Number.isFinite(result.deviation.headTiltDeg)).toBe(true);
+    expect(result.level).toBe('good');
+  });
+});
+

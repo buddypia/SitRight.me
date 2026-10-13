@@ -1,10 +1,29 @@
 import { defineConfig, devices } from '@playwright/test';
+import { execSync } from 'node:child_process';
+import fs from 'node:fs';
 import path from 'node:path';
 
 const PORT = Number(process.env.E2E_PORT ?? 3011);
-const fakeVideo =
-  process.env.E2E_FAKE_VIDEO ??
-  path.resolve(__dirname, 'tests/e2e/fixtures/posture.mjpeg');
+
+function resolveFakeVideo(): string {
+  if (process.env.E2E_FAKE_VIDEO) return process.env.E2E_FAKE_VIDEO;
+  const local = path.resolve(__dirname, 'tests/e2e/fixtures/posture.mjpeg');
+  if (fs.existsSync(local)) return local;
+  try {
+    const commonDir = execSync('git rev-parse --path-format=absolute --git-common-dir', {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    const mainRepo = path.dirname(commonDir);
+    const mainFixture = path.resolve(mainRepo, 'tests/e2e/fixtures/posture.mjpeg');
+    if (fs.existsSync(mainFixture)) return mainFixture;
+  } catch {
+    // ignore
+  }
+  return local;
+}
+
+const fakeVideo = resolveFakeVideo();
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -16,6 +35,7 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    reducedMotion: 'reduce',
   },
   projects: [
     {

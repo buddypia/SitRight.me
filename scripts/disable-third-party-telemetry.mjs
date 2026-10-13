@@ -12,7 +12,7 @@
  * 2. Log entries are never buffered (a no-op flush would let the buffer grow forever).
  * 3. The remote endpoint URL is removed.
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 export function disableThirdPartyTelemetry(baseDir = process.cwd()) {
@@ -32,8 +32,21 @@ export function disableThirdPartyTelemetry(baseDir = process.cwd()) {
     ['(t=t.m).error||t.i.push(e)', '(t=t.m)'],
   ];
 
+  const projectRoot = baseDir.includes('.worktrees')
+    ? baseDir.split(`${path.sep}.worktrees`)[0]
+    : baseDir;
+
+  const candidateDirs = [
+    path.join(baseDir, 'node_modules'),
+    path.join(projectRoot, 'node_modules'),
+  ];
+  const nodeModulesDir =
+    candidateDirs.find((dir) =>
+      existsSync(path.join(dir, '@mediapipe/tasks-vision'))
+    ) ?? path.join(baseDir, 'node_modules');
+
   for (const bundle of bundles) {
-    const filePath = path.resolve(baseDir, 'node_modules/@mediapipe/tasks-vision', bundle);
+    const filePath = path.resolve(nodeModulesDir, '@mediapipe/tasks-vision', bundle);
     let content;
     try {
       content = readFileSync(filePath, 'utf8');

@@ -61,7 +61,7 @@
 
 本ガイドラインで定義された禁止表現および標準表現は、単なるドキュメントに留まらず、自動テストによって恒常的に保護されています。
 
-- **テストファイル**: [`tests/unit/i18n.test.ts`](file:///Users/a13973/dev/buddypia/SitRight.me/.worktrees/feature/standardize-pip-and-wording/tests/unit/i18n.test.ts)
+- **テストファイル**: [`tests/unit/i18n.test.ts`](file:///Users/a13973/dev/buddypia/SitRight.me/tests/unit/i18n.test.ts)
 - **テストスイート**: `describe('prohibited terminology and tone contract')`
 - **検証内容**:
   1. `MESSAGES` の各言語でPiP標準用語が完全一致すること。
