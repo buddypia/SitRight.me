@@ -1006,6 +1006,8 @@ function cmdFinalize() {
       worktree_cleaned: true, sync_status: 'fetch_failed',
     };
   }
+  // Same stale-ref pruning as syncMainAfterCleanup.
+  try { git(['remote', 'prune', 'origin'], { timeout: 30_000 }); } catch {}
 
   const hasChanges = git(['status', '--porcelain']).trim().length > 0;
   if (hasChanges) {
@@ -2541,6 +2543,8 @@ function syncMainAfterCleanup(worktreeCleaned, warnings) {
   } catch (e) {
     return fail(`${BASE_BRANCH} fetch failed: ${e.message}`, 'Check remote status and sync manually.', 'fetch_failed');
   }
+  // GitHub deletes merged branches, but `fetch origin <base>` never prunes, so origin/<branch> refs pile up.
+  try { git(['remote', 'prune', 'origin'], { cwd: PROJECT_DIR, timeout: 30_000 }); } catch {}
   if (git(['status', '--porcelain'], { cwd: PROJECT_DIR }).trim().length > 0) {
     return fail(
       'Cannot proceed with sync because local uncommitted changes exist.',
