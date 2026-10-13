@@ -1,7 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { getController } from '@/engine/controller';
+import {
+  recordSessionEnd,
+  recordSessionStart,
+  sendTelemetry,
+} from '@/engine/telemetry';
 import { useT } from '@/hooks/useT';
 import { useAppStore } from '@/stores/appStore';
 import { Calibrate } from '../Calibrate';
@@ -19,6 +24,7 @@ export function App() {
   const phase = useAppStore((s) => s.phase);
   const locale = useAppStore((s) => s.settings.locale);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const prevPhaseRef = useRef(phase);
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -38,13 +44,28 @@ export function App() {
     const controller = getController();
     // bfcache に入る場合（persisted）は破棄しない。戻ったときにそのまま再開できるようにする
     const onUnload = (e: PageTransitionEvent) => {
+      recordSessionEnd('monitor');
       if (!e.persisted) controller.dispose();
     };
     window.addEventListener('pagehide', onUnload);
-    return () => window.removeEventListener('pagehide', onUnload);
+    return () => {
+      recordSessionEnd('monitor');
+      window.removeEventListener('pagehide', onUnload);
+    };
   }, []);
 
   useEffect(() => {
+    const prev = prevPhaseRef.current;
+    if (prev !== phase) {
+      sendTelemetry({ event: 'step_transition', step: phase });
+      if (phase === 'monitor') {
+        recordSessionStart('monitor');
+      } else if (prev === 'monitor') {
+        recordSessionEnd('monitor');
+      }
+      prevPhaseRef.current = phase;
+    }
+
     // トップに戻ったらカメラを止める（計測していないのにカメラが点きっぱなしにならないように）
     if (phase === 'welcome') getController().stopCamera();
   }, [phase]);
