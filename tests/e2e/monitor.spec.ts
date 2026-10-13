@@ -98,10 +98,18 @@ test('welcome renders the 3D demo without errors', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await seedSettings(page);
+  const started = Date.now();
   await page.goto('/');
-  await expect(
-    page.getByRole('img', { name: '横から見たあなたの姿勢' })
-  ).toBeVisible({ timeout: 20_000 });
+  const scene = page.getByRole('img', { name: '横から見たあなたの姿勢' });
+  await expect(scene).toBeVisible({ timeout: 20_000 });
   await expect(page.locator('canvas')).toHaveCount(1);
+  // モデルの読み込みが終わるまでの時間を残す（遅くなったら性能の退行として扱う）
+  await expect(scene).toHaveAttribute('aria-busy', 'false', {
+    timeout: 120_000,
+  });
+  console.log(
+    `[e2e] avatar ready at ${((Date.now() - started) / 1000).toFixed(1)}s`
+  );
+  await expect(page.getByText('3Dモデルの読み込みに失敗しました')).toHaveCount(0);
   expect(errors).toEqual([]);
 });

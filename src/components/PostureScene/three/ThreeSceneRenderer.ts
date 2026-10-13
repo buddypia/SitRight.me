@@ -2,7 +2,11 @@ import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { IDEAL_RIG, type RigParams } from '@/core/rig';
 import { AVATAR_ASSETS, type Avatar } from '../models';
-import { loadAvatar, type LoadedAvatar } from './avatarLoader';
+import {
+  loadAvatarTemplate,
+  type AvatarTemplate,
+  type LoadedAvatar,
+} from './avatarLoader';
 import type { HumanBone, HumanoidPoser, PoseTargets } from './humanoidPose';
 import { buildProps, DESK, LAPTOP, SEAT_TOP, type Props } from './props';
 import { SpineXray } from './spine';
@@ -112,6 +116,8 @@ function fresnelMaterial(color: THREE.ColorRepresentation) {
 
 interface AvatarInstance {
   id: Avatar;
+  /** model と ghost が共有する形状・マテリアル・テクスチャ */
+  template: AvatarTemplate;
   model: LoadedAvatar;
   ghost: LoadedAvatar;
   auraNeck: THREE.ShaderMaterial;
@@ -275,16 +281,12 @@ export class ThreeSceneRenderer {
   private async load(id: Avatar) {
     const asset = AVATAR_ASSETS[id];
     try {
-      const [model, ghostSrc] = await Promise.all([
-        loadAvatar(asset),
-        loadAvatar(asset),
-      ]);
+      const template = await loadAvatarTemplate(asset);
       if (this.disposed || this.wanted !== id) {
-        model.dispose();
-        ghostSrc.dispose();
+        template.dispose();
         return;
       }
-      const inst = this.setupInstance(id, model, ghostSrc);
+      const inst = this.setupInstance(id, template);
       if (this.current) this.removeInstance(this.current);
       this.current = inst;
       this.loading = null;
@@ -296,11 +298,9 @@ export class ThreeSceneRenderer {
     }
   }
 
-  private setupInstance(
-    id: Avatar,
-    model: LoadedAvatar,
-    ghostSrc: LoadedAvatar
-  ): AvatarInstance {
+  private setupInstance(id: Avatar, template: AvatarTemplate): AvatarInstance {
+    const model = template.instantiate();
+    const ghostSrc = template.instantiate();
     const asset = AVATAR_ASSETS[id];
     const p = model.poser;
     const s = asset.scale ?? 1;
@@ -421,6 +421,7 @@ export class ThreeSceneRenderer {
     this.scene.add(model.root, ghostRoot);
     return {
       id,
+      template,
       model,
       ghost: ghostSrc,
       auraNeck,
@@ -435,6 +436,7 @@ export class ThreeSceneRenderer {
     this.scene.remove(inst.model.root, inst.ghost.root);
     inst.model.dispose();
     inst.ghost.dispose();
+    inst.template.dispose();
     inst.auraNeck.dispose();
     inst.auraBack.dispose();
   }
