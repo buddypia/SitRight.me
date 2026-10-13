@@ -1,0 +1,10 @@
+name = "sitright"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "out"
+
+# Cloudflare Workers Analytics Engine Binding
+# Allows /api/telemetry Pages Function to write privacy-preserving metrics
+[[analytics_engine_datasets]]
+binding = "ANALYTICS_ENGINE"
+dataset = "sitright_telemetry"
