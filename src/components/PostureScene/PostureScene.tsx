@@ -489,9 +489,11 @@ export function PostureScene({
         aria-busy={status === 'loading'}
       />
       {status !== 'ready' && (
-        <div className="pointer-events-none absolute inset-0 grid place-items-center bg-black/40 backdrop-blur-[2px] transition-opacity duration-300">
+        // 毎フレーム描き直す WebGL キャンバスの上に backdrop-filter を置くと、ぼかしも毎フレーム再計算される。
+        // GPU の無い環境では推定ループを数秒単位で止めるため、ここではぼかさず半透明の暗幕だけにする
+        <div className="pointer-events-none absolute inset-0 grid place-items-center bg-black/40 transition-opacity duration-300">
           {status === 'loading' ? (
-            <div className="flex flex-col items-center gap-3.5 rounded-2xl border border-white/10 bg-[#14171c]/90 px-6 py-5 shadow-2xl backdrop-blur-md">
+            <div className="flex flex-col items-center gap-3.5 rounded-2xl border border-white/10 bg-[#14171c]/90 px-6 py-5 shadow-2xl">
               <div className="relative grid h-12 w-12 place-items-center">
                 <span className="absolute inset-0 animate-ping rounded-full bg-good/20 opacity-40 duration-1000" />
                 <span className="absolute inset-0 animate-spin rounded-full border-2 border-white/10 border-t-good" />

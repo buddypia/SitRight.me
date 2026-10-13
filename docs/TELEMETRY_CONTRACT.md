@@ -35,7 +35,7 @@ To preserve user trust, satisfy global privacy regulations (Korea PIPA, Japan Te
 - **Do NOT** add external domains to `connect-src` or `script-src` in `scripts/postbuild.mjs`.
 - All telemetry MUST be first-party (`/api/telemetry`).
 - Any embedded third-party telemetry (e.g. MediaPipe Google ODML logging to `odml.pa.googleapis.com`) MUST be completely eliminated:
-  1. **Build-Time Neutralization (`scripts/disable-third-party-telemetry.mjs`)**: MediaPipe distribution bundles are patched so periodic `setInterval` 60s timers and flush calls are completely removed.
+  1. **Build-Time Neutralization (`scripts/disable-third-party-telemetry.mjs`)**: MediaPipe distribution bundles are patched so the 60s `setInterval` flush timer is removed, log entries are never buffered, and the endpoint URL is stripped.
   2. **Runtime Blocker Guard (`src/engine/telemetry.ts:installThirdPartyTelemetryBlocker`)**: Any non-first-party telemetry network attempts via `fetch` or `sendBeacon` are intercepted and fail exactly like a CSP block (`fetch` rejects with `TypeError`, `sendBeacon` returns `false`), so nothing is ever reported as delivered.
 
 
