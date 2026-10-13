@@ -52,22 +52,51 @@ function resolveFromCfProfile() {
     if (existsSync(p)) {
       try {
         const parsed = JSON.parse(readFileSync(p, 'utf8'));
+        const token =
+          parsed.oauth_token ||
+          parsed.token ||
+          parsed.access_token ||
+          parsed.api_token ||
+          null;
         return {
-          token: parsed.token || parsed.access_token || parsed.api_token || null,
+          token,
           accountId: parsed.account_id || parsed.accountId || null,
+          source: p,
         };
       } catch {
         // ignore
       }
     }
   }
-  return { token: null, accountId: null };
+  return { token: null, accountId: null, source: null };
 }
 
-const cfProfile = resolveFromCfProfile();
-const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN || process.env.CF_API_TOKEN || cfProfile.token;
-const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || cfProfile.accountId;
-const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID;
+async function resolveCredentials() {
+  const profile = resolveFromCfProfile();
+  const token = process.env.CLOUDFLARE_API_TOKEN || process.env.CF_API_TOKEN || profile.token;
+  let accountId = process.env.CLOUDFLARE_ACCOUNT_ID || profile.accountId;
+  const zoneId = process.env.CLOUDFLARE_ZONE_ID;
+  const authSource = profile.source ? `cf profile (${profile.source})` : 'environment variables';
+
+  // Auto-fetch account ID from Cloudflare accounts API if token exists but account ID is unset
+  if (token && !accountId) {
+    try {
+      const res = await fetch('https://api.cloudflare.com/client/v4/accounts', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.result && data.result.length > 0) {
+          accountId = data.result[0].id;
+        }
+      }
+    } catch {
+      // silent fallback
+    }
+  }
+
+  return { token, accountId, zoneId, authSource };
+}
 
 const argv = process.argv.slice(2);
 const isJson = argv.includes('--json');
@@ -88,22 +117,24 @@ Options:
   --json            Output raw aggregated JSON
   --help, -h        Show this help message
 
-Required Environment Variables:
-  CLOUDFLARE_API_TOKEN   Cloudflare API Token with Analytics:Read permissions
-  CLOUDFLARE_ACCOUNT_ID  Your Cloudflare Account ID (for Workers Analytics Engine)
-  CLOUDFLARE_ZONE_ID     (Optional) Cloudflare Zone ID for Edge/Domain Uniques
+Authentication:
+  Automatically uses your 'cf' CLI login profile if authenticated (cf auth login).
+  Alternatively accepts environment variables:
+    CLOUDFLARE_API_TOKEN   Cloudflare API Token
+    CLOUDFLARE_ACCOUNT_ID  Cloudflare Account ID
+    CLOUDFLARE_ZONE_ID     (Optional) Cloudflare Zone ID
 `);
   process.exit(0);
 }
 
-async function queryAnalyticsEngine(dataset, sql) {
-  if (!API_TOKEN || !ACCOUNT_ID) return null;
-  const url = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/analytics_engine/sql`;
+async function queryAnalyticsEngine(token, accountId, dataset, sql) {
+  if (!token || !accountId) return null;
+  const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/analytics_engine/sql`;
   try {
     const res = await fetch(url, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${API_TOKEN}`,
+        Authorization: `Bearer ${token}`,
       },
       body: sql,
     });
@@ -118,14 +149,14 @@ async function queryAnalyticsEngine(dataset, sql) {
   }
 }
 
-async function queryGraphQL(query, variables) {
-  if (!API_TOKEN) return null;
+async function queryGraphQL(token, query, variables) {
+  if (!token) return null;
   const url = 'https://api.cloudflare.com/client/v4/graphql';
   try {
     const res = await fetch(url, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${API_TOKEN}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ query, variables }),
@@ -142,22 +173,26 @@ async function queryGraphQL(query, variables) {
 }
 
 async function run() {
+  const { token, accountId, zoneId, authSource } = await resolveCredentials();
+
   const report = {
     generatedAt: new Date().toISOString(),
     lookbackDays: days,
+    authSource: token ? authSource : 'none',
+    accountId: accountId || null,
     analyticsEngine: null,
     zoneAnalytics: null,
     warnings: [],
   };
 
-  if (!API_TOKEN) {
+  if (!token) {
     report.warnings.push(
-      'CLOUDFLARE_API_TOKEN is not set. Set it in .env or your shell environment to fetch live metrics.'
+      'Not authenticated. Run "npx cf auth login" or set CLOUDFLARE_API_TOKEN.'
     );
   }
 
   // 1. Query Workers Analytics Engine for SitRight App Telemetry
-  if (API_TOKEN && ACCOUNT_ID) {
+  if (token && accountId) {
     const sql = `
       SELECT
         blob1 AS event,
@@ -171,14 +206,14 @@ async function run() {
       GROUP BY event, step, errorCode, country
       ORDER BY count DESC
     `;
-    const result = await queryAnalyticsEngine('sitright_telemetry', sql);
+    const result = await queryAnalyticsEngine(token, accountId, 'sitright_telemetry', sql);
     report.analyticsEngine = result;
-  } else if (!ACCOUNT_ID) {
-    report.warnings.push('CLOUDFLARE_ACCOUNT_ID is not set (needed for Workers Analytics Engine).');
+  } else if (!accountId && token) {
+    report.warnings.push('Cloudflare Account ID could not be resolved automatically.');
   }
 
-  // 2. Query Zone Analytics (Unique IPs, Requests, Cached)
-  if (API_TOKEN && ZONE_ID) {
+  // 2. Query Zone Analytics if zoneId is provided
+  if (token && zoneId) {
     const sinceDate = new Date(Date.now() - days * 86400000).toISOString().split('T')[0];
     const gql = `
       query GetZoneAnalytics($zoneTag: string!, $since: string!) {
@@ -205,7 +240,7 @@ async function run() {
         }
       }
     `;
-    const result = await queryGraphQL(gql, { zoneTag: ZONE_ID, since: sinceDate });
+    const result = await queryGraphQL(token, gql, { zoneTag: zoneId, since: sinceDate });
     report.zoneAnalytics = result;
   }
 
@@ -216,17 +251,19 @@ async function run() {
 
   // Pretty Console Output
   console.log('\n📊 === SitRight.me Cloudflare Analytics Summary ===');
-  console.log(`📅 Period: Last ${days} days (${new Date().toLocaleDateString()})\n`);
+  console.log(`📅 Period: Last ${days} days (${new Date().toLocaleDateString()})`);
+  if (token) {
+    console.log(`🔑 Auth: Authenticated via ${authSource}`);
+    if (accountId) console.log(`🏢 Account ID: ${accountId}`);
+  }
+  console.log('');
 
   if (report.warnings.length > 0) {
     console.log('⚠️  Notice / Setup Guidance:');
     for (const w of report.warnings) {
       console.log(`   - ${w}`);
     }
-    console.log('\n💡 To configure environment variables:');
-    console.log('   export CLOUDFLARE_API_TOKEN="<your_token>"');
-    console.log('   export CLOUDFLARE_ACCOUNT_ID="<your_account_id>"');
-    console.log('   export CLOUDFLARE_ZONE_ID="<your_zone_id>"\n');
+    console.log('');
   }
 
   // Display Analytics Engine Telemetry
@@ -234,7 +271,7 @@ async function run() {
     const rows = report.analyticsEngine.data || [];
     console.log('🎯 [Workers Analytics Engine — Posture & Funnel Telemetry]');
     if (rows.length === 0) {
-      console.log('   No events recorded in this period yet (or dataset newly bound).');
+      console.log('   No events recorded in this period yet (dataset bound; waiting for first production events).');
     } else {
       console.table(
         rows.map((r) => ({
@@ -249,7 +286,8 @@ async function run() {
     }
     console.log('');
   } else if (report.analyticsEngine?.error) {
-    console.log(`❌ Analytics Engine Error: ${report.analyticsEngine.error}\n`);
+    console.log(`ℹ️  Workers Analytics Engine: ${report.analyticsEngine.error}`);
+    console.log('   (Note: If dataset is freshly bound, first events will activate the table.)\n');
   }
 
   // Display Zone Analytics
