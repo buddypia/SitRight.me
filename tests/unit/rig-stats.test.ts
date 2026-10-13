@@ -66,7 +66,7 @@ const a = (
   score,
   level,
   pattern: level === 'good' ? null : 'slouch',
-  neckLoadKg: 5,
+  neckLoadKg: 0,
   neckFlexDeg: 0,
 });
 

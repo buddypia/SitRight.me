@@ -210,8 +210,8 @@ describe('calibration', () => {
 });
 
 describe('neck load estimate', () => {
-  it('interpolates the published reference values', () => {
-    expect(neckLoadKg(0)).toBeCloseTo(5);
+  it('interpolates the published reference values with 0kg at ideal', () => {
+    expect(neckLoadKg(0)).toBeCloseTo(0);
     expect(neckLoadKg(30)).toBeCloseTo(18.1);
     expect(neckLoadKg(22.5)).toBeCloseTo((12.2 + 18.1) / 2);
     expect(neckLoadKg(90)).toBeCloseTo(27.2);
