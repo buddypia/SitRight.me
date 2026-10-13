@@ -36,7 +36,7 @@ To preserve user trust, satisfy global privacy regulations (Korea PIPA, Japan Te
 - All telemetry MUST be first-party (`/api/telemetry`).
 - Any embedded third-party telemetry (e.g. MediaPipe Google ODML logging to `odml.pa.googleapis.com`) MUST be completely eliminated:
   1. **Build-Time Neutralization (`scripts/disable-third-party-telemetry.mjs`)**: MediaPipe distribution bundles are patched so periodic `setInterval` 60s timers and flush calls are completely removed.
-  2. **Runtime Blocker Guard (`src/engine/telemetry.ts:installThirdPartyTelemetryBlocker`)**: Any non-first-party telemetry network attempts via `fetch` or `sendBeacon` are intercepted and silently neutralized with 204 No Content / true.
+  2. **Runtime Blocker Guard (`src/engine/telemetry.ts:installThirdPartyTelemetryBlocker`)**: Any non-first-party telemetry network attempts via `fetch` or `sendBeacon` are intercepted and fail exactly like a CSP block (`fetch` rejects with `TypeError`, `sendBeacon` returns `false`), so nothing is ever reported as delivered.
 
 
 ### Rule 2: Strict Zero Biometric Exfiltration

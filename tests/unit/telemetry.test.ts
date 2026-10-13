@@ -52,7 +52,7 @@ describe('telemetry', () => {
   });
 
   describe('installThirdPartyTelemetryBlocker', () => {
-    it('intercepts third-party fetch and silently returns 204 without calling original fetch', async () => {
+    it('intercepts third-party fetch and rejects like a CSP block without calling original fetch', async () => {
       const originalFetch = vi.fn().mockResolvedValue(new Response(null, { status: 200 }));
       vi.stubGlobal('window', {
         location: { origin: 'http://localhost:3000' },
@@ -61,12 +61,9 @@ describe('telemetry', () => {
 
       installThirdPartyTelemetryBlocker();
 
-      const res = await window.fetch('https://odml.pa.googleapis.com/v1/log', {
-        method: 'POST',
-        body: '{}',
-      });
-
-      expect(res.status).toBe(204);
+      await expect(
+        window.fetch('https://odml.pa.googleapis.com/v1/log', { method: 'POST', body: '{}' })
+      ).rejects.toThrow(TypeError);
       expect(originalFetch).not.toHaveBeenCalled();
     });
 
@@ -83,7 +80,7 @@ describe('telemetry', () => {
       expect(originalFetch).toHaveBeenCalledTimes(1);
     });
 
-    it('intercepts third-party sendBeacon and returns true without dispatching', () => {
+    it('intercepts third-party sendBeacon and returns false without dispatching', () => {
       const originalSendBeacon = vi.fn().mockReturnValue(true);
       vi.stubGlobal('window', { location: { origin: 'http://localhost:3000' } });
       vi.stubGlobal('navigator', { sendBeacon: originalSendBeacon });
@@ -91,7 +88,7 @@ describe('telemetry', () => {
       installThirdPartyTelemetryBlocker();
 
       const result = navigator.sendBeacon('https://odml.pa.googleapis.com/v1/log', '{}');
-      expect(result).toBe(true);
+      expect(result).toBe(false);
       expect(originalSendBeacon).not.toHaveBeenCalled();
     });
   });

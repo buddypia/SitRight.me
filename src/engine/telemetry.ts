@@ -83,8 +83,9 @@ let blockerInstalled = false;
 
 /**
  * Installs client-side runtime interception to ensure zero third-party telemetry escapes.
- * Silently drops any unauthorized external telemetry calls with 204 No Content or true,
- * preventing CSP errors, network requests, and promise rejections.
+ * Unauthorized external telemetry calls fail the same way a CSP block would
+ * (fetch rejects with TypeError, sendBeacon returns false), so callers never
+ * mistake a dropped request for a delivered one.
  */
 export function installThirdPartyTelemetryBlocker(): void {
   if (blockerInstalled || typeof window === 'undefined') return;
@@ -100,7 +101,7 @@ export function installThirdPartyTelemetryBlocker(): void {
             ? input.url
             : String(input);
       if (isBlockedTelemetryUrl(url)) {
-        return Promise.resolve(new Response(null, { status: 204 }));
+        return Promise.reject(new TypeError(`Blocked third-party telemetry: ${url}`));
       }
       return originalFetch(input, init);
     };
@@ -114,7 +115,7 @@ export function installThirdPartyTelemetryBlocker(): void {
     navigator.sendBeacon = (url: string | URL, data?: BodyInit | null) => {
       const urlStr = typeof url === 'string' ? url : 'href' in url ? url.href : String(url);
       if (isBlockedTelemetryUrl(urlStr)) {
-        return true;
+        return false;
       }
       return originalSendBeacon(url, data);
     };

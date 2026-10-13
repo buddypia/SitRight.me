@@ -93,6 +93,7 @@ test('onboarding → calibration → monitoring detects bad posture and recovery
   expect(outbound).toBe('blocked');
 });
 
+// 静的書き出しのためハイドレーション後に描画される。SwiftShader では 5 秒前後かかる
 test('welcome renders the 3D demo without errors', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -100,7 +101,7 @@ test('welcome renders the 3D demo without errors', async ({ page }) => {
   await page.goto('/');
   await expect(
     page.getByRole('img', { name: '横から見たあなたの姿勢' })
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 20_000 });
   await expect(page.locator('canvas')).toHaveCount(1);
   expect(errors).toEqual([]);
 });
