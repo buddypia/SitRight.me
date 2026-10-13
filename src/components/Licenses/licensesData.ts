@@ -23,7 +23,7 @@ export const THIRD_PARTY_PACKAGES: LicenseEntry[] = [
     name: 'SitRight',
     version: '0.1.0',
     license: 'MIT',
-    copyright: 'Copyright (c) 2025 buddypia',
+    copyright: 'Copyright (c) 2025-2026 buddypia',
     url: 'https://github.com/buddypia/SitRight.me',
     description: 'Application source code',
     category: 'core',
@@ -93,7 +93,7 @@ export const THIRD_PARTY_PACKAGES: LicenseEntry[] = [
     id: 'original-assets',
     name: 'Original 3D Characters',
     license: 'MIT',
-    copyright: 'Copyright (c) 2025 buddypia',
+    copyright: 'Copyright (c) 2025-2026 buddypia',
     description:
       'Custom stylized chibi models (public/avatars/{hamu,dino}.glb) created for SitRight.',
     category: 'assets',

@@ -289,6 +289,7 @@ const ja = {
   privacySectionTitle: 'データとプライバシー',
   privacyNoticeButton: 'プライバシーと外部送信について',
   licensesNoticeButton: 'オープンソースライセンス',
+  contactNoticeButton: 'お問い合わせ・フィードバック',
   licensesModalTitle: 'オープンソースライセンス・権利表記',
   licensesIntro:
     'SitRightは以下のオープンソースソフトウェアおよびアセットを活用して開発されています。各著作権者およびライセンス条項は以下の通りです。',
@@ -577,6 +578,7 @@ const en: Messages = {
   privacySectionTitle: 'Data & Privacy',
   privacyNoticeButton: 'Privacy Policy & External Transmission',
   licensesNoticeButton: 'Open Source Licenses',
+  contactNoticeButton: 'Contact & Feedback',
   licensesModalTitle: 'Open Source Licenses & Notices',
   licensesIntro:
     'SitRight is built with the following open source software and assets. Copyright notices and license terms are listed below.',
@@ -870,6 +872,7 @@ const ko: Messages = {
   privacySectionTitle: '데이터 및 개인정보',
   privacyNoticeButton: '개인정보 처리 및 데이터 수집 안내',
   licensesNoticeButton: '오픈소스 라이선스',
+  contactNoticeButton: '문의 및 피드백',
   licensesModalTitle: '오픈소스 라이선스 및 권리 표기',
   licensesIntro:
     'SitRight는 다음 오픈소스 소프트웨어 및 에셋을 활용하여 개발되었습니다. 각 저작권 표기 및 라이선스 약관은 다음과 같습니다.',

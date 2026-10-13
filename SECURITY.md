@@ -10,7 +10,7 @@ Only the latest version deployed from `main` is supported.
 
 Please **do not open a public issue** for security problems.
 
-Report privately through GitHub: **Security → Report a vulnerability** on this repository ([private vulnerability reporting](https://github.com/buddypia/SitRight.me/security/advisories/new)).
+Report privately through GitHub: **Security → Report a vulnerability** on this repository ([private vulnerability reporting](https://github.com/buddypia/SitRight.me/security/advisories/new)), or email us directly at **contact@buddypia.com**.
 
 Please include:
 

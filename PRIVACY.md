@@ -25,6 +25,9 @@ To maintain service reliability, monitor technical errors, and optimize onboardi
 - You can opt out of sending anonymous telemetry at any time in **Settings → Data & Privacy → Send anonymous diagnostics**.
 - SitRight does not sell, rent, or share personal or biometric information with third parties.
 
+### 5. Contact
+For questions, feedback, or data privacy inquiries, please contact us at **contact@buddypia.com**.
+
 ---
 
 ## 日本語
@@ -46,6 +49,9 @@ To maintain service reliability, monitor technical errors, and optimize onboardi
 
 ### 4. 利用者の選択とコントロール
 - 設定画面（「データとプライバシー」）から、いつでも「匿名診断データの送信」をオフ（オプトアウト）に設定できます。
+
+### 5. お問い合わせ窓口
+本ポリシーまたはプライバシーに関するご質問・ご要望は、**contact@buddypia.com** までお問い合わせください。
 
 ---
 
@@ -69,3 +75,6 @@ To maintain service reliability, monitor technical errors, and optimize onboardi
 ### 4. 이용자의 권리 및 데이터 제어 (옵트아웃)
 - 이용자는 설정 화면의 **데이터 및 개인정보 → "익명 진단 데이터 전송"** 스위치를 통해 언제든지 텔레메트리 수집을 거부(옵트아웃)할 수 있습니다.
 - SitRight는 개인정보 보호법, GDPR, CCPA 등 관련 법령을 엄격히 준수하며 이용자의 개인정보를 판매·공유하지 않습니다.
+
+### 5. 문의처
+본 개인정보 처리방침 또는 데이터 처리에 관한 문의 및 의견은 **contact@buddypia.com** 으로 연락해 주시기 바랍니다.
