@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { AvatarAsset } from '../models';
 import { HumanoidPoser, type BoneMap, type HumanBone } from './humanoidPose';
 
@@ -12,6 +13,7 @@ export interface LoadedAvatar {
   earOffset: THREE.Vector3;
   /** モデルの身長（m） */
   height: number;
+  /** この体の骨だけを解放する（形状などは AvatarTemplate が持つ） */
   dispose: () => void;
 }
 
@@ -164,24 +166,27 @@ function addSoftHairPass(model: THREE.Object3D) {
   }
 }
 
-/** モデルを読み込んで姿勢を付けられる状態にする（シーンごとに別のインスタンスを作る） */
-export async function loadAvatar(asset: AvatarAsset): Promise<LoadedAvatar> {
+export interface AvatarTemplate {
+  /** 骨と姿勢を別々に持つ1体を作る（形状・マテリアル・テクスチャは共有） */
+  instantiate: () => LoadedAvatar;
+  /** 共有している形状・マテリアル・テクスチャを解放する。作った体をすべて外してから呼ぶ */
+  dispose: () => void;
+}
+
+/**
+ * モデルを1回だけ読み込んで解析する。体とゴーストのように同じモデルを何体も出すときは
+ * instantiate で複製し、GLB の展開と GPU への転送を1回で済ませる
+ */
+export async function loadAvatarTemplate(
+  asset: AvatarAsset
+): Promise<AvatarTemplate> {
   const loader = new GLTFLoader();
   // GLB は gltf-transform の meshopt 圧縮で軽くしてある
   loader.setMeshoptDecoder(MeshoptDecoder);
   const gltf = await loader.loadAsync(asset.url);
-  const model = gltf.scene;
-  const bones: BoneMap = {};
-  const byName = new Map<string, THREE.Object3D>();
-  model.traverse((o) => byName.set(o.name, o));
-  for (const b of BONES) {
-    // VRM と同じ骨名（自作キャラ）ならそのまま、なければ MakeHuman の名前で探す
-    const name = mpfbBoneName(b);
-    const node = byName.get(b) ?? (name ? byName.get(name) : undefined);
-    if (node) bones[b] = node;
-  }
-  fixGltfMaterials(model, asset);
-  model.traverse((o) => {
+  const source = gltf.scene;
+  fixGltfMaterials(source, asset);
+  source.traverse((o) => {
     const mesh = o as THREE.Mesh;
     if (mesh.isMesh) {
       // 眉・まつ毛の細い毛束は影の解像度では顔一面のまだらな影になるので、影を落とさない
@@ -194,7 +199,23 @@ export async function loadAvatar(asset: AvatarAsset): Promise<LoadedAvatar> {
       o.frustumCulled = false;
     }
   });
-  addSoftHairPass(model);
+  addSoftHairPass(source);
+  return {
+    instantiate: () => instantiate(asset, cloneSkinned(source)),
+    dispose: () => disposeShared(source),
+  };
+}
+
+function instantiate(asset: AvatarAsset, model: THREE.Object3D): LoadedAvatar {
+  const bones: BoneMap = {};
+  const byName = new Map<string, THREE.Object3D>();
+  model.traverse((o) => byName.set(o.name, o));
+  for (const b of BONES) {
+    // VRM と同じ骨名（自作キャラ）ならそのまま、なければ MakeHuman の名前で探す
+    const name = mpfbBoneName(b);
+    const node = byName.get(b) ?? (name ? byName.get(name) : undefined);
+    if (node) bones[b] = node;
+  }
 
   // +z 向きのモデルを、x 前（机の方向）に向ける
   const root = new THREE.Group();
@@ -217,17 +238,30 @@ export async function loadAvatar(asset: AvatarAsset): Promise<LoadedAvatar> {
     poser,
     earOffset,
     height,
+    // 体ごとに持つのは骨だけ（骨の行列テクスチャを解放する）。共有分は AvatarTemplate.dispose で解放する
     dispose: () => {
-      gltf.scene.traverse((o) => {
-        const mesh = o as THREE.Mesh;
-        if (mesh.isMesh) {
-          mesh.geometry.dispose();
-          (Array.isArray(mesh.material)
-            ? mesh.material
-            : [mesh.material]
-          ).forEach((m) => m.dispose());
-        }
+      const skeletons = new Set<THREE.Skeleton>();
+      root.traverse((o) => {
+        const mesh = o as THREE.SkinnedMesh;
+        if (mesh.isSkinnedMesh) skeletons.add(mesh.skeleton);
       });
+      skeletons.forEach((s) => s.dispose());
     },
   };
+}
+
+function disposeShared(source: THREE.Object3D) {
+  const resources = new Set<{ dispose: () => void }>();
+  source.traverse((o) => {
+    const mesh = o as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    resources.add(mesh.geometry);
+    for (const mat of [mesh.material].flat()) {
+      resources.add(mat);
+      // マテリアルを解放してもテクスチャは GPU に残るので、別に解放する
+      for (const value of Object.values(mat))
+        if (value instanceof THREE.Texture) resources.add(value);
+    }
+  });
+  resources.forEach((r) => r.dispose());
 }
