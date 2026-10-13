@@ -51,11 +51,8 @@ export function recordModelLoaded(durationSec: number): void {
  */
 export function isBlockedTelemetryUrl(url: string): boolean {
   if (!url) return false;
-  // Explicitly block Google ODML (MediaPipe internal logger)
-  if (url.includes('odml.pa.googleapis.com') || url.includes('googleapis.com/v1/log')) {
-    return true;
-  }
   // Block any non-first-party cross-origin telemetry/tracking/beacon calls
+  // (covers Google ODML: https://odml.pa.googleapis.com/v1/log)
   if (/^https?:\/\//i.test(url)) {
     try {
       const parsed = new URL(url);

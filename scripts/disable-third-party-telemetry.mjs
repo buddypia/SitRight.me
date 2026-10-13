@@ -12,7 +12,7 @@
  * 2. Log flush methods return immediately as no-ops.
  * 3. The remote endpoint URL is removed.
  */
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 export function disableThirdPartyTelemetry(baseDir = process.cwd()) {
@@ -24,42 +24,29 @@ export function disableThirdPartyTelemetry(baseDir = process.cwd()) {
 
   let patchedCount = 0;
 
+  // [from, to]: 1. remove the remote ODML logging URL,
+  // 2. kill the 60s periodic flush timer, 3. short-circuit flush()
+  const patches = [
+    ['https://odml.pa.googleapis.com/v1/log', ''],
+    ['setInterval(()=>{this.flush()},6e4)', 'void 0'],
+    ['flush(t,e){if(this.error)', 'flush(t,e){t?.();return;if(this.error)'],
+  ];
+
   for (const bundle of bundles) {
     const filePath = path.resolve(baseDir, 'node_modules/@mediapipe/tasks-vision', bundle);
-    if (!existsSync(filePath)) continue;
-
-    let content = readFileSync(filePath, 'utf8');
-    let changed = false;
-
-    // 1. Remove remote ODML logging URL
-    if (content.includes('https://odml.pa.googleapis.com/v1/log')) {
-      content = content.replaceAll(
-        'https://odml.pa.googleapis.com/v1/log',
-        ''
-      );
-      changed = true;
+    let content;
+    try {
+      content = readFileSync(filePath, 'utf8');
+    } catch (e) {
+      if (e.code === 'ENOENT') continue;
+      throw e;
     }
 
-    // 2. Kill the 60s periodic flush timer: setInterval(()=>{this.flush()},6e4) -> void 0
-    if (content.includes('setInterval(()=>{this.flush()},6e4)')) {
-      content = content.replaceAll(
-        'setInterval(()=>{this.flush()},6e4)',
-        'void 0'
-      );
-      changed = true;
-    }
+    let patched = content;
+    for (const [from, to] of patches) patched = patched.replaceAll(from, to);
 
-    // 3. Short-circuit flush(): flush(t,e){if(this.error) -> flush(t,e){t?.();return;if(this.error)
-    if (content.includes('flush(t,e){if(this.error)')) {
-      content = content.replaceAll(
-        'flush(t,e){if(this.error)',
-        'flush(t,e){t?.();return;if(this.error)'
-      );
-      changed = true;
-    }
-
-    if (changed) {
-      writeFileSync(filePath, content, 'utf8');
+    if (patched !== content) {
+      writeFileSync(filePath, patched, 'utf8');
       patchedCount++;
     }
   }
