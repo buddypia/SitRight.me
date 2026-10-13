@@ -17,7 +17,8 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "analytics": "node scripts/cf-analytics.mjs"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.1.0",
