@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { sendTelemetry } from '@/engine/telemetry';
+import {
+  recordCameraPermission,
+  recordModelLoaded,
+  recordSessionEnd,
+  recordSessionStart,
+  sendTelemetry,
+} from '@/engine/telemetry';
 import { useAppStore } from '@/stores/appStore';
 
 describe('sendTelemetry', () => {
@@ -56,4 +62,36 @@ describe('sendTelemetry', () => {
       sendTelemetry({ event: 'error', errorCode: 'test_error' });
     }).not.toThrow();
   });
+
+  it('records session start and end duration correctly', () => {
+    const sendBeacon = vi.fn().mockReturnValue(true);
+    vi.stubGlobal('navigator', { onLine: true, sendBeacon });
+
+    const now = 1000000;
+    vi.spyOn(Date, 'now').mockReturnValue(now);
+
+    recordSessionStart('monitor');
+    expect(sendBeacon).toHaveBeenCalledTimes(1);
+
+    // Advance 65 seconds
+    vi.spyOn(Date, 'now').mockReturnValue(now + 65000);
+    recordSessionEnd('monitor');
+
+    expect(sendBeacon).toHaveBeenCalledTimes(2);
+  });
+
+  it('records camera permission and model loaded metrics', () => {
+    const sendBeacon = vi.fn().mockReturnValue(true);
+    vi.stubGlobal('navigator', { onLine: true, sendBeacon });
+
+    recordCameraPermission(true);
+    expect(sendBeacon).toHaveBeenCalledTimes(1);
+
+    recordCameraPermission(false, 'denied');
+    expect(sendBeacon).toHaveBeenCalledTimes(2);
+
+    recordModelLoaded(1.45);
+    expect(sendBeacon).toHaveBeenCalledTimes(3);
+  });
 });
+

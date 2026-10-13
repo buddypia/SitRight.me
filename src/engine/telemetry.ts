@@ -1,10 +1,48 @@
 import { useAppStore } from '@/stores/appStore';
 
+export type TelemetryEventType =
+  | 'session_start'
+  | 'session_end'
+  | 'step_transition'
+  | 'camera_permission'
+  | 'model_loaded'
+  | 'error';
+
 export interface TelemetryPayload {
-  event: 'session_start' | 'step_transition' | 'session_end' | 'error';
+  event: TelemetryEventType;
   step?: string;
   durationSec?: number;
   errorCode?: string;
+}
+
+let activeSessionStart: number | null = null;
+
+export function recordSessionStart(step = 'monitor'): void {
+  activeSessionStart = Date.now();
+  sendTelemetry({ event: 'session_start', step });
+}
+
+export function recordSessionEnd(step = 'monitor'): void {
+  if (activeSessionStart !== null) {
+    const durationSec = Math.max(0, Math.round((Date.now() - activeSessionStart) / 1000));
+    activeSessionStart = null;
+    sendTelemetry({ event: 'session_end', step, durationSec });
+  }
+}
+
+export function recordCameraPermission(granted: boolean, errorCode?: string): void {
+  sendTelemetry({
+    event: 'camera_permission',
+    step: granted ? 'granted' : 'denied',
+    errorCode,
+  });
+}
+
+export function recordModelLoaded(durationSec: number): void {
+  sendTelemetry({
+    event: 'model_loaded',
+    durationSec: Number(durationSec.toFixed(2)),
+  });
 }
 
 /**

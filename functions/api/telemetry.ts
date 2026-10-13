@@ -39,11 +39,16 @@ export const onRequestPost = async (context: {
     const duration = typeof body.durationSec === 'number' && Number.isFinite(body.durationSec) ? body.durationSec : 0;
     const errorCode = typeof body.errorCode === 'string' ? body.errorCode.slice(0, 64) : '';
 
+    // Extract country from Cloudflare Request cf object if available (never IP)
+    const cf = (context.request as { cf?: { country?: string } }).cf;
+    const country = typeof cf?.country === 'string' ? cf.country.slice(0, 8) : '';
+
     // Write to Cloudflare Workers Analytics Engine if binding is configured
     if (context.env?.ANALYTICS_ENGINE?.writeDataPoint) {
       context.env.ANALYTICS_ENGINE.writeDataPoint({
-        blobs: [event, step, errorCode],
+        blobs: [event, step, errorCode, country],
         doubles: [duration],
+        indexes: [event.slice(0, 32)],
       });
     }
 
