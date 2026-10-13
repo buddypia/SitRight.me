@@ -16,6 +16,7 @@ import {
   type Locale,
   type Messages,
 } from '@/i18n/messages';
+import { ExportMenu } from './ExportMenu';
 
 const scoreColor = (s: number) =>
   s >= 70 ? 'var(--good)' : s >= 40 ? 'var(--fair)' : 'var(--poor)';
@@ -97,7 +98,10 @@ export function TodayPanel({
   return (
     <section className="panel grid gap-6 p-5 md:grid-cols-[auto_minmax(0,1fr)] lg:grid-cols-[auto_minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,0.9fr)]">
       <div className="min-w-[180px]">
-        <p className="text-[13px] font-medium text-ink-2">{t.todayTitle}</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[13px] font-medium text-ink-2">{t.todayTitle}</p>
+          <ExportMenu history={history} locale={locale} t={t} />
+        </div>
         <p
           className="mt-3 font-mono text-[44px] font-semibold leading-none tabular-nums"
           style={{
