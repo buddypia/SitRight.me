@@ -43,6 +43,7 @@ export function ExportMenu({
 }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -55,7 +56,10 @@ export function ExportMenu({
       }
     };
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') {
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
     };
     document.addEventListener('pointerdown', handlePointerDown);
     document.addEventListener('keydown', handleKeyDown);
@@ -89,6 +93,7 @@ export function ExportMenu({
   return (
     <div className="relative inline-block" ref={containerRef}>
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         aria-expanded={open}
@@ -103,7 +108,7 @@ export function ExportMenu({
       {open && (
         <div
           role="menu"
-          className="absolute left-0 sm:left-auto sm:right-0 top-full z-30 mt-1.5 min-w-[190px] rounded-xl border border-line bg-s1/95 p-1.5 shadow-2xl backdrop-blur-md"
+          className="absolute right-0 top-full z-30 mt-1.5 min-w-[190px] rounded-xl border border-line bg-s1/95 p-1.5 shadow-2xl backdrop-blur-md"
         >
           <button
             type="button"
