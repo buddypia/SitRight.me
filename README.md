@@ -103,6 +103,11 @@ With a fake camera in headless Chromium, 180 s of hidden time produced 180 s of 
 
 Install it from the browser menu ("Install app", PWA) to keep it in its own window.
 
+## Contact & Inquiries
+
+- **Email:** [contact@buddypia.com](mailto:contact@buddypia.com)
+- **Security:** Please see [SECURITY.md](SECURITY.md)
+
 ## License
 
-MIT ([LICENSE](LICENSE)). The bundled MediaPipe wasm and models are Apache-2.0 ([THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)).
+MIT ([LICENSE](LICENSE)) © 2025-2026 buddypia. The bundled MediaPipe wasm and models are Apache-2.0 ([THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)).

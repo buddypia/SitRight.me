@@ -10,7 +10,7 @@ MediaPipe Tasks Vision 0.10.35 (https://github.com/google-ai-edge/mediapipe)
   These files are distributed unmodified.
 
 MakeHuman assets via MPFB 2 (https://static.makehumancommunity.org/)
-  public/avatars/{woman,man,senior,womanSporty}.glb
+  public/avatars/{man,manBusiness,manCasual,senior,woman,womanCasual,womanSporty,womanSmart}.glb
   Body, skins, hair, clothes, eyes, eyebrows and eyelashes from the
   MakeHuman system assets and community asset packs released under CC0 1.0.
   Assembled with scripts/avatars/build_mpfb.py.

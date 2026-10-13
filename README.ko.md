@@ -103,6 +103,11 @@ Chrome / Edge / Safari / Firefox 최신 버전(WebGL2 필수). 데스크톱 알�
 
 브라우저 메뉴에서 '앱 설치'(PWA)를 하면 별도 창으로 계속 띄워 둘 수 있습니다.
 
+## 문의 및 연락처
+
+- **피드백・문의・스폰서:** [contact@buddypia.com](mailto:contact@buddypia.com)
+- **보안 취약점:** [SECURITY.md](SECURITY.md)를 참고해 주세요
+
 ## 라이선스
 
-MIT([LICENSE](LICENSE)). 함께 배포하는 MediaPipe wasm과 모델은 Apache-2.0입니다([THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)).
+MIT([LICENSE](LICENSE)) © 2025-2026 buddypia. 함께 배포하는 MediaPipe wasm과 모델은 Apache-2.0입니다([THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)).

@@ -155,6 +155,115 @@ function screenTexture() {
   return t;
 }
 
+/** ノートPC天板の SitRight 10C モノリスブランドロゴエンブレム */
+function laptopLogoTexture(size = 256) {
+  const cv = document.createElement('canvas');
+  cv.width = size;
+  cv.height = size;
+  const c = cv.getContext('2d')!;
+  const s = size / 64;
+
+  // Squircle base
+  const r = 16 * s;
+  c.beginPath();
+  c.roundRect(0, 0, size, size, r);
+  const bgGrad = c.createLinearGradient(0, 0, size, size);
+  bgGrad.addColorStop(0, '#1c202a');
+  bgGrad.addColorStop(1, '#0c0e12');
+  c.fillStyle = bgGrad;
+  c.fill();
+
+  // Subtle beveled rim
+  const rimGrad = c.createLinearGradient(0, 0, size, size);
+  rimGrad.addColorStop(0, '#4a5568');
+  rimGrad.addColorStop(1, '#161a22');
+  c.strokeStyle = rimGrad;
+  c.lineWidth = 1.5 * s;
+  c.stroke();
+
+  // Double acoustic arcs
+  c.beginPath();
+  c.arc(45 * s, 32 * s, 14 * s, -Math.PI * 0.4, Math.PI * 0.4);
+  c.strokeStyle = '#ff3b30';
+  c.lineWidth = 3.5 * s;
+  c.lineCap = 'round';
+  c.stroke();
+
+  c.beginPath();
+  c.arc(40 * s, 32 * s, 10 * s, -Math.PI * 0.35, Math.PI * 0.35);
+  c.strokeStyle = '#ff9500';
+  c.lineWidth = 3 * s;
+  c.lineCap = 'round';
+  c.stroke();
+
+  // Vertebrae blocks helper
+  const drawBlock = (x: number, y: number, w: number, h: number, rx: number) => {
+    c.beginPath();
+    c.roundRect(x * s, y * s, w * s, h * s, rx * s);
+    const grad = c.createLinearGradient(x * s, y * s, (x + w) * s, y * s);
+    grad.addColorStop(0, '#424f66');
+    grad.addColorStop(0.5, '#2a3446');
+    grad.addColorStop(1, '#161c26');
+    c.fillStyle = grad;
+    c.fill();
+    c.strokeStyle = '#52627a';
+    c.lineWidth = 0.8 * s;
+    c.stroke();
+  };
+
+  // Bottom lumbar block
+  drawBlock(23, 41, 14, 11, 2.5);
+  drawBlock(17, 44, 7, 5.5, 1.5);
+
+  // Mid lumbar block
+  drawBlock(23, 27, 14, 11, 2.5);
+  drawBlock(17, 30, 7, 5.5, 1.5);
+
+  // Upper forward-tilted vertebra
+  c.save();
+  c.translate(28 * s, 26 * s);
+  c.rotate((-18 * Math.PI) / 180);
+  c.translate(-28 * s, -26 * s);
+  drawBlock(22, 13, 14, 11, 2.5);
+  drawBlock(16, 16, 7, 5.5, 1.5);
+  c.restore();
+
+  // Acoustic cone horn
+  c.beginPath();
+  c.moveTo(26 * s, 27 * s);
+  c.lineTo(40 * s, 20 * s);
+  c.lineTo(40 * s, 34 * s);
+  c.closePath();
+  const hornGrad = c.createLinearGradient(26 * s, 27 * s, 40 * s, 27 * s);
+  hornGrad.addColorStop(0, '#ff7a00');
+  hornGrad.addColorStop(1, '#ff9500');
+  c.fillStyle = hornGrad;
+  c.fill();
+
+  c.beginPath();
+  c.moveTo(26 * s, 27 * s);
+  c.lineTo(40 * s, 20 * s);
+  c.lineTo(34 * s, 26 * s);
+  c.closePath();
+  c.fillStyle = '#ffcc00';
+  c.fill();
+
+  // Core spark
+  c.beginPath();
+  c.arc(26 * s, 27 * s, 2.2 * s, 0, Math.PI * 2);
+  c.fillStyle = '#ffffff';
+  c.fill();
+  c.beginPath();
+  c.arc(26 * s, 27 * s, 1.2 * s, 0, Math.PI * 2);
+  c.fillStyle = '#ff9500';
+  c.fill();
+
+  const t = new THREE.CanvasTexture(cv);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  return t;
+}
+
 export interface Props {
   group: THREE.Group;
   /** 人物の位置に合わせてスツールを動かす */
@@ -298,6 +407,25 @@ export function buildProps(): Props {
   );
   shell.position.set(0.004, LAPTOP.depth / 2, 0);
   lid.add(shell);
+
+  // 天板外側の SitRight ブランドエンブレム
+  const logoTex = track(laptopLogoTexture());
+  const logoBadge = new THREE.Mesh(
+    track(new THREE.PlaneGeometry(0.038, 0.038)),
+    track(
+      new THREE.MeshPhysicalMaterial({
+        map: logoTex,
+        roughness: 0.22,
+        metalness: 0.85,
+        clearcoat: 0.9,
+        clearcoatRoughness: 0.12,
+      })
+    )
+  );
+  logoBadge.rotation.y = Math.PI / 2;
+  logoBadge.position.set(0.0081, LAPTOP.depth / 2, 0);
+  lid.add(logoBadge);
+
   const screenTex = track(screenTexture());
   const screen = new THREE.Mesh(
     track(new THREE.PlaneGeometry(LAPTOP.width * 0.92, LAPTOP.depth * 0.86)),
@@ -321,6 +449,9 @@ export function buildProps(): Props {
     o.castShadow = true;
     o.receiveShadow = true;
   });
+  // 薄いデカール平面と発光画面は自己影アーティファクト防止のため影落としを無効化
+  logoBadge.castShadow = false;
+  screen.castShadow = false;
   group.add(laptop);
 
   // ---------- stool ----------

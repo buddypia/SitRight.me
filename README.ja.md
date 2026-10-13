@@ -103,6 +103,11 @@ Chrome / Edge / Safari / Firefox の最新版（WebGL2 必須）。デスクト�
 
 ブラウザのメニューから「アプリとしてインストール」すると（PWA）、独立したウィンドウで常駐できます。
 
+## お問い合わせ・連絡先
+
+- **フィードバック・お問い合わせ・スポンサー:** [contact@buddypia.com](mailto:contact@buddypia.com)
+- **脆弱性・セキュリティ:** [SECURITY.md](SECURITY.md) を参照してください
+
 ## ライセンス
 
-MIT（[LICENSE](LICENSE)）。同梱している MediaPipe の wasm とモデルは Apache-2.0 です（[THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)）。
+MIT（[LICENSE](LICENSE)）© 2025-2026 buddypia。同梱している MediaPipe の wasm とモデルは Apache-2.0 です（[THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)）。
