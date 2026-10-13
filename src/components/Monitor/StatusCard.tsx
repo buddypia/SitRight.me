@@ -256,7 +256,7 @@ function SpineAlignmentHUD({
   const lean = Math.max(-1, Math.min(1, deviation.leanDeg / 6));
 
   return (
-    <div className="mt-4 rounded-xl border border-good/20 bg-good/[0.04] p-3 backdrop-blur-xs">
+    <div className="mt-4 rounded-xl border border-good/20 bg-good/[0.04] p-3">
       <div className="flex items-center justify-between gap-2 text-xs">
         <span className="flex items-center gap-1.5 font-medium text-good">
           <svg
@@ -331,7 +331,7 @@ function AxisNode({
         <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 bg-white/20" />
         {/* 整列ポインタ */}
         <div
-          className="absolute top-0 h-1.5 w-2 -translate-x-1/2 rounded-full bg-good shadow-[0_0_6px_var(--good)] transition-all duration-300"
+          className="absolute top-0 h-1.5 w-2 -translate-x-1/2 rounded-full bg-good shadow-[0_0_6px_var(--good)] transition-[left] duration-300"
           style={{ left: `${pct}%` }}
         />
       </div>
