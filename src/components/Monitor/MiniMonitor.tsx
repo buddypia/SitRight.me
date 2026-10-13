@@ -42,6 +42,7 @@ export function MiniMonitor({
         avatar={avatar}
         lowPower={lowPower}
         loadWeights={postureCollapsed}
+        neckLoadKg={measuring ? (a?.neckLoadKg ?? null) : null}
         t={t}
         className="min-h-0 flex-1"
       />

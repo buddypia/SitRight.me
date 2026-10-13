@@ -30,6 +30,11 @@ export interface PostureSceneProps {
   initialCamera?: Partial<OrbitCamera>;
   /** 首にかかる負荷を頭の上の重り（5 kg のプレート）と kg で表示する */
   loadWeights?: boolean;
+  /**
+   * 計測した首の負荷（kg）。渡すと 3D モデルの姿勢からの推定より優先し、
+   * 計測値のカードと同じ数字を重りと kg 表示に使う
+   */
+  neckLoadKg?: number | null;
   /** デモ表示で姿勢が切り替わったとき */
   onDemoPattern?: (pattern: DemoPattern) => void;
   className?: string;
@@ -119,6 +124,7 @@ export function PostureScene({
   guides = true,
   demo = false,
   loadWeights = false,
+  neckLoadKg: measuredLoadKg = null,
   lowPower = false,
   onDemoPattern,
   initialCamera,
@@ -146,6 +152,7 @@ export function PostureScene({
     lowPower,
     avatar,
     loadWeights,
+    measuredLoadKg,
   });
   const homeCamera = { ...DEFAULT_CAMERA, ...initialCamera };
   const cam = useRef<OrbitCamera>(homeCamera);
@@ -164,6 +171,7 @@ export function PostureScene({
       lowPower,
       avatar,
       loadWeights,
+      measuredLoadKg,
     };
     tRef.current = t;
     demoCallback.current = onDemoPattern;
@@ -392,7 +400,7 @@ export function PostureScene({
       ghostCur += ((tgt.guides ? 1 : 0) - ghostCur) * (1 - Math.exp(-dt * 6));
       weightsCur +=
         ((tgt.loadWeights ? 1 : 0) - weightsCur) * (1 - Math.exp(-dt * 6));
-      loadKg = neckLoadKg(cur);
+      loadKg = tgt.measuredLoadKg ?? neckLoadKg(cur);
 
       const c = cam.current;
       const ct = camTarget.current;

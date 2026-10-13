@@ -257,7 +257,16 @@ export class ThreeSceneRenderer {
   /** 表示するモデルを切り替える。読み込みが終わるまで今のモデルを描き続ける */
   setAvatar(id: Avatar) {
     this.wanted = id;
-    if (this.current?.id === id || this.loading === id) return;
+    if (this.current?.id === id) {
+      // 読み込み中に表示中のモデルへ戻したときは、その読み込みの結果は捨てられる（load 参照）。
+      // ここで準備完了に戻さないと「読み込み中」のまま残る
+      if (this.loading) {
+        this.loading = null;
+        this.onStatus?.('ready');
+      }
+      return;
+    }
+    if (this.loading === id) return;
     this.loading = id;
     this.onStatus?.('loading');
     void this.load(id);

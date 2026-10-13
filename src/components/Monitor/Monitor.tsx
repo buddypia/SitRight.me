@@ -78,6 +78,7 @@ export function Monitor() {
               avatar={settings.avatar}
               lowPower={settings.powerSaver}
               loadWeights={postureCollapsed}
+              neckLoadKg={measuring ? (live.assessment?.neckLoadKg ?? null) : null}
               t={t}
               className="h-full w-full"
             />
