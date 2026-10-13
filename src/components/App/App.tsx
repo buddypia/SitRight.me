@@ -131,11 +131,36 @@ function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
                 className="mr-1 hidden items-center gap-2 rounded-full border border-line px-3 py-1 text-xs md:flex"
                 style={{ color: STATUS_COLOR[status] }}
               >
-                <span
-                  className="h-1.5 w-1.5 rounded-full"
-                  style={{ background: STATUS_COLOR[status] }}
-                />
-                {statusLabel(status, t)}
+                {status === 'loading' ? (
+                  <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border border-current border-t-transparent" />
+                ) : status === 'good' ? (
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    className="shrink-0 text-good"
+                    aria-hidden
+                  >
+                    <path
+                      d="M8 1.5v13"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                      strokeDasharray="1.5 2"
+                      strokeLinecap="round"
+                      opacity="0.45"
+                    />
+                    <circle cx="8" cy="3.5" r="2" fill="currentColor" />
+                    <circle cx="8" cy="8" r="1.5" fill="currentColor" />
+                    <circle cx="8" cy="12.5" r="1.8" fill="currentColor" />
+                  </svg>
+                ) : (
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ background: STATUS_COLOR[status] }}
+                  />
+                )}
+                {status === 'good' ? t.alignmentOptimal : statusLabel(status, t)}
               </span>
               <Button
                 size="sm"

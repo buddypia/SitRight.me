@@ -1,5 +1,6 @@
 import type { FaceLandmarker, PoseLandmarker } from '@mediapipe/tasks-vision';
 import type { VisionFrame } from '@/core/types';
+import { installThirdPartyTelemetryBlocker } from './telemetry';
 
 const WASM_PATH = '/mediapipe/wasm';
 const POSE_MODEL = '/mediapipe/models/pose_landmarker_full.task';
@@ -35,6 +36,7 @@ export class VisionEngine {
 
   async init(): Promise<void> {
     if (this.pose && this.face) return;
+    installThirdPartyTelemetryBlocker();
     filterMediapipeInfoLogs();
     const { FilesetResolver, PoseLandmarker, FaceLandmarker } =
       await import('@mediapipe/tasks-vision');
