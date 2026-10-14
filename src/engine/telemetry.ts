@@ -30,6 +30,20 @@ export function recordSessionEnd(step = 'monitor'): void {
   }
 }
 
+export function recordStepTransition(
+  prevStep: string | null,
+  nextStep: string
+): string {
+  if (prevStep === nextStep) return nextStep;
+  sendTelemetry({ event: 'step_transition', step: nextStep });
+  if (nextStep === 'monitor') {
+    recordSessionStart('monitor');
+  } else if (prevStep === 'monitor') {
+    recordSessionEnd('monitor');
+  }
+  return nextStep;
+}
+
 export function recordCameraPermission(granted: boolean, errorCode?: string): void {
   sendTelemetry({
     event: 'camera_permission',
