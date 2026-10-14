@@ -7,7 +7,7 @@ import { useT } from '@/hooks/useT';
 import { format } from '@/i18n/messages';
 import { useAppStore } from '@/stores/appStore';
 import { CameraPreview } from '../CameraPreview';
-import { Button } from '../ui';
+import { Button, Logo } from '../ui';
 
 const READY_HOLD_MS = 800;
 
@@ -110,7 +110,10 @@ export function Setup() {
                 </Button>
               </>
             ) : (
-              <Spinner />
+              <>
+                <Logo size={20} />
+                <Spinner />
+              </>
             )}
             {engine !== 'error' && t.setupModelLoading}
           </div>

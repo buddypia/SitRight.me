@@ -4,6 +4,7 @@ import type { PostureAssessment } from '@/core/types';
 import type { Messages } from '@/i18n/messages';
 import { format } from '@/i18n/messages';
 import type { LiveState } from '@/stores/appStore';
+import { Logo } from '../ui';
 
 export type DisplayStatus =
   | 'good'
@@ -388,7 +389,7 @@ function ScoreRing({
         />
       </svg>
       {loading ? (
-        <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white/70" />
+        <Logo size={28} />
       ) : (
         <span className="font-mono text-lg font-semibold tabular-nums text-ink-1">
           {score ?? '–'}

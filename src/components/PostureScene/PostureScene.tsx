@@ -6,6 +6,7 @@ import { IDEAL_RIG, solveSkeleton, type RigParams } from '@/core/rig';
 import type { Severities } from '@/core/types';
 import { format, type Messages } from '@/i18n/messages';
 import { DEFAULT_AVATAR, type Avatar } from './models';
+import { Logo } from '../ui';
 import {
   DEFAULT_CAMERA,
   ThreeSceneRenderer,
@@ -505,22 +506,7 @@ export function PostureScene({
               <div className="relative grid h-12 w-12 place-items-center">
                 <span className="absolute inset-0 animate-ping rounded-full bg-good/20 opacity-40 duration-1000" />
                 <span className="absolute inset-0 animate-spin rounded-full border-2 border-white/10 border-t-good" />
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  className="text-good"
-                  aria-hidden
-                >
-                  <path
-                    d="M12 2v20M5 7l7-4 7 4M5 17l7 4 7-4M5 12l7-2 7 2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <Logo size={28} />
               </div>
               <div className="text-center">
                 <p className="text-xs font-medium tracking-wide text-ink-1">
