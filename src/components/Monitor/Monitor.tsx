@@ -105,14 +105,14 @@ export function Monitor() {
                   {pip.pipWindow ? t.pipClose : t.pipOpen}
                 </button>
               )}
-              <label className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/10 bg-black/35 py-1 pl-3 pr-1 text-xs text-ink-2 backdrop-blur-sm">
-                {t.xray}
+              <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/10 bg-black/35 py-1 pl-3 pr-1 text-xs text-ink-2 backdrop-blur-sm">
+                <span>{t.xray}</span>
                 <Toggle
                   checked={settings.xray}
                   onChange={(v) => updateSettings({ xray: v })}
                   label={t.xray}
                 />
-              </label>
+              </div>
             </div>
           </div>
           <Legend t={t} />

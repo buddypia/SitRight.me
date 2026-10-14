@@ -236,18 +236,22 @@ export const useAppStore = create<AppState>()(
         ];
         if (!validThemes.includes(settings.soundTheme))
           settings.soundTheme = 'snap-horn';
+        // headRoll は後から追加した項目。古い基準は傾き 0 として扱う
+        const raw = p.baseline as unknown as Record<string, unknown> | null | undefined;
+        const candidate =
+          raw && typeof raw === 'object'
+            ? {
+                ...raw,
+                headRoll:
+                  typeof raw.headRoll === 'number' && Number.isFinite(raw.headRoll)
+                    ? raw.headRoll
+                    : 0,
+              }
+            : null;
         return {
           ...current,
           settings,
-          // headRoll は後から追加した項目。古い基準は傾き 0 として扱う
-          baseline: isValidBaseline(p.baseline)
-            ? {
-                ...p.baseline,
-                headRoll: Number.isFinite(p.baseline.headRoll)
-                  ? p.baseline.headRoll
-                  : 0,
-              }
-            : null,
+          baseline: isValidBaseline(candidate) ? candidate : null,
           history: Array.isArray(p.history) ? p.history : [],
         };
       },

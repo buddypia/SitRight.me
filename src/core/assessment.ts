@@ -57,7 +57,7 @@ export function computeDeviation(m: RawMetrics, b: Baseline): PostureDeviation {
     : 0;
   // 画像は鏡像ではないため、画像の右側 = 本人の左側。本人の右へ傾くと正になるよう符号を反転する
   const leanDeg = -(m.shoulderTilt - b.shoulderTilt);
-  const headTiltDeg = -(m.headRoll - b.headRoll);
+  const headTiltDeg = -(m.headRoll - (b.headRoll ?? 0));
   return {
     headForwardCm,
     headDownDeg,
