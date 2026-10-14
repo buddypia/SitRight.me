@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
@@ -27,7 +27,15 @@ describe('avatars', () => {
 
   it.each(AVATARS)('%s: モデル・サムネイル・表示名がある', (id) => {
     expect(existsSync(publicPath(AVATAR_ASSETS[id].url))).toBe(true);
-    expect(existsSync(publicPath(`/avatars/${id}.webp`))).toBe(true);
+    const thumbPath = publicPath(`/avatars/${id}.webp`);
+    expect(existsSync(thumbPath)).toBe(true);
+    const buf = readFileSync(thumbPath);
+    expect(buf.subarray(0, 4).toString('ascii')).toBe('RIFF');
+    expect(buf.subarray(8, 12).toString('ascii')).toBe('WEBP');
+    // VP8 lossy header stores 14-bit width & height at bytes 26..30
+    expect(buf.subarray(12, 16).toString('ascii')).toBe('VP8 ');
+    expect(buf.readUInt16LE(26) & 0x3fff).toBe(240);
+    expect(buf.readUInt16LE(28) & 0x3fff).toBe(240);
     for (const m of Object.values(MESSAGES))
       expect(m[`avatar_${id}`]).toBeTruthy();
   });
