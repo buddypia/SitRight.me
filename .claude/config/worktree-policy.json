@@ -9,6 +9,7 @@
       "patterns": [
         ".tmp/**",
         ".cache/**",
+        ".agents/**",
         "tmp/**",
         "node_modules/**",
         "dist/**",
