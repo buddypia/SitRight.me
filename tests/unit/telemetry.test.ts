@@ -7,6 +7,7 @@ import {
   recordModelLoaded,
   recordSessionEnd,
   recordSessionStart,
+  recordStepTransition,
   sendTelemetry,
 } from '@/engine/telemetry';
 import { useAppStore } from '@/stores/appStore';
@@ -172,6 +173,47 @@ describe('telemetry', () => {
 
     recordModelLoaded(1.45);
     expect(sendBeacon).toHaveBeenCalledTimes(3);
+  });
+
+  it('records initial welcome step transition and full onboarding funnel without duplicate emissions', async () => {
+    const payloads: Record<string, unknown>[] = [];
+    const sendBeacon = vi.fn(async (_url: string, blob: Blob) => {
+      payloads.push(JSON.parse(await blob.text()));
+      return true;
+    });
+    vi.stubGlobal('navigator', { onLine: true, sendBeacon });
+
+    const now = 2000000;
+    vi.spyOn(Date, 'now').mockReturnValue(now);
+
+    // Initial page load after hydration (prevStep = null -> 'welcome')
+    let prev = recordStepTransition(null, 'welcome');
+    expect(prev).toBe('welcome');
+
+    // Duplicate re-render on 'welcome' must not re-send
+    prev = recordStepTransition(prev, 'welcome');
+    expect(prev).toBe('welcome');
+
+    // Transition to setup -> calibrate -> monitor
+    prev = recordStepTransition(prev, 'setup');
+    prev = recordStepTransition(prev, 'calibrate');
+    prev = recordStepTransition(prev, 'monitor');
+
+    // Leave monitor after 30s
+    vi.spyOn(Date, 'now').mockReturnValue(now + 30000);
+    prev = recordStepTransition(prev, 'welcome');
+    expect(prev).toBe('welcome');
+
+    await vi.waitFor(() => expect(payloads).toHaveLength(7));
+    expect(payloads.map((p) => ({ event: p.event, step: p.step, durationSec: p.durationSec }))).toEqual([
+      { event: 'step_transition', step: 'welcome', durationSec: undefined },
+      { event: 'step_transition', step: 'setup', durationSec: undefined },
+      { event: 'step_transition', step: 'calibrate', durationSec: undefined },
+      { event: 'step_transition', step: 'monitor', durationSec: undefined },
+      { event: 'session_start', step: 'monitor', durationSec: undefined },
+      { event: 'step_transition', step: 'welcome', durationSec: undefined },
+      { event: 'session_end', step: 'monitor', durationSec: 30 },
+    ]);
   });
 });
 
