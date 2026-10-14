@@ -75,7 +75,8 @@ export function App() {
   if (!hydrated) {
     return (
       <div className="grid min-h-dvh place-items-center text-sm text-ink-3">
-        <span className="flex items-center gap-2">
+        <span className="flex items-center gap-2.5">
+          <Logo size={28} />
           <Spinner />
           {t.loading}
         </span>
