@@ -62,6 +62,15 @@ export interface Baseline {
 
 export type Sensitivity = 'gentle' | 'standard' | 'strict';
 
+export type PeriodicNotifyMode =
+  | 'auto'
+  | 'check'
+  | 'advice'
+  | 'break'
+  | 'report';
+
+export type PeriodicNotifyKind = 'check' | 'advice' | 'break' | 'report';
+
 export type PosturePattern =
   'straight_neck' | 'text_neck' | 'neck_hunch' | 'slouch' | 'lean';
 

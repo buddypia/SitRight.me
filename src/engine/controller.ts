@@ -1,4 +1,8 @@
-import { AlertEngine, SittingTracker } from '@/core/alerts';
+import {
+  AlertEngine,
+  resolvePeriodicKind,
+  SittingTracker,
+} from '@/core/alerts';
 import { assess } from '@/core/assessment';
 import { CalibrationCollector } from '@/core/calibration';
 import { extractMetrics, shouldersVisible } from '@/core/metrics';
@@ -7,6 +11,7 @@ import { MetricSmoother } from '@/core/smoothing';
 import {
   accumulate,
   emptyDay,
+  goodRatio,
   localDateKey,
   type DayStats,
 } from '@/core/stats';
@@ -16,7 +21,7 @@ import type {
   PosturePattern,
   VisionFrame,
 } from '@/core/types';
-import { MESSAGES, format } from '@/i18n/messages';
+import { buildPeriodicNotification, MESSAGES } from '@/i18n/messages';
 import {
   todayStats,
   useAppStore,
@@ -67,6 +72,7 @@ class PostureController {
   private lastFlush = 0;
   private suspectSec = 0;
   private eventId = 0;
+  private previewStep = 0;
   private enginePromise: Promise<void> | null = null;
   private imageCapture: ImageCaptureLike | null = null;
   private imageCaptureTrack: MediaStreamTrack | null = null;
@@ -397,8 +403,15 @@ class PostureController {
       if (event?.type === 'alert') this.notifyAlert(event.pattern);
       else if (event?.type === 'recovered') this.notifyRecovered();
 
-      if (this.sitting.update(!away, dt, settings.breakIntervalMin))
-        this.handleBreak();
+      const repeatMin =
+        settings.periodicMode === 'break'
+          ? Math.min(15, Math.max(1, settings.breakIntervalMin))
+          : settings.breakIntervalMin;
+      if (
+        this.sitting.update(!away, dt, settings.breakIntervalMin, repeatMin)
+      ) {
+        this.handlePeriodicNotify(assessment);
+      }
       patch.sittingMin = this.sitting.minutes;
 
       const t = MESSAGES[settings.locale];
@@ -481,18 +494,81 @@ class PostureController {
     }
   }
 
-
-  private handleBreak() {
-    const { settings } = this.store;
+  /** 設定画面から姿勢崩れ通知（トースト・効果音・デスクトップ通知）をテスト実行する */
+  triggerTestAlert(): void {
+    const { settings, live } = this.store;
     const t = MESSAGES[settings.locale];
-    const minutes = Math.round(this.sitting.minutes);
-    this.emit({ kind: 'break', minutes });
-    if (settings.sound) playChime('break', 0.4);
-    if (settings.desktopNotify && !document.hasFocus()) {
+    const pattern: PosturePattern =
+      live.assessment?.pattern ?? 'straight_neck';
+    this.emit({ kind: 'alert', pattern });
+    if (settings.sound) playChime('alert', 0.5, settings.soundTheme);
+    if (settings.desktopNotify) {
+      const p = t.pattern[pattern];
       showDesktopNotification(
-        t.breakTitle,
-        format(t.breakBody, { n: minutes }),
-        'sitright-break'
+        `${t.alertTitle}: ${p.name}`,
+        `${p.short} — ${p.fix}`,
+        `sitright-test-${this.eventId}`
+      );
+    }
+  }
+
+  /** 設定画面から定期通知をプレビュー実行する */
+  triggerPeriodicNotification(): void {
+    this.previewStep += 1;
+    this.handlePeriodicNotify(this.store.live.assessment, true);
+  }
+
+  private handlePeriodicNotify(
+    assessment: PostureAssessment | null,
+    isPreview = false
+  ) {
+    const { settings, history } = this.store;
+    const t = MESSAGES[settings.locale];
+    const today = this.today ?? todayStats(history);
+    const minutes = Math.max(
+      1,
+      Math.round(this.sitting.minutes || settings.breakIntervalMin || 30)
+    );
+
+    const patternEntries = Object.entries(today.patternSec) as [
+      PosturePattern,
+      number,
+    ][];
+    const topPattern =
+      patternEntries
+        .filter(([, sec]) => sec > 0)
+        .sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+
+    const periodicKind = resolvePeriodicKind({
+      mode: settings.periodicMode,
+      step: isPreview ? this.previewStep : this.sitting.count,
+      sittingMin: minutes,
+      topPattern,
+      monitoredSec: today.monitoredSec,
+    });
+
+    const payload = {
+      periodicKind,
+      minutes,
+      score: assessment?.score ?? null,
+      neckLoadKg: assessment?.neckLoadKg ?? null,
+      pattern:
+        assessment && assessment.level !== 'good' ? assessment.pattern : null,
+      topPattern,
+      goodRatioPct:
+        today.monitoredSec > 0 ? Math.round(goodRatio(today) * 100) : 100,
+      monitoredSec: today.monitoredSec,
+      recoveries: today.recoveries ?? 0,
+    };
+
+    this.emit({ kind: 'break', ...payload });
+    if (settings.sound) playChime('break', 0.4);
+    if (settings.desktopNotify && (isPreview || !document.hasFocus())) {
+      const { title, body } = buildPeriodicNotification(payload, t);
+      showDesktopNotification(
+        title,
+        body,
+        isPreview ? `sitright-break-${this.eventId}` : 'sitright-break'
       );
     }
   }
