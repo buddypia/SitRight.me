@@ -215,5 +215,133 @@ describe('telemetry', () => {
       { event: 'session_end', step: 'monitor', durationSec: 30 },
     ]);
   });
+
+  it('calculates goodPosturePct and alertCount on session_end using session deltas', async () => {
+    let sentPayload: Record<string, unknown> | null = null;
+    const sendBeacon = vi.fn(async (_url: string, blob: Blob) => {
+      sentPayload = JSON.parse(await blob.text());
+      return true;
+    });
+    vi.stubGlobal('navigator', { onLine: true, sendBeacon });
+
+    const todayKey = new Date().toISOString().slice(0, 10);
+    useAppStore.setState({
+      settings: {
+        ...useAppStore.getState().settings,
+        locale: 'ja',
+      },
+      history: [
+        {
+          date: todayKey,
+          monitoredSec: 100,
+          goodSec: 80,
+          fairSec: 10,
+          poorSec: 10,
+          alerts: 2,
+          recoveries: 1,
+          patternSec: {},
+          timeline: [],
+        },
+      ],
+    });
+
+    const startTime = 5000000;
+    vi.spyOn(Date, 'now').mockReturnValue(startTime);
+    recordSessionStart('monitor');
+
+    // Simulate session progress: +60s monitored, +45s good posture, +1 alert
+    useAppStore.setState({
+      history: [
+        {
+          date: todayKey,
+          monitoredSec: 160,
+          goodSec: 125,
+          fairSec: 15,
+          poorSec: 20,
+          alerts: 3,
+          recoveries: 2,
+          patternSec: {},
+          timeline: [],
+        },
+      ],
+    });
+
+    vi.spyOn(Date, 'now').mockReturnValue(startTime + 60000);
+    recordSessionEnd('monitor');
+
+    await vi.waitFor(() => expect(sentPayload).not.toBeNull());
+    expect(sentPayload).toMatchObject({
+      event: 'session_end',
+      step: 'monitor',
+      durationSec: 60,
+      locale: 'ja',
+      goodPosturePct: 75, // 45 / 60 = 75%
+      alertCount: 1,      // 3 - 2 = 1 alert
+    });
+  });
+
+  describe('onRequestPost (Cloudflare Pages Function)', () => {
+    it('sanitizes and bounds metrics before writing to Analytics Engine', async () => {
+      const { onRequestPost } = await import('../../functions/api/telemetry');
+      const writeDataPoint = vi.fn();
+      const mockEnv = {
+        ANALYTICS_ENGINE: { writeDataPoint },
+      };
+
+      const request = new Request('http://localhost:3000/api/telemetry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'session_end',
+          step: 'monitor',
+          durationSec: 120,
+          locale: 'KO',
+          goodPosturePct: 88.4,
+          alertCount: 4,
+        }),
+      });
+      // Attach mock cf object
+      Object.assign(request, { cf: { country: 'KR' } });
+
+      const res = await onRequestPost({ request, env: mockEnv });
+      expect(res.status).toBe(204);
+
+      expect(writeDataPoint).toHaveBeenCalledWith({
+        blobs: ['session_end', 'monitor', '', 'KR', 'ko'],
+        doubles: [120, 88, 4],
+        indexes: ['session_end'],
+      });
+    });
+
+    it('rejects invalid locale and out-of-range metrics gracefully', async () => {
+      const { onRequestPost } = await import('../../functions/api/telemetry');
+      const writeDataPoint = vi.fn();
+      const mockEnv = {
+        ANALYTICS_ENGINE: { writeDataPoint },
+      };
+
+      const request = new Request('http://localhost:3000/api/telemetry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'session_end',
+          step: 'monitor',
+          durationSec: -10,
+          locale: 'INVALID-LONG-LOCALE-1234',
+          goodPosturePct: 999, // out of range -> 0
+          alertCount: -2,      // negative -> 0
+        }),
+      });
+
+      const res = await onRequestPost({ request, env: mockEnv });
+      expect(res.status).toBe(204);
+
+      expect(writeDataPoint).toHaveBeenCalledWith({
+        blobs: ['session_end', 'monitor', '', '', ''],
+        doubles: [0, 0, 0],
+        indexes: ['session_end'],
+      });
+    });
+  });
 });
 

@@ -21,6 +21,9 @@ interface TelemetryRequest {
   durationSec?: number;
   errorCode?: string;
   ts?: number;
+  locale?: string;
+  goodPosturePct?: number;
+  alertCount?: number;
 }
 
 export const onRequestPost = async (context: {
@@ -45,11 +48,27 @@ export const onRequestPost = async (context: {
     const cf = (context.request as { cf?: { country?: string } }).cf;
     const country = typeof cf?.country === 'string' ? cf.country.slice(0, 8) : '';
 
+    // Sanitize locale (allow standard short codes like en, ja, ko)
+    const rawLocale = typeof body.locale === 'string' ? body.locale.toLowerCase().slice(0, 8) : '';
+    const locale = /^[a-z]{2}(-[a-z]{2,4})?$/.test(rawLocale) ? rawLocale : '';
+
+    // Bound goodPosturePct (0..100)
+    const rawGoodPct = typeof body.goodPosturePct === 'number' && Number.isFinite(body.goodPosturePct)
+      ? Math.round(body.goodPosturePct)
+      : -1;
+    const goodPosturePct = rawGoodPct >= 0 && rawGoodPct <= 100 ? rawGoodPct : 0;
+
+    // Bound alertCount (>=0, max 1000)
+    const rawAlerts = typeof body.alertCount === 'number' && Number.isFinite(body.alertCount)
+      ? Math.round(body.alertCount)
+      : 0;
+    const alertCount = Math.min(Math.max(0, rawAlerts), 1000);
+
     // Write to Cloudflare Workers Analytics Engine if binding is configured
     if (context.env?.ANALYTICS_ENGINE?.writeDataPoint) {
       context.env.ANALYTICS_ENGINE.writeDataPoint({
-        blobs: [event, step, errorCode, country],
-        doubles: [duration],
+        blobs: [event, step, errorCode, country, locale],
+        doubles: [duration, goodPosturePct, alertCount],
         indexes: [event.slice(0, 32)],
       });
     }
