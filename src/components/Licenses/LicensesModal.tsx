@@ -40,6 +40,7 @@ function LicensesModalContent({ onClose }: { onClose: () => void }) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
+        e.stopPropagation();
         onClose();
         return;
       }
@@ -93,7 +94,7 @@ function LicensesModalContent({ onClose }: { onClose: () => void }) {
         tabIndex={-1}
         className="relative z-10 flex max-h-[88dvh] w-full max-w-[640px] flex-col overflow-hidden rounded-[24px] border border-line bg-s1 shadow-2xl outline-hidden animate-fade-up"
       >
-        <header className="flex items-center justify-between border-b border-line px-6 py-4.5">
+        <header className="flex items-center justify-between border-b border-line px-6 py-4">
           <div className="flex items-center gap-2.5">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-good/15 text-good text-sm font-semibold">
               📜
@@ -144,12 +145,6 @@ function LicensesModalContent({ onClose }: { onClose: () => void }) {
             })}
           </div>
         </div>
-
-        <footer className="border-t border-line px-6 py-3.5 flex justify-end">
-          <Button variant="primary" size="sm" onClick={onClose}>
-            {t.close}
-          </Button>
-        </footer>
       </div>
     </div>
   );
