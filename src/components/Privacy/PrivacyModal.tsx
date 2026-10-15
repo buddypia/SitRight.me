@@ -11,33 +11,58 @@ export function PrivacyModal({
   open: boolean;
   onClose: () => void;
 }) {
+  if (!open) return null;
+
+  return <PrivacyModalContent onClose={onClose} />;
+}
+
+function PrivacyModalContent({ onClose }: { onClose: () => void }) {
   const t = useT();
-  const rootRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    rootRef.current?.toggleAttribute('inert', !open);
-    if (!open) return;
     const opener =
       document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null;
     panelRef.current?.focus();
-    return () => opener?.focus();
-  }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+        return;
+      }
 
-  if (!open) return null;
+      if (e.key === 'Tab' && panelRef.current) {
+        const focusables = panelRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusables.length === 0) return;
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      opener?.focus();
+    };
+  }, [onClose]);
 
   return (
     <div
-      ref={rootRef}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
       role="dialog"
       aria-modal="true"
@@ -52,7 +77,7 @@ export function PrivacyModal({
         tabIndex={-1}
         className="relative z-10 flex max-h-[88dvh] w-full max-w-[560px] flex-col overflow-hidden rounded-[24px] border border-line bg-s1 shadow-2xl outline-hidden animate-fade-up"
       >
-        <header className="flex items-center justify-between border-b border-line px-6 py-4.5">
+        <header className="flex items-center justify-between border-b border-line px-6 py-4">
           <div className="flex items-center gap-2.5">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-good/15 text-good text-sm font-semibold">
               ✓
@@ -142,12 +167,6 @@ export function PrivacyModal({
             </p>
           </section>
         </div>
-
-        <footer className="border-t border-line px-6 py-3.5 flex justify-end">
-          <Button variant="primary" size="sm" onClick={onClose}>
-            {t.close}
-          </Button>
-        </footer>
       </div>
     </div>
   );

@@ -66,6 +66,7 @@ export function Monitor() {
               <div className="flex flex-col items-center gap-3">
                 <p className="text-sm text-ink-3">{t.pipActive}</p>
                 <Button size="sm" onClick={pip.close}>
+                  <PipIcon active />
                   {t.pipClose}
                 </Button>
               </div>
@@ -89,20 +90,16 @@ export function Monitor() {
               <p className="mt-0.5 text-[11px] text-ink-3">{t.sideViewHint}</p>
             </div>
             <div className="flex items-center gap-2">
-              {pip.supported && (
+              {pip.supported && !pip.pipWindow && (
                 <button
                   type="button"
-                  title={pip.pipWindow ? t.pipClose : t.pipOpen}
-                  aria-label={pip.pipWindow ? t.pipClose : t.pipOpen}
-                  onClick={() =>
-                    pip.pipWindow
-                      ? pip.close()
-                      : void pip.open({ width: 340, height: 400 })
-                  }
+                  title={t.pipOpen}
+                  aria-label={t.pipOpen}
+                  onClick={() => void pip.open({ width: 340, height: 400 })}
                   className="pointer-events-auto flex h-8 shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border border-[rgba(77,234,196,0.4)] bg-[rgba(77,234,196,0.15)] px-3 text-xs font-medium text-good backdrop-blur-sm hover:bg-[rgba(77,234,196,0.25)]"
                 >
-                  <PipIcon active={Boolean(pip.pipWindow)} />
-                  {pip.pipWindow ? t.pipClose : t.pipOpen}
+                  <PipIcon />
+                  {t.pipOpen}
                 </button>
               )}
               <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/10 bg-black/35 py-1 pl-3 pr-1 text-xs text-ink-2 backdrop-blur-sm">

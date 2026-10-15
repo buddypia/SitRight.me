@@ -224,7 +224,8 @@ describe('telemetry', () => {
     });
     vi.stubGlobal('navigator', { onLine: true, sendBeacon });
 
-    const todayKey = new Date().toISOString().slice(0, 10);
+    const now = new Date();
+    const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     useAppStore.setState({
       settings: {
         ...useAppStore.getState().settings,
