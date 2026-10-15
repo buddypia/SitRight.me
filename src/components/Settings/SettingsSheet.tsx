@@ -59,11 +59,34 @@ export function SettingsSheet({
   }, [open]);
 
   useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    if (!open || privacyOpen || licensesOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (e.key === 'Tab' && panelRef.current) {
+        const focusables = panelRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusables.length === 0) return;
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+  }, [open, privacyOpen, licensesOpen, onClose]);
 
   const controller = getController();
 
@@ -96,7 +119,7 @@ export function SettingsSheet({
         className={`absolute right-0 top-0 flex h-full w-full max-w-[420px] flex-col border-l border-line bg-s1 shadow-2xl outline-hidden transition-transform duration-300 ease-out ${open ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <header className="flex items-center justify-between border-b border-line px-6 py-4">
-          <h2 className="text-base font-semibold">{t.settingsTitle}</h2>
+          <h2 className="text-base font-semibold text-ink-1">{t.settingsTitle}</h2>
           <Button size="sm" variant="ghost" onClick={onClose}>
             {t.close}
           </Button>
