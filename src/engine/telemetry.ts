@@ -1,4 +1,4 @@
-import { useAppStore } from '@/stores/appStore';
+import { todayStats, useAppStore } from '@/stores/appStore';
 
 export type TelemetryEventType =
   | 'session_start'
@@ -13,12 +13,23 @@ export interface TelemetryPayload {
   step?: string;
   durationSec?: number;
   errorCode?: string;
+  locale?: string;
+  goodPosturePct?: number;
+  alertCount?: number;
 }
 
 let activeSessionStart: number | null = null;
+let sessionStartStats: { monitoredSec: number; goodSec: number; alerts: number } | null = null;
 
 export function recordSessionStart(step = 'monitor'): void {
   activeSessionStart = Date.now();
+  const history = useAppStore.getState().history ?? [];
+  const today = todayStats(history);
+  sessionStartStats = {
+    monitoredSec: today.monitoredSec,
+    goodSec: today.goodSec,
+    alerts: today.alerts,
+  };
   sendTelemetry({ event: 'session_start', step });
 }
 
@@ -26,7 +37,31 @@ export function recordSessionEnd(step = 'monitor'): void {
   if (activeSessionStart !== null) {
     const durationSec = Math.max(0, Math.round((Date.now() - activeSessionStart) / 1000));
     activeSessionStart = null;
-    sendTelemetry({ event: 'session_end', step, durationSec });
+
+    const history = useAppStore.getState().history ?? [];
+    const today = todayStats(history);
+    let goodPosturePct: number | undefined;
+    let alertCount: number | undefined;
+
+    if (sessionStartStats && today) {
+      const deltaMonitored = Math.max(0, today.monitoredSec - sessionStartStats.monitoredSec);
+      const deltaGood = Math.max(0, today.goodSec - sessionStartStats.goodSec);
+      const deltaAlerts = Math.max(0, today.alerts - sessionStartStats.alerts);
+
+      if (deltaMonitored > 0) {
+        goodPosturePct = Math.min(100, Math.max(0, Math.round((deltaGood / deltaMonitored) * 100)));
+      }
+      alertCount = deltaAlerts;
+    }
+    sessionStartStats = null;
+
+    sendTelemetry({
+      event: 'session_end',
+      step,
+      durationSec,
+      goodPosturePct,
+      alertCount,
+    });
   }
 }
 
@@ -162,11 +197,15 @@ export function sendTelemetry(payload: TelemetryPayload): void {
     if (!navigator.onLine) return;
 
     // Check user opt-out preference
-    const enabled = useAppStore.getState().settings?.telemetry ?? true;
+    const state = useAppStore.getState();
+    const enabled = state.settings?.telemetry ?? true;
     if (!enabled) return;
+
+    const locale = payload.locale ?? state.settings?.locale;
 
     const body = JSON.stringify({
       ...payload,
+      locale,
       ts: Date.now(),
     });
 
