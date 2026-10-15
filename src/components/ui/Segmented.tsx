@@ -46,7 +46,7 @@ export function Segmented<T extends string | number>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="inline-flex flex-wrap gap-1 rounded-full border border-line bg-s2 p-1"
+      className="inline-flex flex-wrap gap-1 rounded-2xl border border-line bg-s2 p-1"
     >
       {options.map((o, idx) => {
         const active = o.value === value;
@@ -62,7 +62,7 @@ export function Segmented<T extends string | number>({
             tabIndex={active || (!hasActive && idx === 0) ? 0 : -1}
             onKeyDown={(e) => handleKeyDown(e, idx)}
             onClick={() => onChange(o.value)}
-            className={`h-7 cursor-pointer rounded-full px-3 text-xs transition ${
+            className={`h-7 cursor-pointer rounded-xl px-3 text-xs transition ${
               active
                 ? 'bg-s3 text-ink-1 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]'
                 : 'text-ink-3 hover:text-ink-1'

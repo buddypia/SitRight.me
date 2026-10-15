@@ -1,4 +1,8 @@
-import type { FrameIssue, PosturePattern } from '@/core/types';
+import type {
+  FrameIssue,
+  PeriodicNotifyKind,
+  PosturePattern,
+} from '@/core/types';
 
 export const SUPPORTED_LOCALES = ['en', 'ja', 'ko'] as const;
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
@@ -262,6 +266,18 @@ const ja = {
   fixed: '姿勢を直した',
   breakTitle: 'ひと休みしましょう',
   breakBody: '{n}分座り続けています。立ち上がって首と肩を回しましょう。',
+  periodicCheckTitle: '定期姿勢チェック',
+  periodicCheckBadge: 'スコア {score} · {kg}kg',
+  periodicCheckGoodBody:
+    '現在の姿勢スコアは {score}（首への負担 約{kg}kg）です。耳と肩のラインをこのままキープしましょう。',
+  periodicCheckPatternBody: '現在スコア {score}（{pattern}の傾向）。{fix}',
+  periodicCheckIdleBody:
+    '背筋を軽く伸ばし、あごを引いて耳を肩の真上に整えましょう。',
+  periodicAdviceTitle: 'ワンポイント改善アドバイス',
+  periodicReportTitle: '今日のミニレポート',
+  periodicReportBadge: '良い姿勢 {ratio}%',
+  periodicReportBody:
+    '今日の計測 {duration}・良い姿勢 {ratio}%・姿勢改善 {resets}回。こまめに肩の力を抜いて続けましょう。',
   enableNotifications: 'デスクトップ通知を有効にする',
   notificationsHint: '別のアプリで作業中も、姿勢が崩れ続けたときに通知します。',
   notificationsDenied:
@@ -288,6 +304,24 @@ const ja = {
   soundTheme_chime: 'チャイム (クラシック)',
   desktopNotify: 'デスクトップ通知',
   breakReminder: '休憩リマインダー',
+  periodicNotify: '定期通知の間隔',
+  periodicMode: '定期通知の内容',
+  periodicMode_auto: 'おまかせ',
+  periodicMode_check: '姿勢チェック',
+  periodicMode_advice: 'アドバイス',
+  periodicMode_break: '休憩',
+  periodicMode_report: 'ミニレポート',
+  periodicModeHint_auto:
+    '着席時間や今日の崩れ傾向に合わせて、姿勢チェック・アドバイス・レポート・休憩を自動で切り替えます。',
+  periodicModeHint_check:
+    '姿勢が崩れていなくても、一定間隔で現在のスコアと首への負担をお知らせして意識をリセットします。',
+  periodicModeHint_advice:
+    '今日の最も多い崩れ方の傾向にもとづき、環境調整やストレッチのアドバイスを届けます。',
+  periodicModeHint_break:
+    '連続して座り続けている時間を計測し、立ち上がって首や肩をほぐすタイミングを知らせます。',
+  periodicModeHint_report:
+    '今日の良い姿勢の割合・計測時間・姿勢改善回数のサマリーを定期的にお知らせします。',
+  testPeriodicNotify: '定期通知をプレビュー',
   off: 'オフ',
   powerSaver: '省電力モード（計測頻度を下げる）',
   language: '言語',
@@ -566,6 +600,18 @@ const en: Messages = {
   breakTitle: 'Time for a break',
   breakBody:
     'You have been sitting for {n} minutes. Stand up and roll your neck and shoulders.',
+  periodicCheckTitle: 'Posture check-in',
+  periodicCheckBadge: 'Score {score} · {kg}kg',
+  periodicCheckGoodBody:
+    'Current posture score is {score} (~{kg}kg neck load). Keep your ears stacked over your shoulders.',
+  periodicCheckPatternBody: 'Current score {score} ({pattern} tendency). {fix}',
+  periodicCheckIdleBody:
+    'Lengthen your spine, tuck your chin slightly, and align your ears over your shoulders.',
+  periodicAdviceTitle: 'Posture improvement tip',
+  periodicReportTitle: 'Today’s posture report',
+  periodicReportBadge: '{ratio}% good',
+  periodicReportBody:
+    'Monitored {duration} today · {ratio}% good posture · {resets} recoveries. Relax your shoulders and keep going.',
   enableNotifications: 'Enable desktop notifications',
   notificationsHint: 'Get notified even while you work in other apps.',
   notificationsDenied:
@@ -591,6 +637,24 @@ const en: Messages = {
   soundTheme_chime: 'Chime (Classic)',
   desktopNotify: 'Desktop notifications',
   breakReminder: 'Break reminder',
+  periodicNotify: 'Periodic notification interval',
+  periodicMode: 'Periodic notification type',
+  periodicMode_auto: 'Auto',
+  periodicMode_check: 'Posture check',
+  periodicMode_advice: 'Advice',
+  periodicMode_break: 'Break',
+  periodicMode_report: 'Mini report',
+  periodicModeHint_auto:
+    'Automatically rotates posture checks, advice, daily reports, and break reminders based on your session.',
+  periodicModeHint_check:
+    'Periodically shares your current posture score and neck load to help you stay mindful.',
+  periodicModeHint_advice:
+    'Delivers ergonomic tips and stretch suggestions tailored to your most frequent posture pattern today.',
+  periodicModeHint_break:
+    'Tracks continuous sitting time and reminds you to stand up and roll your neck and shoulders.',
+  periodicModeHint_report:
+    'Periodically summarizes today’s good posture ratio, monitored time, and recovery count.',
+  testPeriodicNotify: 'Preview periodic notification',
   off: 'Off',
   powerSaver: 'Power saver (measure less often)',
   language: 'Language',
@@ -872,6 +936,18 @@ const ko: Messages = {
   fixed: '자세를 고쳤어요',
   breakTitle: '잠깐 쉬어요',
   breakBody: '{n}분째 앉아 있어요. 일어나서 목과 어깨를 돌려 보세요.',
+  periodicCheckTitle: '정기 자세 점검',
+  periodicCheckBadge: '점수 {score} · {kg}kg',
+  periodicCheckGoodBody:
+    '현재 자세 점수는 {score} (목 부담 약 {kg}kg)예요. 귀와 어깨 라인을 이대로 유지해 보세요.',
+  periodicCheckPatternBody: '현재 점수 {score} ({pattern} 경향). {fix}',
+  periodicCheckIdleBody:
+    '허리를 가볍게 펴고 턱을 살짝 당겨 귀가 어깨 바로 위에 오도록 정렬해 보세요.',
+  periodicAdviceTitle: '원포인트 자세 개선 팁',
+  periodicReportTitle: '오늘의 미니 리포트',
+  periodicReportBadge: '좋은 자세 {ratio}%',
+  periodicReportBody:
+    '오늘 측정 {duration} · 좋은 자세 {ratio}% · 자세 복귀 {resets}회. 어깨 힘을 빼고 무리 없이 이어가 보세요.',
   enableNotifications: '데스크톱 알림 켜기',
   notificationsHint:
     '다른 앱에서 작업 중에도 자세가 계속 무너지면 알려 드려요.',
@@ -899,6 +975,24 @@ const ko: Messages = {
   soundTheme_chime: '차임 (클래식)',
   desktopNotify: '데스크톱 알림',
   breakReminder: '휴식 알림',
+  periodicNotify: '정기 알림 간격',
+  periodicMode: '정기 알림 종류',
+  periodicMode_auto: '자동',
+  periodicMode_check: '자세 점검',
+  periodicMode_advice: '개선 팁',
+  periodicMode_break: '휴식',
+  periodicMode_report: '미니 리포트',
+  periodicModeHint_auto:
+    '착석 시간과 오늘의 자세 경향에 맞춰 자세 점검·개선 팁·리포트·휴식 알림을 자동으로 전환해요.',
+  periodicModeHint_check:
+    '자세가 무너지지 않아도 일정 간격으로 현재 점수와 목 부담을 알려 자세 의식을 환기해요.',
+  periodicModeHint_advice:
+    '오늘 가장 많이 나타난 자세 무너짐 경향을 바탕으로 환경 조정과 스트레칭 팁을 알려 드려요.',
+  periodicModeHint_break:
+    '연속으로 앉아 있는 시간을 측정해 자리에서 일어나 목과 어깨를 풀 타이밍을 알려 드려요.',
+  periodicModeHint_report:
+    '오늘의 좋은 자세 비율, 측정 시간, 자세 복귀 횟수 요약을 정기적으로 알려 드려요.',
+  testPeriodicNotify: '정기 알림 미리보기',
   off: '끔',
   powerSaver: '절전 모드 (측정 빈도 낮춤)',
   language: '언어',
@@ -996,4 +1090,99 @@ export function formatDuration(sec: number, t: Messages): string {
     return format(t.durationHoursMinutes, { h, m });
   }
   return format(t.durationMinutes, { m });
+}
+
+export interface PeriodicNotificationData {
+  periodicKind: PeriodicNotifyKind;
+  minutes: number;
+  score?: number | null;
+  neckLoadKg?: number | null;
+  pattern?: PosturePattern | null;
+  topPattern?: PosturePattern | null;
+  goodRatioPct?: number | null;
+  monitoredSec?: number | null;
+  recoveries?: number | null;
+}
+
+export function buildPeriodicNotification(
+  data: PeriodicNotificationData,
+  t: Messages
+): { title: string; body: string; badgeText: string } {
+  const { periodicKind, minutes } = data;
+  const safeMin = Math.max(1, Math.round(minutes || 0));
+
+  if (periodicKind === 'check') {
+    const hasScore =
+      typeof data.score === 'number' && Number.isFinite(data.score);
+    const score = hasScore ? Math.round(data.score!) : null;
+    const kg =
+      typeof data.neckLoadKg === 'number' && Number.isFinite(data.neckLoadKg)
+        ? data.neckLoadKg.toFixed(1)
+        : '5.0';
+    const badgeText =
+      score !== null
+        ? format(t.periodicCheckBadge, { score, kg })
+        : format(t.minutesShort, { n: safeMin });
+    if (score !== null && data.pattern) {
+      const p = t.pattern[data.pattern];
+      return {
+        title: t.periodicCheckTitle,
+        body: format(t.periodicCheckPatternBody, {
+          score,
+          pattern: p.name,
+          fix: p.fix,
+        }),
+        badgeText,
+      };
+    }
+    if (score !== null) {
+      return {
+        title: t.periodicCheckTitle,
+        body: format(t.periodicCheckGoodBody, { score, kg }),
+        badgeText,
+      };
+    }
+    return {
+      title: t.periodicCheckTitle,
+      body: t.periodicCheckIdleBody,
+      badgeText,
+    };
+  }
+
+  if (periodicKind === 'advice') {
+    const targetPattern = data.topPattern ?? data.pattern ?? null;
+    if (targetPattern) {
+      return {
+        title: t.periodicAdviceTitle,
+        body: t.insightTips[targetPattern],
+        badgeText: t.pattern[targetPattern].name,
+      };
+    }
+    return {
+      title: t.periodicAdviceTitle,
+      body: t.insightGood,
+      badgeText: t.insightTitle,
+    };
+  }
+
+  if (periodicKind === 'report') {
+    const ratio =
+      typeof data.goodRatioPct === 'number' &&
+      Number.isFinite(data.goodRatioPct)
+        ? Math.round(data.goodRatioPct)
+        : 100;
+    const duration = formatDuration(data.monitoredSec ?? safeMin * 60, t);
+    const resets = data.recoveries ?? 0;
+    return {
+      title: t.periodicReportTitle,
+      body: format(t.periodicReportBody, { ratio, duration, resets }),
+      badgeText: format(t.periodicReportBadge, { ratio }),
+    };
+  }
+
+  return {
+    title: t.breakTitle,
+    body: format(t.breakBody, { n: safeMin }),
+    badgeText: format(t.minutesShort, { n: safeMin }),
+  };
 }

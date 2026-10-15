@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { AlertEngine, SittingTracker, type AlertEvent } from '@/core/alerts';
+import {
+  AlertEngine,
+  resolvePeriodicKind,
+  SittingTracker,
+  type AlertEvent,
+} from '@/core/alerts';
 import type { PostureAssessment, PosturePattern } from '@/core/types';
+import { buildPeriodicNotification, MESSAGES } from '@/i18n/messages';
 
 const make = (
   sev: number,
@@ -141,5 +147,125 @@ describe('SittingTracker', () => {
     for (let i = 0; i < 600; i += 1) tracker.update(true, 1, 45);
     for (let i = 0; i < 30; i += 1) tracker.update(false, 1, 45);
     expect(tracker.minutes).toBeCloseTo(10);
+  });
+
+  it('supports custom repeat intervals and tracks notification count', () => {
+    const tracker = new SittingTracker(90);
+    let triggered = 0;
+    for (let i = 0; i < 31 * 60; i += 1) {
+      if (tracker.update(true, 1, 15, 15)) triggered += 1;
+    }
+    expect(triggered).toBe(2);
+    expect(tracker.count).toBe(2);
+    tracker.reset();
+    expect(tracker.count).toBe(0);
+  });
+});
+
+describe('resolvePeriodicKind and buildPeriodicNotification', () => {
+  it('returns explicit mode when mode is not auto', () => {
+    for (const mode of ['check', 'advice', 'break', 'report'] as const) {
+      expect(
+        resolvePeriodicKind({
+          mode,
+          step: 1,
+          sittingMin: 30,
+          topPattern: 'slouch',
+          monitoredSec: 1800,
+        })
+      ).toBe(mode);
+    }
+  });
+
+  it('rotates through check, advice, report, and break in auto mode', () => {
+    expect(
+      resolvePeriodicKind({
+        mode: 'auto',
+        step: 1,
+        sittingMin: 15,
+        topPattern: 'straight_neck',
+        monitoredSec: 900,
+      })
+    ).toBe('check');
+    expect(
+      resolvePeriodicKind({
+        mode: 'auto',
+        step: 2,
+        sittingMin: 30,
+        topPattern: 'straight_neck',
+        monitoredSec: 1800,
+      })
+    ).toBe('advice');
+    expect(
+      resolvePeriodicKind({
+        mode: 'auto',
+        step: 3,
+        sittingMin: 45,
+        topPattern: 'straight_neck',
+        monitoredSec: 2700,
+      })
+    ).toBe('report');
+    expect(
+      resolvePeriodicKind({
+        mode: 'auto',
+        step: 4,
+        sittingMin: 60,
+        topPattern: 'straight_neck',
+        monitoredSec: 3600,
+      })
+    ).toBe('break');
+  });
+
+  it('builds localized notifications for check, advice, report, and break', () => {
+    const checkGood = buildPeriodicNotification(
+      {
+        periodicKind: 'check',
+        minutes: 15,
+        score: 92,
+        neckLoadKg: 5.2,
+        pattern: null,
+      },
+      MESSAGES.ja
+    );
+    expect(checkGood.title).toBe(MESSAGES.ja.periodicCheckTitle);
+    expect(checkGood.badgeText).toContain('92');
+    expect(checkGood.body).toContain('5.2');
+
+    const advice = buildPeriodicNotification(
+      {
+        periodicKind: 'advice',
+        minutes: 30,
+        topPattern: 'text_neck',
+      },
+      MESSAGES.ja
+    );
+    expect(advice.title).toBe(MESSAGES.ja.periodicAdviceTitle);
+    expect(advice.badgeText).toBe(MESSAGES.ja.pattern.text_neck.name);
+    expect(advice.body).toBe(MESSAGES.ja.insightTips.text_neck);
+
+    const report = buildPeriodicNotification(
+      {
+        periodicKind: 'report',
+        minutes: 45,
+        goodRatioPct: 84,
+        monitoredSec: 2700,
+        recoveries: 3,
+      },
+      MESSAGES.ja
+    );
+    expect(report.title).toBe(MESSAGES.ja.periodicReportTitle);
+    expect(report.badgeText).toContain('84%');
+    expect(report.body).toContain('45分');
+    expect(report.body).toContain('3回');
+
+    const brk = buildPeriodicNotification(
+      {
+        periodicKind: 'break',
+        minutes: 45,
+      },
+      MESSAGES.ja
+    );
+    expect(brk.title).toBe(MESSAGES.ja.breakTitle);
+    expect(brk.body).toContain('45分');
   });
 });

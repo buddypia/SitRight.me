@@ -12,6 +12,8 @@ import {
 import type {
   Baseline,
   FrameIssue,
+  PeriodicNotifyKind,
+  PeriodicNotifyMode,
   PostureAssessment,
   PosturePattern,
   Sensitivity,
@@ -46,6 +48,7 @@ export interface Settings {
   soundTheme: SoundTheme;
   desktopNotify: boolean;
   breakIntervalMin: number;
+  periodicMode: PeriodicNotifyMode;
   powerSaver: boolean;
   showCamera: boolean;
   xray: boolean;
@@ -59,7 +62,18 @@ export interface Settings {
 export type AppEventInput =
   | { kind: 'alert'; pattern: PosturePattern }
   | { kind: 'recovered' }
-  | { kind: 'break'; minutes: number };
+  | {
+      kind: 'break';
+      minutes: number;
+      periodicKind?: PeriodicNotifyKind;
+      score?: number | null;
+      neckLoadKg?: number | null;
+      pattern?: PosturePattern | null;
+      topPattern?: PosturePattern | null;
+      goodRatioPct?: number | null;
+      monitoredSec?: number | null;
+      recoveries?: number | null;
+    };
 
 export type AppEvent = AppEventInput & { id: number };
 
@@ -109,6 +123,7 @@ export const DEFAULT_SETTINGS: Settings = {
   soundTheme: 'snap-horn',
   desktopNotify: false,
   breakIntervalMin: 45,
+  periodicMode: 'auto',
   powerSaver: false,
   showCamera: true,
   xray: true,
@@ -236,6 +251,19 @@ export const useAppStore = create<AppState>()(
         ];
         if (!validThemes.includes(settings.soundTheme))
           settings.soundTheme = 'snap-horn';
+        const validPeriodicModes: PeriodicNotifyMode[] = [
+          'auto',
+          'check',
+          'advice',
+          'break',
+          'report',
+        ];
+        if (!validPeriodicModes.includes(settings.periodicMode))
+          settings.periodicMode = 'auto';
+        const validIntervals = [0, 15, 30, 45, 60];
+        if (settings.breakIntervalMin === 90) settings.breakIntervalMin = 60;
+        else if (!validIntervals.includes(settings.breakIntervalMin))
+          settings.breakIntervalMin = 45;
         // headRoll は後から追加した項目。古い基準は傾き 0 として扱う
         const raw = p.baseline as unknown as Record<string, unknown> | null | undefined;
         const candidate =

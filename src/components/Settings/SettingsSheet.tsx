@@ -1,13 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { Sensitivity } from '@/core/types';
+import type { PeriodicNotifyMode, Sensitivity } from '@/core/types';
 import { getController } from '@/engine/controller';
 import {
   notificationsSupported,
   playChime,
   requestNotificationPermission,
-  showDesktopNotification,
 } from '@/engine/notifier';
 import {
   downloadCsv,
@@ -145,16 +144,48 @@ export function SettingsSheet({
             />
           </Field>
 
-          <Field label={t.breakReminder}>
-            <Segmented<number>
-              label={t.breakReminder}
-              value={settings.breakIntervalMin}
-              onChange={(v) => update({ breakIntervalMin: v })}
-              options={[0, 30, 45, 60, 90].map((v) => ({
-                value: v,
-                label: v === 0 ? t.off : format(t.minutesShort, { n: v }),
-              }))}
-            />
+          <Field label={t.periodicNotify}>
+            <div className="space-y-3">
+              <Segmented<number>
+                label={t.periodicNotify}
+                value={settings.breakIntervalMin}
+                onChange={(v) => update({ breakIntervalMin: v })}
+                options={[0, 15, 30, 45, 60].map((v) => ({
+                  value: v,
+                  label: v === 0 ? t.off : format(t.minutesShort, { n: v }),
+                }))}
+              />
+              {settings.breakIntervalMin > 0 && (
+                <div className="space-y-2.5 rounded-xl border border-line bg-s2/50 p-3.5">
+                  <p className="text-xs font-medium text-ink-2">
+                    {t.periodicMode}
+                  </p>
+                  <Segmented<PeriodicNotifyMode>
+                    label={t.periodicMode}
+                    value={settings.periodicMode}
+                    onChange={(v) => update({ periodicMode: v })}
+                    options={(
+                      ['auto', 'check', 'advice', 'break', 'report'] as const
+                    ).map((mode) => ({
+                      value: mode,
+                      label: t[`periodicMode_${mode}`],
+                    }))}
+                  />
+                  <p className="text-xs leading-relaxed text-ink-3">
+                    {t[`periodicModeHint_${settings.periodicMode}`]}
+                  </p>
+                  <div className="pt-0.5">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => controller.triggerPeriodicNotification()}
+                    >
+                      {t.testPeriodicNotify}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
           </Field>
 
           <div className="space-y-4 rounded-2xl border border-line bg-s2/60 p-4">
@@ -211,21 +242,22 @@ export function SettingsSheet({
                 onChange={(v) => update({ powerSaver: v })}
               />
             </Row>
-            {settings.desktopNotify && (
-              <Button
-                size="sm"
-                onClick={() => {
-                  const p = t.pattern.straight_neck;
-                  showDesktopNotification(
-                    `${t.alertTitle}: ${p.name}`,
-                    `${p.short} — ${p.fix}`,
-                    'sitright-test'
-                  );
-                }}
-              >
-                {t.testNotification}
-              </Button>
-            )}
+            <Button
+              size="sm"
+              onClick={async () => {
+                if (
+                  settings.desktopNotify &&
+                  notificationsSupported() &&
+                  Notification.permission === 'default'
+                ) {
+                  const result = await requestNotificationPermission();
+                  setNotifyDenied(result === 'denied');
+                }
+                controller.triggerTestAlert();
+              }}
+            >
+              {t.testNotification}
+            </Button>
           </div>
 
           <Field label={t.avatar}>

@@ -1,5 +1,10 @@
 import { FAIR_AT } from './assessment';
-import type { PostureAssessment, PosturePattern } from './types';
+import type {
+  PeriodicNotifyKind,
+  PeriodicNotifyMode,
+  PostureAssessment,
+  PosturePattern,
+} from './types';
 
 export interface AlertConfig {
   /** 悪い姿勢がこの秒数続いたら通知する */
@@ -125,11 +130,12 @@ export class AlertEngine {
   }
 }
 
-/** 座りっぱなしの検知。一定時間カメラ前にいなければ休憩したとみなす */
+/** 座りっぱなし・定期通知の検知。一定時間カメラ前にいなければ休憩したとみなす */
 export class SittingTracker {
   private sittingSec = 0;
   private awaySec = 0;
   private remindedAt = 0;
+  private notifyCount = 0;
 
   constructor(private readonly breakResetSec = 90) {}
 
@@ -137,14 +143,24 @@ export class SittingTracker {
     return this.sittingSec / 60;
   }
 
+  get count(): number {
+    return this.notifyCount;
+  }
+
   reset(): void {
     this.sittingSec = 0;
     this.awaySec = 0;
     this.remindedAt = 0;
+    this.notifyCount = 0;
   }
 
-  /** @returns 休憩を促すべきタイミングなら true */
-  update(present: boolean, dtSec: number, intervalMin: number): boolean {
+  /** @returns 定期通知・休憩を促すべきタイミングなら true */
+  update(
+    present: boolean,
+    dtSec: number,
+    intervalMin: number,
+    repeatIntervalMin = 15
+  ): boolean {
     const dt = Math.min(Math.max(dtSec, 0), 2);
     if (!present) {
       this.awaySec += dt;
@@ -158,12 +174,46 @@ export class SittingTracker {
     this.sittingSec += dt;
     if (intervalMin <= 0) return false;
     const interval = intervalMin * 60;
-    // 初回は interval 経過時、その後は無視されても 15 分ごとに再通知
-    const next = this.remindedAt === 0 ? interval : this.remindedAt + 15 * 60;
+    const repeat = Math.max(1, repeatIntervalMin) * 60;
+    // 初回は interval 経過時、その後は repeat 間隔（既定は 15 分ごと）に再通知
+    const next =
+      this.remindedAt === 0
+        ? interval
+        : Math.max(interval, this.remindedAt + repeat);
     if (this.sittingSec >= next) {
       this.remindedAt = this.sittingSec;
+      this.notifyCount += 1;
       return true;
     }
     return false;
   }
+}
+
+export interface PeriodicContext {
+  mode: PeriodicNotifyMode;
+  step: number;
+  sittingMin: number;
+  topPattern: PosturePattern | null;
+  monitoredSec: number;
+}
+
+/**
+ * 定期通知モード（auto / 個別指定）と現在の計測状況から、今回送る通知種別を決定する。
+ */
+export function resolvePeriodicKind(ctx: PeriodicContext): PeriodicNotifyKind {
+  if (ctx.mode !== 'auto') return ctx.mode;
+  const cycle = Math.max(0, ctx.step - 1) % 4;
+  if (ctx.sittingMin >= 45 && (cycle === 0 || cycle === 3)) {
+    return 'break';
+  }
+  if (cycle === 1) {
+    return 'advice';
+  }
+  if (cycle === 2 && ctx.monitoredSec >= 60) {
+    return 'report';
+  }
+  if (cycle === 3) {
+    return ctx.sittingMin >= 30 ? 'break' : 'advice';
+  }
+  return 'check';
 }

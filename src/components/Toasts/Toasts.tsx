@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useT } from '@/hooks/useT';
-import { format } from '@/i18n/messages';
+import { buildPeriodicNotification } from '@/i18n/messages';
 import { useAppStore, type AppEvent } from '@/stores/appStore';
 import { Logo } from '@/components/ui';
 
@@ -30,7 +30,7 @@ export function Toasts() {
   // ライブリージョンは常に置いておき、中身だけ差し替える（同時にマウントすると読み上げられないことがある）
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 top-4 z-40 flex justify-center px-4"
+      className="pointer-events-none fixed inset-x-0 top-4 z-[60] flex justify-center px-4"
       role="status"
       aria-live="assertive"
     >
@@ -62,13 +62,37 @@ function Toast({
     title = t.recoveredToast;
     body = t.recoveredBody;
   } else {
-    title = t.breakTitle;
-    body = format(t.breakBody, { n: shown.minutes });
-    badgeText = format(t.minutesShort, { n: shown.minutes });
+    const built = buildPeriodicNotification(
+      {
+        periodicKind: shown.periodicKind ?? 'break',
+        minutes: shown.minutes,
+        score: shown.score,
+        neckLoadKg: shown.neckLoadKg,
+        pattern: shown.pattern,
+        topPattern: shown.topPattern,
+        goodRatioPct: shown.goodRatioPct,
+        monitoredSec: shown.monitoredSec,
+        recoveries: shown.recoveries,
+      },
+      t
+    );
+    title = built.title;
+    body = built.body;
+    badgeText = built.badgeText;
   }
 
   const isAlert = shown.kind === 'alert';
   const isRecovered = shown.kind === 'recovered';
+  const periodicIcon =
+    shown.kind === 'break'
+      ? shown.periodicKind === 'check'
+        ? '🎯'
+        : shown.periodicKind === 'advice'
+          ? '💡'
+          : shown.periodicKind === 'report'
+            ? '📊'
+            : '☕'
+      : '☕';
 
   return (
     <div
@@ -98,7 +122,7 @@ function Toast({
               className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border border-[#161920] bg-s3 text-[9px] shadow-sm"
               aria-hidden
             >
-              ☕
+              {periodicIcon}
             </span>
           )}
         </div>
