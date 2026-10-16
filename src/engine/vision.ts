@@ -8,20 +8,42 @@ const FACE_MODEL = '/mediapipe/models/face_landmarker.task';
 
 type Delegate = 'GPU' | 'CPU';
 
+const MEDIAPIPE_NOISE_PATTERNS = [
+  'INFO: Created TensorFlow Lite',
+  'Sets FaceBlendshapesGraph acceleration to xnnpack by default',
+  'OpenGL error checking is disabled',
+  'Using NORM_RECT without IMAGE_DIMENSIONS is only supported for the square ROI',
+];
+
+export function isMediapipeNoiseLog(firstArg: unknown): boolean {
+  return (
+    typeof firstArg === 'string' &&
+    MEDIAPIPE_NOISE_PATTERNS.some((pattern) => firstArg.includes(pattern))
+  );
+}
+
 let consoleFiltered = false;
-/** MediaPipe は情報ログを console.error に出すため、その1種類だけを抑制する */
-function filterMediapipeInfoLogs() {
+/**
+ * MediaPipe (WASM / C++ glog) は定型の初期化・グラフ情報ログを
+ * console.error / console.warn に出すため、既知の無害な定型ログだけを抑制する
+ */
+export function filterMediapipeInfoLogs(): void {
   if (consoleFiltered || typeof console === 'undefined') return;
   consoleFiltered = true;
-  const original = console.error.bind(console);
+  const originalError = console.error.bind(console);
   console.error = (...args: unknown[]) => {
-    if (
-      typeof args[0] === 'string' &&
-      args[0].startsWith('INFO: Created TensorFlow Lite')
-    )
-      return;
-    original(...args);
+    if (isMediapipeNoiseLog(args[0])) return;
+    originalError(...args);
   };
+  const originalWarn = console.warn.bind(console);
+  console.warn = (...args: unknown[]) => {
+    if (isMediapipeNoiseLog(args[0])) return;
+    originalWarn(...args);
+  };
+}
+
+export function resetMediapipeConsoleFilterForTesting(): void {
+  consoleFiltered = false;
 }
 
 /**
