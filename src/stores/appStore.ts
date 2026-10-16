@@ -155,6 +155,18 @@ export const INITIAL_LIVE: LiveState = {
  * ストレージが使えない環境（サイトデータのブロック等）でも起動できるよう例外は握りつぶす。
  */
 const LEGACY_STORAGE_KEY = 'sitsmart.v2';
+export const TELEMETRY_CLIENT_ID_KEY = 'sitright.cid';
+
+function removeTelemetryClientId(): void {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(TELEMETRY_CLIENT_ID_KEY);
+    }
+  } catch {
+    // noop
+  }
+}
+
 let lastSaved: PersistedState | null = null;
 const storage: PersistStorage<PersistedState> = {
   getItem: (name) => {
@@ -202,8 +214,12 @@ export const useAppStore = create<AppState>()(
       history: [],
       live: INITIAL_LIVE,
       setPhase: (phase) => set({ phase }),
-      updateSettings: (patch) =>
-        set((s) => ({ settings: { ...s.settings, ...patch } })),
+      updateSettings: (patch) => {
+        if (patch.telemetry === false) {
+          removeTelemetryClientId();
+        }
+        set((s) => ({ settings: { ...s.settings, ...patch } }));
+      },
       setBaseline: (baseline) => set({ baseline }),
       setLive: (patch) => set((s) => ({ live: { ...s.live, ...patch } })),
       setToday: (day) =>
@@ -214,13 +230,15 @@ export const useAppStore = create<AppState>()(
           ),
         })),
       markHydrated: () => set({ hydrated: true }),
-      resetAll: () =>
+      resetAll: () => {
+        removeTelemetryClientId();
         set((s) => ({
           baseline: null,
           history: pruneHistory([], localDateKey(new Date())),
           phase: 'welcome',
           live: { ...INITIAL_LIVE, engine: s.live.engine },
-        })),
+        }));
+      },
     }),
     {
       name: 'sitright.v2',

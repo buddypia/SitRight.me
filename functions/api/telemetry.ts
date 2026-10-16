@@ -24,7 +24,11 @@ interface TelemetryRequest {
   locale?: string;
   goodPosturePct?: number;
   alertCount?: number;
+  clientId?: string;
+  sessionId?: string;
 }
+
+const ANON_ID_PATTERN = /^[a-z0-9-]{8,64}$/i;
 
 export const onRequestPost = async (context: {
   request: Request;
@@ -52,6 +56,13 @@ export const onRequestPost = async (context: {
     const rawLocale = typeof body.locale === 'string' ? body.locale.toLowerCase().slice(0, 8) : '';
     const locale = /^[a-z]{2}(-[a-z]{2,4})?$/.test(rawLocale) ? rawLocale : '';
 
+    // Sanitize anonymous clientId and ephemeral sessionId (random UUID/token format only, never PII)
+    const rawClientId = typeof body.clientId === 'string' ? body.clientId.trim().slice(0, 64) : '';
+    const clientId = ANON_ID_PATTERN.test(rawClientId) ? rawClientId : '';
+
+    const rawSessionId = typeof body.sessionId === 'string' ? body.sessionId.trim().slice(0, 64) : '';
+    const sessionId = ANON_ID_PATTERN.test(rawSessionId) ? rawSessionId : '';
+
     // Bound goodPosturePct (0..100)
     const rawGoodPct = typeof body.goodPosturePct === 'number' && Number.isFinite(body.goodPosturePct)
       ? Math.round(body.goodPosturePct)
@@ -67,7 +78,7 @@ export const onRequestPost = async (context: {
     // Write to Cloudflare Workers Analytics Engine if binding is configured
     if (context.env?.ANALYTICS_ENGINE?.writeDataPoint) {
       context.env.ANALYTICS_ENGINE.writeDataPoint({
-        blobs: [event, step, errorCode, country, locale],
+        blobs: [event, step, errorCode, country, locale, clientId, sessionId],
         doubles: [duration, goodPosturePct, alertCount],
         indexes: [event.slice(0, 32)],
       });

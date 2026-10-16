@@ -1,4 +1,4 @@
-import { todayStats, useAppStore } from '@/stores/appStore';
+import { TELEMETRY_CLIENT_ID_KEY, todayStats, useAppStore } from '@/stores/appStore';
 
 export type TelemetryEventType =
   | 'session_start'
@@ -16,6 +16,80 @@ export interface TelemetryPayload {
   locale?: string;
   goodPosturePct?: number;
   alertCount?: number;
+  clientId?: string;
+  sessionId?: string;
+}
+
+const ANON_ID_PATTERN = /^[a-z0-9-]{8,64}$/i;
+let cachedClientId: string | null = null;
+let cachedSessionId: string | null = null;
+
+function generateAnonymousId(): string {
+  if (typeof crypto !== 'undefined') {
+    if (typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    if (typeof crypto.getRandomValues === 'function') {
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      bytes[6] = (bytes[6] & 0x0f) | 0x40;
+      bytes[8] = (bytes[8] & 0x3f) | 0x80;
+      const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+      return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+    }
+  }
+  return '';
+}
+
+/**
+ * Returns a persistent anonymous installation ID (UUID v4) stored in localStorage.
+ * Automatically rotates if localStorage was cleared via resetAll() or opt-out.
+ */
+export function getOrCreateClientId(): string {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const stored = localStorage.getItem(TELEMETRY_CLIENT_ID_KEY);
+      if (stored && ANON_ID_PATTERN.test(stored)) {
+        cachedClientId = stored;
+        return stored;
+      }
+      const fresh = generateAnonymousId();
+      cachedClientId = fresh;
+      localStorage.setItem(TELEMETRY_CLIENT_ID_KEY, fresh);
+      return fresh;
+    }
+  } catch {
+    // Storage blocked or unavailable; fall through to in-memory cache
+  }
+  if (!cachedClientId) {
+    cachedClientId = generateAnonymousId();
+  }
+  return cachedClientId;
+}
+
+/**
+ * Returns an ephemeral per-visit session ID (UUID v4) held only in memory.
+ */
+export function getOrCreateSessionId(): string {
+  if (!cachedSessionId) {
+    cachedSessionId = generateAnonymousId();
+  }
+  return cachedSessionId;
+}
+
+/**
+ * Clears both persistent and in-memory anonymous telemetry identifiers.
+ */
+export function clearTelemetryIdentity(): void {
+  cachedClientId = null;
+  cachedSessionId = null;
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(TELEMETRY_CLIENT_ID_KEY);
+    }
+  } catch {
+    // noop
+  }
 }
 
 let activeSessionStart: number | null = null;
@@ -172,9 +246,10 @@ export function installThirdPartyTelemetryBlocker(): void {
   }
 }
 
-/** Reset blocker flag for test isolation */
+/** Reset blocker flag and telemetry identity for test isolation */
 export function resetTelemetryBlockerForTesting(): void {
   blockerInstalled = false;
+  clearTelemetryIdentity();
 }
 
 // Auto-activate in browser context
@@ -189,7 +264,7 @@ if (typeof window !== 'undefined') {
  * 1. Zero cross-origin transmission: Only posts to first-party '/api/telemetry'
  * 2. Zero biometric data: Raw landmarks, frames, coordinates are strictly prohibited
  * 3. Offline-safe: Silent no-op when offline, never throws unhandled errors
- * 4. User choice: Respects settings.telemetry toggle
+ * 4. User choice: Respects settings.telemetry toggle and wipes anonymous ID on opt-out
  */
 export function sendTelemetry(payload: TelemetryPayload): void {
   try {
@@ -199,13 +274,20 @@ export function sendTelemetry(payload: TelemetryPayload): void {
     // Check user opt-out preference
     const state = useAppStore.getState();
     const enabled = state.settings?.telemetry ?? true;
-    if (!enabled) return;
+    if (!enabled) {
+      clearTelemetryIdentity();
+      return;
+    }
 
     const locale = payload.locale ?? state.settings?.locale;
+    const clientId = payload.clientId ?? getOrCreateClientId();
+    const sessionId = payload.sessionId ?? getOrCreateSessionId();
 
     const body = JSON.stringify({
       ...payload,
       locale,
+      clientId,
+      sessionId,
       ts: Date.now(),
     });
 
