@@ -291,6 +291,12 @@ export function sendTelemetry(payload: TelemetryPayload): void {
       ts: Date.now(),
     });
 
+    // next dev (output: 'export') には Cloudflare Pages Functions (/api/telemetry) が無いため、
+    // 開発サーバー上では 404 ノイズを出さずにネットワーク送信だけスキップする
+    if (process.env.NODE_ENV === 'development') {
+      return;
+    }
+
     // Prefer navigator.sendBeacon for non-blocking asynchronous transmission
     if (typeof navigator.sendBeacon === 'function') {
       const blob = new Blob([body], { type: 'application/json' });

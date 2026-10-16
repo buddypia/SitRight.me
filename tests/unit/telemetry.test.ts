@@ -403,5 +403,64 @@ describe('telemetry', () => {
       });
     });
   });
+
+  describe('development server & MediaPipe console noise suppression', () => {
+    it('skips /api/telemetry network dispatch when NODE_ENV is development (next dev)', () => {
+      const sendBeacon = vi.fn().mockReturnValue(true);
+      vi.stubGlobal('navigator', { onLine: true, sendBeacon });
+      vi.stubEnv('NODE_ENV', 'development');
+
+      try {
+        sendTelemetry({ event: 'step_transition', step: 'welcome' });
+        expect(sendBeacon).not.toHaveBeenCalled();
+      } finally {
+        vi.unstubAllEnvs();
+      }
+    });
+
+    it('suppresses benign MediaPipe WASM glog warnings and info logs while preserving real warnings/errors', async () => {
+      const {
+        filterMediapipeInfoLogs,
+        resetMediapipeConsoleFilterForTesting,
+      } = await import('@/engine/vision');
+
+      const originalWarn = console.warn;
+      const originalError = console.error;
+      const warnSpy = vi.fn();
+      const errorSpy = vi.fn();
+      console.warn = warnSpy;
+      console.error = errorSpy;
+      resetMediapipeConsoleFilterForTesting();
+
+      try {
+        filterMediapipeInfoLogs();
+
+        console.error('INFO: Created TensorFlow Lite XNNPACK delegate for CPU.');
+        console.warn(
+          'W1015 15:14:25.920000 2172416 face_landmarker_graph.cc:180] Sets FaceBlendshapesGraph acceleration to xnnpack by default.'
+        );
+        console.warn(
+          'W1015 15:14:25.944999 2172416 gl_context.cc:1135] OpenGL error checking is disabled'
+        );
+        console.warn(
+          'W1015 15:14:26.276000 2172416 landmark_projection_calculator.cc:81] Using NORM_RECT without IMAGE_DIMENSIONS is only supported for the square ROI. Provide IMAGE_DIMENSIONS or use PROJECTION_MATRIX.'
+        );
+
+        expect(errorSpy).not.toHaveBeenCalled();
+        expect(warnSpy).not.toHaveBeenCalled();
+
+        console.warn('[vision] GPU delegate unavailable, falling back to CPU');
+        console.error('Unexpected WebGL context loss');
+        expect(warnSpy).toHaveBeenCalledWith(
+          '[vision] GPU delegate unavailable, falling back to CPU'
+        );
+        expect(errorSpy).toHaveBeenCalledWith('Unexpected WebGL context loss');
+      } finally {
+        console.warn = originalWarn;
+        console.error = originalError;
+        resetMediapipeConsoleFilterForTesting();
+      }
+    });
+  });
 });
 
