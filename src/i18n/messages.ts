@@ -82,30 +82,30 @@ const ja = {
   welcomeRecalibrate: '基準姿勢を取り直す',
   privacyTitle: '映像はこの端末から出ません',
   privacyBody:
-    '骨格の推定はすべてブラウザ内で行います。映像の保存・送信は一切ありません。',
+    '骨格の推定はブラウザ内で行われ、カメラ映像を保存したり外部へ送信することはありません。',
   privacyLearnMore: '詳細を見る',
   privacyModalTitle: 'プライバシーとデータ利用について',
-  privacyNeverTitle: '外部へ送信されないもの（完全ローカル処理）',
-  privacyNeverItem1: 'カメラ映像の生データ・録画データ',
-  privacyNeverItem2: '顔・骨格の3Dランドマーク座標（生データ）',
-  privacyNeverItem3: '個人を特定できる情報（氏名、IPアドレス、メールアドレス等）',
-  privacyCameraTitle: 'カメラ映像と生体情報',
+  privacyNeverTitle: '外部へ送信しないデータ（ブラウザ内処理）',
+  privacyNeverItem1: 'カメラ映像・録画データ',
+  privacyNeverItem2: '顔・骨格の3D座標データ',
+  privacyNeverItem3: '氏名・メールアドレス・IPアドレス等の個人特定情報',
+  privacyCameraTitle: 'カメラ映像と姿勢推定',
   privacyCameraBody:
-    'ウェブカメラ映像と姿勢推定はすべてブラウザ内（ローカル）で処理され、サーバーへの送信や保存・録画は一切行いません。また、顔認識による個人特定や生体テンプレートの作成も行いません。',
-  privacyStorageTitle: '端末内保存（localStorage）',
+    'カメラ映像と姿勢の推定はブラウザ内で処理され、サーバーへの送信や録画・保存は行いません。顔認識による個人特定も行いません。',
+  privacyStorageTitle: '端末内への保存（localStorage）',
   privacyStorageBody:
-    '基準姿勢、設定、日々の統計データは、本サービスの機能を維持するために利用者のブラウザ内にのみ保存されます。いつでも設定から全データを消去できます。',
-  privacyTelemetryTitle: 'サービス品質向上と外部送信（外部送信規律）',
+    '基準姿勢、設定、日々の記録はお使いのブラウザ内に保存されます。設定画面からいつでも削除できます。',
+  privacyTelemetryTitle: 'サービス改善のための外部送信について',
   privacyTelemetryIntro:
-    'サービスの安定性向上とオンボーディング改善のため、以下の非識別情報を当サービスのサーバーへ送信する場合があります。第三者の広告・トラッカーは一切使用しません。',
+    '動作の安定性向上と使いやすさの改善のため、個人を特定しない統計情報を送信する場合があります。第三者の広告やトラッキングツールは使用していません。',
   privacyTelemetryItem1:
-    '送信情報：セッション時間、セットアップ完了状況、ブラウザ・性能指標、エラーコード（IPアドレスは即時破棄）',
-  privacyTelemetryItem2: '送信先：SitRight 自社インフラ（Cloudflare）',
+    '送信される情報：利用時間、セットアップの進行状況、動作性能・エラー情報、ランダムな匿名ID（IPアドレスは保存されません）',
+  privacyTelemetryItem2: '送信先：SitRight（Cloudflare 上の自社環境）',
   privacyTelemetryItem3:
-    '利用目的：不具合の検知・修正、機能改善および利用継続性の分析',
-  privacyControlTitle: '利用者の選択とコントロール',
+    '利用目的：不具合の検知・修正、機能改善および利用状況の把握',
+  privacyControlTitle: '設定とデータの管理',
   privacyControlBody:
-    '設定画面からいつでも「匿名診断データの送信」をオフにすることができます。また、蓄積されたローカルデータはワンクリックで完全初期化できます。',
+    '設定画面からいつでも「匿名診断データの送信」をオフにできます。また、ブラウザ内の記録や基準姿勢も設定から削除できます。',
   featureMeasure: 'cm と角度で計測',
   featureMeasureBody:
     '頭が何cm前に出ているか、何度うつむいているかを数値で表示',
@@ -418,31 +418,31 @@ const en: Messages = {
   welcomeRecalibrate: 'Recalibrate',
   privacyTitle: 'Video never leaves this device',
   privacyBody:
-    'Pose estimation runs entirely in your browser. Video feeds and camera frames are never recorded or uploaded.',
+    'Pose estimation runs in your browser. Camera video is not recorded or sent to a server.',
   privacyLearnMore: 'Learn more',
   privacyModalTitle: 'Privacy & Data Notice',
-  privacyNeverTitle: 'Never Collected or Transmitted (100% Local)',
-  privacyNeverItem1: 'Raw camera video feeds or recordings',
-  privacyNeverItem2: 'Facial and skeletal 3D landmark coordinates',
-  privacyNeverItem3: 'Personally identifiable information (Name, IP, Email)',
-  privacyCameraTitle: 'Camera Feeds & Biometrics',
+  privacyNeverTitle: 'Processed on Your Device (Not Sent Externally)',
+  privacyNeverItem1: 'Camera video feeds and recordings',
+  privacyNeverItem2: '3D facial and skeletal coordinate data',
+  privacyNeverItem3: 'Personal information (such as name, email, or IP address)',
+  privacyCameraTitle: 'Camera & Pose Estimation',
   privacyCameraBody:
-    'Webcam feeds and pose estimation run 100% locally in your browser. Video is never uploaded, recorded, or saved to any server. SitRight does not perform facial recognition or generate biometric templates.',
-  privacyStorageTitle: 'Local Storage (localStorage)',
+    'Camera video and pose estimation are processed locally in your browser. Video is not uploaded, recorded, or saved to a server, and no facial recognition is performed.',
+  privacyStorageTitle: 'Browser Storage (localStorage)',
   privacyStorageBody:
-    'Your baseline calibration, settings, and daily stats are stored strictly in your browser to provide core app features. You can clear this data at any time from Settings.',
-  privacyTelemetryTitle: 'Diagnostics & Telemetry (External Transmission)',
+    'Your baseline posture, settings, and daily stats are saved in your browser to provide core features. You can delete this data at any time in Settings.',
+  privacyTelemetryTitle: 'Diagnostics & Service Improvement',
   privacyTelemetryIntro:
-    'To maintain service reliability and improve the onboarding experience, we may send non-identifiable telemetry to our first-party servers. No third-party advertising or tracking networks are used.',
+    'To improve stability and usability, SitRight may send non-identifiable diagnostic data. No third-party advertising or tracking tools are used.',
   privacyTelemetryItem1:
-    'Information sent: Session length, onboarding completion status, browser performance metrics, error codes (IP addresses are discarded immediately).',
+    'Information sent: Session duration, setup progress, performance and error metrics, and a random anonymous ID (IP addresses are not stored).',
   privacyTelemetryItem2:
-    'Destination: SitRight first-party infrastructure (Cloudflare).',
+    'Destination: SitRight infrastructure (Cloudflare).',
   privacyTelemetryItem3:
-    'Purpose: Error diagnosis, performance monitoring, and usability improvements.',
-  privacyControlTitle: 'Your Rights & Controls',
+    'Purpose: Error diagnostics, performance monitoring, and product improvements.',
+  privacyControlTitle: 'Your Controls',
   privacyControlBody:
-    'You can opt out of sending anonymous diagnostics at any time in Settings. You can also completely reset all stored local data in one click.',
+    'You can turn off anonymous diagnostics or delete your saved browser data at any time in Settings.',
   featureMeasure: 'Measured in cm and degrees',
   featureMeasureBody:
     'See exactly how far forward your head is and how much you look down',
@@ -749,30 +749,30 @@ const ko: Messages = {
   welcomeRecalibrate: '기준 자세 다시 잡기',
   privacyTitle: '영상은 이 기기를 벗어나지 않아요',
   privacyBody:
-    '골격 추정은 모두 브라우저 안에서 이루어져요. 영상을 저장하거나 전송하지 않아요.',
+    '골격 추정은 브라우저 안에서 이루어지며, 카메라 영상을 저장하거나 외부로 전송하지 않아요.',
   privacyLearnMore: '자세히 보기',
   privacyModalTitle: '개인정보 및 데이터 처리 안내',
-  privacyNeverTitle: '절대 수집·전송되지 않는 정보 (100% 기기 내 처리)',
-  privacyNeverItem1: '카메라 영상 원본 및 녹화 데이터',
-  privacyNeverItem2: '얼굴·골격의 3D 랜드마크 원시 좌표',
-  privacyNeverItem3: '개인 식별 정보 (이름, IP 주소, 이메일 등)',
-  privacyCameraTitle: '카메라 영상과 생체 정보',
+  privacyNeverTitle: '외부로 전송하지 않는 데이터 (브라우저 내 처리)',
+  privacyNeverItem1: '카메라 영상 및 녹화 데이터',
+  privacyNeverItem2: '얼굴·골격의 3D 좌표 데이터',
+  privacyNeverItem3: '이름, 이메일, IP 주소 등 개인 식별 정보',
+  privacyCameraTitle: '카메라 영상과 자세 추정',
   privacyCameraBody:
-    '웹캠 영상과 자세 추정은 100% 사용자 브라우저 내부에서 실시간으로 처리되며 서버로 전송되거나 저장되지 않습니다. SitRight는 안면 인식을 통한 개인 식별이나 생체 인식 템플릿 생성을 일체 수행하지 않습니다.',
-  privacyStorageTitle: '로컬 저장소 (localStorage)',
+    '카메라 영상과 자세 추정은 브라우저 안에서 처리되며, 영상을 녹화하거나 서버로 전송하지 않습니다. 얼굴 인식을 통한 개인 식별도 하지 않습니다.',
+  privacyStorageTitle: '브라우저 내 저장 (localStorage)',
   privacyStorageBody:
-    '기준 자세, 개인 설정 및 일별 통계는 서비스 핵심 기능을 제공하기 위해 이용자 기기의 브라우저에만 안전하게 보관됩니다. 설정에서 언제든지 모든 데이터를 삭제할 수 있습니다.',
-  privacyTelemetryTitle: '서비스 진단 및 텔레메트리 (외부송신 안내)',
+    '기준 자세, 설정, 일별 기록은 기본 기능을 제공하기 위해 브라우저에만 저장됩니다. 설정에서 언제든지 삭제할 수 있습니다.',
+  privacyTelemetryTitle: '서비스 개선을 위한 진단 데이터 안내',
   privacyTelemetryIntro:
-    '서비스 안정성 유지 및 온보딩 품질 개선을 위해 개인을 식별할 수 없는 최소한의 진단 정보가 자사 서버로 전송될 수 있습니다. 제3자 광고나 트래커는 일체 사용하지 않습니다.',
+    '안정적인 동작과 사용성 개선을 위해 개인을 식별하지 않는 최소한의 통계 정보를 전송할 수 있습니다. 제3자 광고나 추적 도구는 사용하지 않습니다.',
   privacyTelemetryItem1:
-    '수집·전송 항목: 세션 지속 시간, 단계별 완료 여부, 브라우저 성능 지표, 오류 코드 (IP 주소는 즉시 파기·익명화)',
-  privacyTelemetryItem2: '수집·전송처: SitRight 자체 인프라 (Cloudflare)',
+    '전송 항목: 이용 시간, 설정 진행 단계, 성능 및 오류 정보, 무작위 익명 ID (IP 주소는 저장되지 않음)',
+  privacyTelemetryItem2: '전송처: SitRight 인프라 (Cloudflare)',
   privacyTelemetryItem3:
-    '이용 목적: 서비스 장애 대응, 사용성 분석 및 알고리즘 최적화',
-  privacyControlTitle: '이용자의 선택권 및 데이터 제어',
+    '이용 목적: 오류 확인 및 수정, 기능 개선, 이용 현황 파악',
+  privacyControlTitle: '설정 및 데이터 관리',
   privacyControlBody:
-    '설정 메뉴에서 언제든지 "익명 진단 데이터 전송"을 끌 수(옵트아웃) 있으며, 저장된 모든 로컬 데이터를 원클릭으로 영구 초기화할 수 있습니다.',
+    '설정에서 언제든지 "익명 진단 데이터 전송"을 끌 수 있으며, 브라우저에 저장된 기록과 기준 데이터도 삭제할 수 있습니다.',
   featureMeasure: 'cm와 각도로 측정',
   featureMeasureBody:
     '머리가 몇 cm 앞으로 나왔는지, 몇 도 숙였는지를 수치로 표시해요',

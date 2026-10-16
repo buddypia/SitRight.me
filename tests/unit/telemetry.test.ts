@@ -10,7 +10,7 @@ import {
   recordStepTransition,
   sendTelemetry,
 } from '@/engine/telemetry';
-import { useAppStore } from '@/stores/appStore';
+import { TELEMETRY_CLIENT_ID_KEY, useAppStore } from '@/stores/appStore';
 
 describe('telemetry', () => {
   beforeEach(() => {
@@ -278,6 +278,53 @@ describe('telemetry', () => {
       locale: 'ja',
       goodPosturePct: 75, // 45 / 60 = 75%
       alertCount: 1,      // 3 - 2 = 1 alert
+      clientId: expect.any(String),
+      sessionId: expect.any(String),
+    });
+  });
+
+  describe('anonymous clientId & sessionId lifecycle', () => {
+    it('persists clientId in localStorage across events and rotates on resetAll or opt-out', async () => {
+      const store = new Map<string, string>();
+      vi.stubGlobal('localStorage', {
+        getItem: (k: string) => store.get(k) ?? null,
+        setItem: (k: string, v: string) => store.set(k, v),
+        removeItem: (k: string) => store.delete(k),
+      });
+
+      const payloads: Record<string, unknown>[] = [];
+      const sendBeacon = vi.fn(async (_url: string, blob: Blob) => {
+        payloads.push(JSON.parse(await blob.text()));
+        return true;
+      });
+      vi.stubGlobal('navigator', { onLine: true, sendBeacon });
+
+      sendTelemetry({ event: 'step_transition', step: 'welcome' });
+      sendTelemetry({ event: 'step_transition', step: 'setup' });
+
+      await vi.waitFor(() => expect(payloads).toHaveLength(2));
+      const firstClientId = payloads[0].clientId as string;
+      const firstSessionId = payloads[0].sessionId as string;
+
+      expect(firstClientId).toMatch(/^[a-z0-9-]{8,64}$/i);
+      expect(firstSessionId).toMatch(/^[a-z0-9-]{8,64}$/i);
+      expect(payloads[1].clientId).toBe(firstClientId);
+      expect(payloads[1].sessionId).toBe(firstSessionId);
+      expect(store.get(TELEMETRY_CLIENT_ID_KEY)).toBe(firstClientId);
+
+      // Resetting all data wipes sitright.cid and rotates clientId on next event
+      useAppStore.getState().resetAll();
+      expect(store.has(TELEMETRY_CLIENT_ID_KEY)).toBe(false);
+
+      sendTelemetry({ event: 'step_transition', step: 'welcome' });
+      await vi.waitFor(() => expect(payloads).toHaveLength(3));
+      const secondClientId = payloads[2].clientId as string;
+      expect(secondClientId).toMatch(/^[a-z0-9-]{8,64}$/i);
+      expect(secondClientId).not.toBe(firstClientId);
+
+      // Opting out of telemetry wipes sitright.cid immediately
+      useAppStore.getState().updateSettings({ telemetry: false });
+      expect(store.has(TELEMETRY_CLIENT_ID_KEY)).toBe(false);
     });
   });
 
@@ -299,6 +346,8 @@ describe('telemetry', () => {
           locale: 'KO',
           goodPosturePct: 88.4,
           alertCount: 4,
+          clientId: '550e8400-e29b-41d4-a716-446655440000',
+          sessionId: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
         }),
       });
       // Attach mock cf object
@@ -308,13 +357,21 @@ describe('telemetry', () => {
       expect(res.status).toBe(204);
 
       expect(writeDataPoint).toHaveBeenCalledWith({
-        blobs: ['session_end', 'monitor', '', 'KR', 'ko'],
+        blobs: [
+          'session_end',
+          'monitor',
+          '',
+          'KR',
+          'ko',
+          '550e8400-e29b-41d4-a716-446655440000',
+          '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        ],
         doubles: [120, 88, 4],
         indexes: ['session_end'],
       });
     });
 
-    it('rejects invalid locale and out-of-range metrics gracefully', async () => {
+    it('rejects invalid locale, malformed IDs, and out-of-range metrics gracefully', async () => {
       const { onRequestPost } = await import('../../functions/api/telemetry');
       const writeDataPoint = vi.fn();
       const mockEnv = {
@@ -331,6 +388,8 @@ describe('telemetry', () => {
           locale: 'INVALID-LONG-LOCALE-1234',
           goodPosturePct: 999, // out of range -> 0
           alertCount: -2,      // negative -> 0
+          clientId: 'bad id with spaces & symbols!',
+          sessionId: 'short',
         }),
       });
 
@@ -338,7 +397,7 @@ describe('telemetry', () => {
       expect(res.status).toBe(204);
 
       expect(writeDataPoint).toHaveBeenCalledWith({
-        blobs: ['session_end', 'monitor', '', '', ''],
+        blobs: ['session_end', 'monitor', '', '', '', '', ''],
         doubles: [0, 0, 0],
         indexes: ['session_end'],
       });

@@ -180,6 +180,7 @@ async function run() {
     lookbackDays: days,
     authSource: token ? authSource : 'none',
     accountId: accountId || null,
+    summary: null,
     analyticsEngine: null,
     zoneAnalytics: null,
     warnings: [],
@@ -193,6 +194,14 @@ async function run() {
 
   // 1. Query Workers Analytics Engine for SitRight App Telemetry
   if (token && accountId) {
+    const summarySql = `
+      SELECT
+        count() AS totalEvents,
+        COUNT(DISTINCT blob6) - MAX(IF(blob6 = '', 1, 0)) AS totalUniqueUsers,
+        COUNT(DISTINCT blob7) - MAX(IF(blob7 = '', 1, 0)) AS totalSessions
+      FROM sitright_telemetry
+      WHERE timestamp > NOW() - INTERVAL '${days}' DAY
+    `;
     const sql = `
       SELECT
         blob1 AS event,
@@ -200,13 +209,19 @@ async function run() {
         blob3 AS errorCode,
         blob4 AS country,
         count() AS count,
+        COUNT(DISTINCT blob6) - MAX(IF(blob6 = '', 1, 0)) AS uniqueUsers,
+        COUNT(DISTINCT blob7) - MAX(IF(blob7 = '', 1, 0)) AS uniqueSessions,
         avg(double1) AS avgDuration
       FROM sitright_telemetry
       WHERE timestamp > NOW() - INTERVAL '${days}' DAY
       GROUP BY event, step, errorCode, country
       ORDER BY count DESC
     `;
-    const result = await queryAnalyticsEngine(token, accountId, 'sitright_telemetry', sql);
+    const [summaryResult, result] = await Promise.all([
+      queryAnalyticsEngine(token, accountId, 'sitright_telemetry', summarySql),
+      queryAnalyticsEngine(token, accountId, 'sitright_telemetry', sql),
+    ]);
+    report.summary = summaryResult?.data?.[0] || null;
     report.analyticsEngine = result;
   } else if (!accountId && token) {
     report.warnings.push('Cloudflare Account ID could not be resolved automatically.');
@@ -256,6 +271,11 @@ async function run() {
     console.log(`🔑 Auth: Authenticated via ${authSource}`);
     if (accountId) console.log(`🏢 Account ID: ${accountId}`);
   }
+  if (report.summary) {
+    console.log(
+      `👥 App Telemetry Totals: ${report.summary.totalUniqueUsers ?? 0} Unique Users (UU) | ${report.summary.totalSessions ?? 0} Sessions | ${report.summary.totalEvents ?? 0} Events`
+    );
+  }
   console.log('');
 
   if (report.warnings.length > 0) {
@@ -278,7 +298,9 @@ async function run() {
           Event: r.event,
           Step: r.step || '-',
           Country: r.country || '-',
-          Count: r.count,
+          'Unique Users': Number(r.uniqueUsers ?? 0),
+          Sessions: Number(r.uniqueSessions ?? 0),
+          Count: Number(r.count ?? 0),
           'Avg Duration (s)': r.avgDuration ? Number(r.avgDuration).toFixed(1) : '-',
           'Error Code': r.errorCode || '-',
         }))

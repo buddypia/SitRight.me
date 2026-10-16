@@ -41,14 +41,19 @@ To preserve user trust, satisfy global privacy regulations (Korea PIPA, Japan Te
 
 ### Rule 2: Strict Zero Biometric Exfiltration
 - **Do NOT** transmit video frames, screenshots, image blobs, canvas pixels, or raw skeletal/facial landmark coordinates.
-- **Do NOT** generate or transmit unique biometric templates or persistent device fingerprints.
-- Telemetry payloads are strictly limited to discrete enum events and scalar diagnostics:
+- **Do NOT** generate or transmit unique biometric templates or covert hardware/device fingerprints.
+- Telemetry payloads are strictly limited to discrete enum events, scalar diagnostics, and resettable random anonymous identifiers (`clientId` / `sessionId`):
   ```ts
   interface AllowedTelemetryPayload {
-    event: 'session_start' | 'step_transition' | 'session_end' | 'error';
+    event: 'session_start' | 'step_transition' | 'session_end' | 'camera_permission' | 'model_loaded' | 'error';
     step?: string;          // e.g. 'welcome' | 'setup' | 'calibrate' | 'monitor'
     durationSec?: number;   // e.g. 180
     errorCode?: string;     // e.g. 'camera_denied' | 'model_timeout'
+    locale?: string;        // e.g. 'en' | 'ja' | 'ko'
+    goodPosturePct?: number;// 0..100
+    alertCount?: number;    // 0..1000
+    clientId?: string;      // Resettable random UUID v4 in localStorage ('sitright.cid')
+    sessionId?: string;     // Ephemeral in-memory random UUID v4 per visit
     ts?: number;
   }
   ```
@@ -58,9 +63,9 @@ To preserve user trust, satisfy global privacy regulations (Korea PIPA, Japan Te
 - Telemetry calls MUST never throw unhandled promise rejections or block UI threads.
 - Always use `src/engine/telemetry.ts`'s `sendTelemetry()`. It checks `navigator.onLine`, prefers `navigator.sendBeacon`, and silently catches network failures.
 
-### Rule 4: Mandatory Respect for User Opt-Out
+### Rule 4: Mandatory Respect for User Opt-Out & Reset
 - All telemetry events MUST check `useAppStore.getState().settings.telemetry`.
-- When `settings.telemetry === false`, zero network packets may be sent.
+- When `settings.telemetry === false` or `resetAll()` is called, zero network packets may be sent and `sitright.cid` MUST be cleared immediately.
 
 ---
 

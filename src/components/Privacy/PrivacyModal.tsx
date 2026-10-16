@@ -92,22 +92,22 @@ function PrivacyModalContent({ onClose }: { onClose: () => void }) {
         </header>
 
         <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5 text-sm leading-relaxed text-ink-2">
-          {/* Zero-Exfiltration Guarantee */}
-          <section className="rounded-2xl border border-poor/25 bg-poor/10 p-4">
-            <h3 className="font-semibold text-poor flex items-center gap-2">
-              <span>🚫</span> {t.privacyNeverTitle}
+          {/* On-Device Processing Summary */}
+          <section className="rounded-2xl border border-good/25 bg-good/10 p-4">
+            <h3 className="font-semibold text-good flex items-center gap-2">
+              <span>🔒</span> {t.privacyNeverTitle}
             </h3>
             <ul className="mt-2 space-y-1.5 text-[12px] text-ink-2">
               <li className="flex items-center gap-2">
-                <span className="text-poor font-bold">✕</span>
+                <span className="text-good font-bold">•</span>
                 <span>{t.privacyNeverItem1}</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-poor font-bold">✕</span>
+                <span className="text-good font-bold">•</span>
                 <span>{t.privacyNeverItem2}</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-poor font-bold">✕</span>
+                <span className="text-good font-bold">•</span>
                 <span>{t.privacyNeverItem3}</span>
               </li>
             </ul>
