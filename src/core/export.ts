@@ -33,11 +33,11 @@ export function getSummaryHeaders(locale: Locale): string[] {
       'Alerts Count',
       'Recoveries Count',
       'Recovery Rate (%)',
-      'Straight Neck (min)',
+      'Forward Head (min)',
       'Text Neck (min)',
-      'Neck Hunch (min)',
-      'Slouch (min)',
-      'Lean (min)',
+      'Hunched Neck (min)',
+      'Slouching (min)',
+      'Leaning (min)',
       'Monitored (sec)',
     ];
   }

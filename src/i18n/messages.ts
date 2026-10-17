@@ -126,7 +126,7 @@ const ja = {
   featureMeasureBody:
     '頭が何cm前に出ているか、何度うつむいているかを数値で表示',
   featureSide: '横からの姿勢を3Dで',
-  featureSideBody: '理想の姿勢と今の頭・背骨のずれが一目で分かる',
+  featureSideBody: '理想の姿勢（ガイド）と今の頭・背骨のずれが一目で分かる',
   featureQuiet: '必要なときだけ通知',
   featureQuietBody: '悪い姿勢が続いたときだけ。一瞬の前かがみでは鳴りません',
   demoLabel: 'デモ表示',
@@ -211,7 +211,7 @@ const ja = {
   alignmentBalanced: '基準の姿勢に近い状態です',
   alignmentLoadOptimal: '首への負担: 最小 (約{kg}kg)',
   alignmentAllGood: 'すべて範囲内',
-  neckLoad: '首への負荷',
+  neckLoad: '首への負担',
   neckLoadZero: '負担なし',
   neckLoadRatio: '頭の重さの {ratio} 倍',
   xray: '骨格',
@@ -237,7 +237,7 @@ const ja = {
   settings: '設定',
   hideCamera: 'カメラ映像を隠す',
   showCamera: 'カメラ映像を表示',
-  cameraHidden: 'カメラ映像は非表示です（計測は継続中）',
+  cameraHidden: 'カメラ映像は非表示です（モニタリングは継続中）',
   sitting: '連続着席',
   minutes: '{n}分',
   durationHoursMinutes: '{h}時間{m}分',
@@ -278,7 +278,7 @@ const ja = {
   // alerts
   alertTitle: '姿勢をチェック',
   recoveredToast: '良い姿勢に戻りました',
-  fixed: '姿勢を直した',
+  fixed: '姿勢を直しました',
   breakTitle: 'ひと休みしましょう',
   breakBody: '{n}分座り続けています。立ち上がって首と肩を回しましょう。',
   periodicCheckTitle: '姿勢チェック',
@@ -427,10 +427,10 @@ const en: Messages = {
   appTagline: 'Webcam posture check',
   loading: 'Getting ready…',
 
-  welcomeEyebrow: 'Prevent text neck, forward head and slouching',
+  welcomeEyebrow: 'Prevent forward head posture, text neck, and slouching',
   welcomeTitle: 'This is what your neck\nlooks like from the side.',
   welcomeBody:
-    'Using only your laptop camera, SitRight measures how far your head juts forward, how much you look down and how much your back rounds. It shows the side view a front camera cannot see in 3D, and nudges you only when bad posture persists.',
+    'Using only your laptop camera, SitRight measures how far your head juts forward, how much you look down, and how much your back rounds. It shows your posture from the side in 3D—an angle your front camera normally can’t capture—and nudges you only when bad posture persists.',
   welcomeStart: 'Get started',
   welcomeResume: 'Resume monitoring',
   welcomeRecalibrate: 'Recalibrate',
@@ -525,7 +525,7 @@ const en: Messages = {
   alertIn: 'Alert after {s}s',
   metricForward: 'Head forward',
   metricDown: 'Looking down',
-  metricSlump: 'Back sinking',
+  metricSlump: 'Back rounding',
   metricLean: 'Side tilt',
   sideLeft: 'L',
   sideRight: 'R',
@@ -574,7 +574,7 @@ const en: Messages = {
   settings: 'Settings',
   hideCamera: 'Hide camera',
   showCamera: 'Show camera',
-  cameraHidden: 'Camera preview hidden (still measuring)',
+  cameraHidden: 'Camera preview hidden (still monitoring)',
   sitting: 'Sitting',
   minutes: '{n} min',
   durationHoursMinutes: '{h}h {m}m',
@@ -613,7 +613,7 @@ const en: Messages = {
 
   alertTitle: 'Posture check',
   recoveredToast: 'Back to good posture',
-  fixed: 'Posture corrected',
+  fixed: 'I fixed it',
   breakTitle: 'Time for a break',
   breakBody:
     'You have been sitting for {n} minutes. Stand up and roll your neck and shoulders.',
@@ -621,7 +621,7 @@ const en: Messages = {
   periodicCheckBadge: 'Score {score} · {kg}kg',
   periodicCheckGoodBody:
     'Current posture score is {score} (~{kg}kg neck load). Keep your ears stacked over your shoulders.',
-  periodicCheckPatternBody: 'Current score {score} ({pattern}). {fix}',
+  periodicCheckPatternBody: 'Current score: {score} ({pattern}). {fix}',
   periodicCheckIdleBody:
     'Sit tall, tuck your chin slightly, and bring your ears over your shoulders.',
   periodicAdviceTitle: 'Posture tip',
@@ -760,25 +760,25 @@ const ko: Messages = {
   loading: '준비하고 있어요…',
 
   // welcome
-  welcomeEyebrow: '일자목·스마트폰 목·굽은 등 예방에',
-  welcomeTitle: '내 목 자세,\n옆에서 보면 이래요.',
+  welcomeEyebrow: '거북목·일자목·굽은 등 예방에',
+  welcomeTitle: '내 목과 등,\n옆에서 보면 이래요.',
   welcomeBody:
-    '노트북 카메라만으로 머리가 앞으로 나온 정도, 고개 숙임, 등이 굽은 정도를 측정해요. 정면 카메라로는 보이지 않는 "옆모습 자세"를 3D로 보여 주고, 나쁜 자세가 이어질 때만 살짝 알려 드려요.',
+    '노트북 카메라만으로 고개가 앞으로 나온 정도, 숙인 각도, 등이 굽은 정도를 측정해요. 정면 카메라로는 볼 수 없는 옆모습을 3D로 보여 주고, 나쁜 자세가 계속될 때만 살짝 알려 드려요.',
   welcomeStart: '시작하기',
   welcomeResume: '모니터링 재개',
   welcomeRecalibrate: '기준 자세 다시 잡기',
-  privacyTitle: '영상은 이 기기를 벗어나지 않아요',
+  privacyTitle: '카메라 영상은 기기 밖으로 나가지 않아요',
   privacyBody:
-    '골격 추정은 브라우저 안에서 이루어지며, 카메라 영상을 저장하거나 외부로 전송하지 않아요.',
+    '자세 분석은 브라우저 안에서만 이루어지며, 카메라 영상을 저장하거나 외부로 전송하지 않아요.',
   privacyLearnMore: '자세히 보기',
   privacyModalTitle: '개인정보 및 데이터 처리 안내',
   privacyNeverTitle: '외부로 전송하지 않는 데이터 (브라우저 내 처리)',
   privacyNeverItem1: '카메라 영상 및 녹화 데이터',
   privacyNeverItem2: '얼굴·골격의 3D 좌표 데이터',
   privacyNeverItem3: '이름, 이메일, IP 주소 등 개인 식별 정보',
-  privacyCameraTitle: '카메라 영상과 자세 추정',
+  privacyCameraTitle: '카메라 영상과 자세 인식',
   privacyCameraBody:
-    '카메라 영상과 자세 추정은 브라우저 안에서 처리되며, 영상을 녹화하거나 서버로 전송하지 않습니다. 얼굴 인식을 통한 개인 식별도 하지 않습니다.',
+    '카메라 영상과 자세 인식은 브라우저 안에서 처리되며, 영상을 녹화하거나 서버로 전송하지 않습니다. 얼굴 인식을 통한 개인 식별도 하지 않습니다.',
   privacyStorageTitle: '브라우저 내 저장 (localStorage)',
   privacyStorageBody:
     '기준 자세, 설정, 일별 기록은 기본 기능을 제공하기 위해 브라우저에만 저장됩니다. 설정에서 언제든지 삭제할 수 있습니다.',
@@ -796,12 +796,12 @@ const ko: Messages = {
   featureMeasure: 'cm와 각도로 측정',
   featureMeasureBody:
     '머리가 몇 cm 앞으로 나왔는지, 몇 도 숙였는지를 수치로 표시해요',
-  featureSide: '옆모습 자세를 3D로',
+  featureSide: '옆에서 본 자세를 3D로',
   featureSideBody:
-    '바른 자세와 지금 머리·척추의 차이를 한눈에 확인해요',
+    '바른 자세 가이드와 지금 내 머리·등 위치의 차이를 한눈에 비교해요',
   featureQuiet: '필요할 때만 알림',
   featureQuietBody:
-    '나쁜 자세가 이어질 때만 알려요. 잠깐 숙인 정도로는 울리지 않아요',
+    '나쁜 자세가 계속될 때만 알려요. 잠깐 숙인 정도로는 울리지 않아요',
   demoLabel: '데모 표시',
   disclaimer:
     '이 앱은 의료기기가 아니며 진단을 하지 않아요. 통증이나 저림이 있으면 의료기관에 상담하세요.',
@@ -812,7 +812,7 @@ const ko: Messages = {
   setupBody: '화면 정면에 앉아 머리와 양쪽 어깨가 카메라에 보이게 해 주세요.',
   setupCameraButton: '카메라 켜기',
   setupCameraStarting: '카메라를 시작하고 있어요…',
-  setupModelLoading: '자세 추정 모델을 불러오는 중…',
+  setupModelLoading: '자세 인식 모델을 불러오는 중…',
   checkFace: '얼굴이 보여요',
   checkShoulders: '양쪽 어깨가 보여요',
   checkFacing: '화면 정면을 보고 있어요',
@@ -833,13 +833,13 @@ const ko: Messages = {
     '이 환경에서는 카메라를 사용할 수 없어요 (HTTPS로 접속해 주세요).',
   cameraError_unknown: '카메라를 시작하지 못했어요.',
   engineError:
-    '자세 추정 모델을 불러오지 못했어요. 페이지를 새로고침해 주세요.',
+    '자세 인식 모델을 불러오지 못했어요. 페이지를 새로고침해 주세요.',
   retry: '다시 시도',
 
   // calibrate
   calibrateTitle: '좋은 자세를 3초간 유지하세요',
   calibrateBody:
-    '이 자세가 "기준 자세"가 돼요. 앞으로는 이 자세에서 벗어난 정도를 측정해요.',
+    '지금 자세를 "기준 자세"로 저장해요. 이후에는 이 자세에서 얼마나 벗어나는지 측정해요.',
   calibrateTip1: '골반을 세우고 깊숙이 앉기',
   calibrateTip2: '귀가 어깨 바로 위에 오도록 턱을 살짝 당기기',
   calibrateTip3: '시선은 화면으로, 어깨 힘은 빼기',
@@ -856,16 +856,16 @@ const ko: Messages = {
   statusPoor: '자세가 무너졌어요',
   statusPaused: '일시 정지 중',
   statusAway: '자리 비움',
-  statusChecking: '측정할 수 없음',
+  statusChecking: '측정할 수 없어요',
   scoreLabel: '자세 점수',
-  alertIn: '{s}초 이어지면 알림',
-  metricForward: '고개 내밀기',
+  alertIn: '{s}초 동안 계속되면 알림',
+  metricForward: '고개 앞으로 나옴',
   metricDown: '고개 숙임',
-  metricSlump: '등 처짐',
+  metricSlump: '등 굽음',
   metricLean: '좌우 기울기',
-  sideLeft: '왼쪽',
-  sideRight: '오른쪽',
-  leanLevel: '똑바로',
+  sideLeft: '좌',
+  sideRight: '우',
+  leanLevel: '수평',
   metricLoad: '목 부담 (추정)',
   metricLoadHint:
     '머리를 지탱하는 목에 걸리는 무게의 추정치예요 (Hansraj, 2014)',
@@ -873,15 +873,15 @@ const ko: Messages = {
   unitDeg: '°',
   unitKg: 'kg',
   ideal: '바른 자세',
-  you: '나',
+  you: '현재 자세',
   plumbLine: '귀와 어깨를 잇는 선',
   sideView: '옆에서 본 내 자세',
   sideViewHint: '드래그로 회전',
   resetView: '시점 초기화',
   modelLoadFailed: '3D 모델을 불러오지 못했어요.',
   modelLoadingScene: '3D 아바타를 불러오는 중…',
-  modelLoadingVision: '자세 추정 모델을 불러오는 중…',
-  alignmentOptimal: '문제 없음',
+  modelLoadingVision: '자세 인식 모델을 불러오는 중…',
+  alignmentOptimal: '바른 자세 유지 중',
   alignmentBalanced: '기준 자세에 가까워요',
   alignmentLoadOptimal: '목 부담: 최소 (약 {kg}kg)',
   alignmentAllGood: '모두 범위 안이에요',
@@ -906,12 +906,12 @@ const ko: Messages = {
   pipClose: 'PIP 모드 종료',
   pipActive: 'PIP 모드로 표시 중',
   pause: '일시 정지',
-  resume: '재개',
+  resume: '이어하기',
   recalibrate: '기준 다시 잡기',
   settings: '설정',
   hideCamera: '카메라 영상 숨기기',
   showCamera: '카메라 영상 표시',
-  cameraHidden: '카메라 영상은 숨겨져 있어요 (측정은 계속 중)',
+  cameraHidden: '카메라 영상은 숨겨져 있어요 (모니터링은 계속 중)',
   sitting: '연속 착석',
   minutes: '{n}분',
   durationHoursMinutes: '{h}시간 {m}분',
@@ -936,17 +936,17 @@ const ko: Messages = {
   insightTitle: '개선 팁',
   insightGood:
     '지금까지 크게 무너진 기록이 없어요. 1시간에 한 번은 일어나서 몸을 펴 주세요.',
-  peakCollapse: '자세 무너짐 피크: {start}~{end}시',
+  peakCollapse: '자주 흐트러진 시간: {start}~{end}시',
   insightTips: {
     straight_neck:
-      '화면이 멀거나 글자가 작을 수 있어요. 화면을 가까이 당기거나 글자 크기를 키우고, 턱을 살짝 당겨 보세요.',
+      '화면이 멀거나 글자가 작을 수 있어요. 화면을 조금 앞으로 당기거나 글자 크기를 키우고, 턱을 가볍게 당겨 보세요.',
     text_neck:
-      '고개를 숙이는 시간이 길어요. 받침대 등으로 화면을 눈높이에 맞추면 목 부담이 한결 줄어들어요.',
+      '고개를 숙이는 시간이 길어요. 거치대나 받침대로 화면을 눈높이에 맞추면 목 부담이 크게 줄어들어요.',
     neck_hunch:
-      '머리가 앞으로 처져 있어요. 가슴을 펴고 날개뼈를 살짝 모은 뒤, 정수리를 위로 끌어올리듯 앉아 보세요.',
+      '머리가 앞쪽 아래로 처지고 있어요. 가슴을 펴고 날개뼈를 살짝 모은 뒤, 정수리를 위로 끌어올리듯 앉아 보세요.',
     slouch:
-      '골반이 뒤로 기울면서 등이 둥글게 말려 있어요. 의자 깊숙이 앉아 골반을 세우고 허리를 펴 보세요.',
-    lean: '몸이나 목이 한쪽으로 기울어 있어요. 두 발을 바닥에 붙이고 양쪽 엉덩이에 체중을 고르게 실어 보세요.',
+      '골반이 뒤로 기울면서 등이 굽고 있어요. 의자 깊숙이 앉아 골반을 세우고 허리를 곧게 펴 보세요.',
+    lean: '몸이나 목이 한쪽으로 기울어 있어요. 두 발을 바닥에 나란히 두고 양쪽 엉덩이에 체중을 고르게 실어 보세요.',
   },
 
   // alerts
@@ -980,7 +980,7 @@ const ko: Messages = {
   settingsGroupAlerts: '자세 알림',
   settingsGroupNotify: '알림과 효과음',
   settingsGroupDisplay: '화면과 동작',
-  sensitivity: '판정 엄격도',
+  sensitivity: '감지 민감도',
   sensitivity_gentle: '느슨하게',
   sensitivity_standard: '표준',
   sensitivity_strict: '엄격하게',
@@ -990,9 +990,9 @@ const ko: Messages = {
   minutesShort: '{n}분',
   sound: '효과음',
   soundTheme: '효과음 종류',
-  soundTheme_snap_horn: '뚝! (깊은 울림)',
+  soundTheme_snap_horn: '뚝! (묵직한 울림)',
   soundTheme_snap_bio: '뚝! (관절음)',
-  soundTheme_snap_click: '딸깍 (클릭음)',
+  soundTheme_snap_click: '찰칵 (클릭음)',
   soundTheme_snap_pop: '톡 (부드럽게)',
   soundTheme_chime: '차임벨',
   desktopNotify: '데스크톱 알림',
@@ -1007,7 +1007,7 @@ const ko: Messages = {
   periodicModeHint_auto:
     '착석 시간과 오늘 자주 무너진 자세에 맞춰 자세 점검·개선 팁·리포트·휴식 알림을 자동으로 전환해요.',
   periodicModeHint_check:
-    '자세가 괜찮을 때도 일정 간격으로 현재 점수와 목 부담을 알려 드려요.',
+    '자세가 흐트러지지 않아도 일정 간격으로 현재 점수와 목 부담을 알려 드려 자세를 다시 챙기게 도와줘요.',
   periodicModeHint_advice:
     '오늘 가장 많이 나타난 자세 무너짐에 맞춰 화면 위치 조정과 스트레칭 팁을 알려 드려요.',
   periodicModeHint_break:
@@ -1053,7 +1053,7 @@ const ko: Messages = {
       name: '일자목',
       short: '머리가 앞으로 나왔어요',
       detail:
-        '머리가 어깨보다 앞으로 나와 목의 자연스러운 커브가 사라지기 쉬운 상태예요.',
+        '머리가 어깨보다 앞으로 나와 목의 자연스러운 곡선이 사라지기 쉬운 상태예요.',
       fix: '턱을 살짝 당기고 귀를 어깨 바로 위로 되돌려 주세요.',
     },
     text_neck: {
@@ -1065,7 +1065,7 @@ const ko: Messages = {
     },
     neck_hunch: {
       name: '거북목',
-      short: '목과 머리가 앞으로 처져 있어요',
+      short: '머리가 앞쪽 아래로 처져 있어요',
       detail:
         '등 윗부분부터 목이 앞으로 굽어 머리가 아래로 처져 있어요.',
       fix: '가슴을 살짝 펴고, 정수리를 천장 쪽으로 끌어올리듯 세워 주세요.',
@@ -1073,15 +1073,15 @@ const ko: Messages = {
     slouch: {
       name: '굽은 등',
       short: '등이 굽어 있어요',
-      detail: '등이 굽고 상체가 아래로 처져 있어요.',
+      detail: '등이 굽고 상체가 아래로 가라앉아 있어요.',
       fix: '골반을 세워 바르게 고쳐 앉고, 어깨를 뒤로 가볍게 펴서 내려 주세요.',
     },
     lean: {
       name: '좌우 기울어짐',
       short: '몸이나 목이 한쪽으로 기울어 있어요',
       detail:
-        '어깨선이나 머리가 한쪽으로 기울어 체중과 목의 부담이 한쪽에 쏠려 있어요.',
-      fix: '양쪽 엉덩이에 체중을 고르게 싣고, 머리가 양어깨 중앙에 오도록 반듯하게 세워 주세요.',
+        '어깨선이나 머리가 한쪽으로 기울어 체중과 목 부담이 한쪽에 쏠려 있어요.',
+      fix: '양쪽 엉덩이에 체중을 고르게 싣고, 머리를 어깨 한가운데로 바로 세워 주세요.',
     },
   },
 
