@@ -28,8 +28,14 @@ import {
   DEFAULT_LOCALE,
   detectBrowserLocale,
   isSupportedLocale,
+  localeFromPath,
   type Locale,
 } from '@/i18n/messages';
+
+/** /ja・/ko で開いたときはその言語。共有された URL の言語を保存済みの設定より優先する */
+function pathLocale(): Locale | null {
+  return typeof location === 'undefined' ? null : localeFromPath(location.pathname);
+}
 
 export type Phase = 'welcome' | 'setup' | 'calibrate' | 'monitor';
 
@@ -209,7 +215,10 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       hydrated: false,
       phase: 'welcome',
-      settings: { ...DEFAULT_SETTINGS, locale: detectBrowserLocale() },
+      settings: {
+        ...DEFAULT_SETTINGS,
+        locale: pathLocale() ?? detectBrowserLocale(),
+      },
       baseline: null,
       history: [],
       live: INITIAL_LIVE,
@@ -255,7 +264,9 @@ export const useAppStore = create<AppState>()(
         if (typeof settings.telemetry !== 'boolean') {
           settings.telemetry = true;
         }
-        if (!isSupportedLocale(settings.locale)) {
+        const fromPath = pathLocale();
+        if (fromPath) settings.locale = fromPath;
+        else if (!isSupportedLocale(settings.locale)) {
           settings.locale = detectBrowserLocale();
         }
         // 削除されたモデルなど、知らない値は既定のモデルに戻す

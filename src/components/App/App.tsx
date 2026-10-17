@@ -7,6 +7,7 @@ import {
   recordStepTransition,
 } from '@/engine/telemetry';
 import { useT } from '@/hooks/useT';
+import { isLocalePath, localePath } from '@/i18n/messages';
 import { useAppStore } from '@/stores/appStore';
 import { Calibrate } from '../Calibrate';
 import { LanguageSelector } from '../LanguageSelector';
@@ -27,6 +28,13 @@ export function App() {
 
   useEffect(() => {
     document.documentElement.lang = locale;
+    // 言語を切り替えたら URL も /・/ja・/ko に合わせる（共有や検索結果の言語と一致させる）。
+    // 再読み込みすると計測が止まるため、履歴の書き換えだけにする
+    const { pathname, search, hash } = window.location;
+    const target = localePath(locale);
+    if (isLocalePath(pathname) && pathname !== target) {
+      window.history.replaceState(window.history.state, '', target + search + hash);
+    }
   }, [locale]);
 
   useEffect(() => {

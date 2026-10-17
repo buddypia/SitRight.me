@@ -52,6 +52,22 @@ export function resolveLocale(
   return DEFAULT_LOCALE;
 }
 
+/** 言語ごとのページの URL。既定の言語はトップ（/）で、ほかは /ja・/ko */
+export function localePath(locale: Locale): string {
+  return locale === DEFAULT_LOCALE ? '/' : `/${locale}`;
+}
+
+/** 言語ごとのページ（/・/ja・/ko）なら true。/lab などは含まない */
+export function isLocalePath(pathname: string): boolean {
+  return pathname === '/' || localeFromPath(pathname) !== null;
+}
+
+/** /ja・/ko（末尾の / はあってもよい）から言語を返す。トップやほかのページは null */
+export function localeFromPath(pathname: string): Locale | null {
+  const seg = pathname.replace(/\/+$/, '').slice(1);
+  return seg !== DEFAULT_LOCALE && isSupportedLocale(seg) ? seg : null;
+}
+
 export function detectBrowserLocale(): Locale {
   if (typeof navigator === 'undefined') {
     return DEFAULT_LOCALE;
