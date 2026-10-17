@@ -41,6 +41,27 @@ test('onboarding → calibration → monitoring detects bad posture and recovery
   );
   expect(baseline.state.baseline.scaleRatio).toBeGreaterThan(0);
 
+  // 回復の通知は 3 秒で消える。SwiftShader では警告の読み取りとスクリーンショットに
+  // 10 秒前後かかり、その間に出て消えると見逃すため、表示されたことをページ内で記録しておく
+  await page.evaluate(() => {
+    const w = window as unknown as { __recoveredShown?: boolean };
+    const observer = new MutationObserver(() => {
+      if (
+        [...document.querySelectorAll('[role="status"]')].some((el) =>
+          /良い姿勢に戻りました|いい姿勢に戻りました/.test(el.textContent ?? '')
+        )
+      ) {
+        w.__recoveredShown = true;
+        observer.disconnect();
+      }
+    });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+  });
+
   // 映像が悪い姿勢の区間に入ると、崩れ方の名前を付けた通知（トースト）が出る
   const toast = page
     .getByRole('status')
@@ -60,11 +81,17 @@ test('onboarding → calibration → monitoring detects bad posture and recovery
   await page.screenshot({ path: 'test-results/screens/alert-desktop.png' });
 
   // 基準姿勢に戻ると回復表示
-  await expect(
-    page
-      .getByRole('status')
-      .filter({ hasText: /良い姿勢に戻りました|いい姿勢に戻りました/ })
-  ).toBeVisible({ timeout: 80_000 });
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          () =>
+            (window as unknown as { __recoveredShown?: boolean })
+              .__recoveredShown === true
+        ),
+      { timeout: 80_000 }
+    )
+    .toBe(true);
   console.log(`[e2e] recovered at ${elapsed()}s`);
 
   // 統計が保存されている
