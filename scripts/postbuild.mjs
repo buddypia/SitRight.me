@@ -1,7 +1,8 @@
 /**
  * 静的書き出し（out/）の仕上げ。
  * 1. 開発用の録画（public/dev/）を配信物から取り除く
- * 2. CSP などのセキュリティヘッダーを書いた _headers を生成する。
+ * 2. 言語ごとのページ（/ja・/ko）の <html lang> をその言語にする
+ * 3. CSP などのセキュリティヘッダーを書いた _headers を生成する。
  * Cloudflare Pages（wrangler pages dev / deploy）がこのファイルを読んでヘッダーを付ける。
  *
  * Next.js が HTML に埋め込むインラインスクリプトは nonce を使えないため、
@@ -14,6 +15,17 @@ import path from 'node:path';
 const out = path.resolve(import.meta.dirname, '..', 'out');
 
 rmSync(path.join(out, 'dev'), { recursive: true, force: true });
+
+// ルートレイアウトは全ページ共通で lang="en" を書き出すため、言語ごとのページだけ書き換える
+// （src/i18n/messages.ts の SUPPORTED_LOCALES のうち既定の en 以外）
+for (const locale of ['ja', 'ko']) {
+  const file = path.join(out, `${locale}.html`);
+  const html = readFileSync(file, 'utf8');
+  if (!html.includes('<html lang="en"')) {
+    throw new Error(`${locale}.html: <html lang="en" が見つからない`);
+  }
+  writeFileSync(file, html.replace('<html lang="en"', `<html lang="${locale}"`));
+}
 
 const htmlFiles = (dir) =>
   readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
