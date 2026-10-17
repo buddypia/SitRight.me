@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/hooks/useT';
-import { LOCALE_OPTIONS, LOCALE_REGISTRY, type Locale } from '@/i18n/messages';
+import { LOCALE_OPTIONS, type Locale } from '@/i18n/messages';
 import { useAppStore } from '@/stores/appStore';
 
 export function LanguageSelector() {
@@ -108,9 +108,7 @@ export function LanguageSelector() {
           className="flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-line bg-s2/80 px-2.5 text-xs text-ink-2 transition hover:bg-s3 hover:text-ink-1"
         >
           <GlobeIcon />
-          <span className="font-medium">
-            {LOCALE_REGISTRY[locale]?.nativeName ?? locale.toUpperCase()}
-          </span>
+          <span className="font-medium uppercase">{locale}</span>
           <ChevronDownIcon
             className={`transition-transform duration-200 ${
               menuOpen ? 'rotate-180' : ''
