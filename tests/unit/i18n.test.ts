@@ -291,6 +291,20 @@ describe('i18n messages', () => {
       expect(MESSAGES.en.avatar_womanSporty).toBe('Woman (sporty)');
 
       expect(MESSAGES.ko.ideal).toBe('바른 자세');
+
+      expect(MESSAGES.ja.welcomeResume).toBe('モニタリングを再開');
+      expect(MESSAGES.en.welcomeResume).toBe('Resume monitoring');
+      expect(MESSAGES.ko.welcomeResume).toBe('모니터링 재개');
+
+      expect(MESSAGES.ja.cameraHidden).toBe(
+        'カメラ映像は非表示です（モニタリングは継続中）'
+      );
+      expect(MESSAGES.en.cameraHidden).toBe(
+        'Camera preview hidden (still monitoring)'
+      );
+      expect(MESSAGES.ko.cameraHidden).toBe(
+        '카메라 영상은 숨겨져 있어요 (모니터링은 계속 중)'
+      );
     });
   });
 });
