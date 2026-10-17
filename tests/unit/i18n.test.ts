@@ -220,19 +220,32 @@ describe('i18n messages', () => {
       const allStrings = (loc: Locale) => JSON.stringify(MESSAGES[loc]);
 
       // Prohibited anti-patterns in Japanese
-      expect(allStrings('ja')).not.toContain('小窓');
-      expect(allStrings('ja')).not.toContain('リアル骨');
-      expect(allStrings('ja')).not.toContain('スポーツ女性');
-      expect(allStrings('ja')).not.toContain('直した！');
-      expect(allStrings('ja')).not.toContain('いい姿勢に戻りました');
-      expect(allStrings('ja')).not.toContain('ストレートネック姿勢');
-
-      expect(allStrings('ja')).not.toContain('アライメント');
-      expect(allStrings('ja')).not.toContain('素晴らしい');
-      expect(allStrings('ja')).not.toContain('ワンポイント');
-      expect(allStrings('ja')).not.toContain('ゴースト');
-      expect(allStrings('ja')).not.toContain('ホーン');
-      expect(allStrings('ja')).not.toContain('意識をリセット');
+      for (const phrase of [
+        '小窓',
+        'リアル骨',
+        'スポーツ女性',
+        '女性（エレガンス）',
+        '男性（スマート）',
+        '直した！',
+        'いい姿勢に戻りました',
+        'ストレートネック姿勢',
+        'アライメント',
+        '素晴らしい',
+        'ワンポイント',
+        'ゴースト',
+        '理想の姿勢（ガイド）',
+        'ホーン',
+        '意識をリセット',
+        '問題なし',
+        'すべて範囲内',
+        '非識別統計',
+        '頭が前に落ちています',
+        '動きを検知しました',
+        '人が見つかりません',
+        '顔が見つかりません',
+        '画面に正対',
+      ])
+        expect(allStrings('ja')).not.toContain(phrase);
 
       // Prohibited anti-patterns in English
       expect(allStrings('en')).not.toContain('Pop out');
@@ -252,6 +265,10 @@ describe('i18n messages', () => {
         ' detected.',
         'ideal ghost',
         'Woman (elegance)',
+        'Man (smart)',
+        'All clear',
+        'All within range',
+        'Face not found',
         'tendency)',
       ])
         // キー名（alignmentOptimal など）は対象外にして、表示される文だけを見る
@@ -274,6 +291,8 @@ describe('i18n messages', () => {
         '머리가 앞으로 떨어져',
         '몸의 기울어짐',
         '일자목 자세',
+        '문제 없음',
+        '움직임이 감지됐어요',
       ])
         expect(allStrings('ko')).not.toContain(phrase);
     });
@@ -290,7 +309,21 @@ describe('i18n messages', () => {
       expect(MESSAGES.ko.avatar_womanSporty).toBe('여성 (스포티)');
       expect(MESSAGES.en.avatar_womanSporty).toBe('Woman (sporty)');
 
+      expect(MESSAGES.ja.avatar_womanSmart).toBe('女性（エレガント）');
+      expect(MESSAGES.en.avatar_womanSmart).toBe('Woman (elegant)');
+      expect(MESSAGES.ko.avatar_womanSmart).toBe('여성 (정장)');
+
+      expect(MESSAGES.ja.ideal).toBe('理想の姿勢');
+      expect(MESSAGES.en.ideal).toBe('Ideal posture');
       expect(MESSAGES.ko.ideal).toBe('바른 자세');
+
+      expect(MESSAGES.ja.you).toBe('現在の姿勢');
+      expect(MESSAGES.en.you).toBe('Current posture');
+      expect(MESSAGES.ko.you).toBe('현재 자세');
+
+      expect(MESSAGES.ja.alignmentOptimal).toBe('正しい姿勢');
+      expect(MESSAGES.en.alignmentOptimal).toBe('Proper posture');
+      expect(MESSAGES.ko.alignmentOptimal).toBe('바른 자세 유지 중');
 
       expect(MESSAGES.ja.welcomeResume).toBe('モニタリングを再開');
       expect(MESSAGES.en.welcomeResume).toBe('Resume monitoring');

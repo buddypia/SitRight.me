@@ -77,7 +77,7 @@ export function StatusCard({
   else if (pattern) detail = pattern.fix;
   else detail = t.alignmentBalanced;
 
-  // 上部バッジ：良い姿勢のときは見出し（良い姿勢）と重ならない「問題なし」、
+  // 上部バッジ：良い姿勢のときは見出し（良い姿勢）と重ならない「正しい姿勢」、
   // 崩れているときは「やや崩れています」などの状態を出す
   const badgeLabel = isGood
     ? t.alignmentOptimal
