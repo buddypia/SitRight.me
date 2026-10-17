@@ -230,6 +230,9 @@ describe('i18n messages', () => {
       expect(allStrings('ja')).not.toContain('アライメント');
       expect(allStrings('ja')).not.toContain('素晴らしい');
       expect(allStrings('ja')).not.toContain('ワンポイント');
+      expect(allStrings('ja')).not.toContain('ゴースト');
+      expect(allStrings('ja')).not.toContain('ホーン');
+      expect(allStrings('ja')).not.toContain('意識をリセット');
 
       // Prohibited anti-patterns in English
       expect(allStrings('en')).not.toContain('Pop out');
@@ -238,6 +241,7 @@ describe('i18n messages', () => {
         'Fixed!',
         'Actionable',
         'alignment',
+        'align ',
         'Great posture',
         'Delivers',
         'tailored to',
@@ -246,6 +250,9 @@ describe('i18n messages', () => {
         'Titanium',
         'organic',
         ' detected.',
+        'ideal ghost',
+        'Woman (elegance)',
+        'tendency)',
       ])
         // キー名（alignmentOptimal など）は対象外にして、表示される文だけを見る
         expect(Object.values(flatten(MESSAGES.en)).join('\n')).not.toContain(
@@ -253,9 +260,22 @@ describe('i18n messages', () => {
         );
 
       // Prohibited anti-patterns in Korean
-      expect(allStrings('ko')).not.toContain('작은 창');
-      expect(allStrings('ko')).not.toContain('훌륭한');
-      expect(allStrings('ko')).not.toContain('원포인트');
+      for (const phrase of [
+        '작은 창',
+        '훌륭한',
+        '원포인트',
+        '고스트',
+        '혼 여운',
+        '티타늄',
+        '엘레강스',
+        '남성 (스마트)',
+        '당신의',
+        '의식을 환기',
+        '머리가 앞으로 떨어져',
+        '몸의 기울어짐',
+        '일자목 자세',
+      ])
+        expect(allStrings('ko')).not.toContain(phrase);
     });
 
     it('enforces ergonomic and professional terminology consistency', () => {
@@ -269,6 +289,8 @@ describe('i18n messages', () => {
       expect(MESSAGES.ja.avatar_womanSporty).toBe('女性（スポーティ）');
       expect(MESSAGES.ko.avatar_womanSporty).toBe('여성 (스포티)');
       expect(MESSAGES.en.avatar_womanSporty).toBe('Woman (sporty)');
+
+      expect(MESSAGES.ko.ideal).toBe('바른 자세');
     });
   });
 });
