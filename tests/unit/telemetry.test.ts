@@ -216,7 +216,7 @@ describe('telemetry', () => {
     ]);
   });
 
-  it('calculates goodPosturePct and alertCount on session_end using session deltas', async () => {
+  it('does not include personal posture evaluation metrics (goodPosturePct or alertCount) on session_end', async () => {
     let sentPayload: Record<string, unknown> | null = null;
     const sendBeacon = vi.fn(async (_url: string, blob: Blob) => {
       sentPayload = JSON.parse(await blob.text());
@@ -224,48 +224,16 @@ describe('telemetry', () => {
     });
     vi.stubGlobal('navigator', { onLine: true, sendBeacon });
 
-    const now = new Date();
-    const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     useAppStore.setState({
       settings: {
         ...useAppStore.getState().settings,
         locale: 'ja',
       },
-      history: [
-        {
-          date: todayKey,
-          monitoredSec: 100,
-          goodSec: 80,
-          fairSec: 10,
-          poorSec: 10,
-          alerts: 2,
-          recoveries: 1,
-          patternSec: {},
-          timeline: [],
-        },
-      ],
     });
 
     const startTime = 5000000;
     vi.spyOn(Date, 'now').mockReturnValue(startTime);
     recordSessionStart('monitor');
-
-    // Simulate session progress: +60s monitored, +45s good posture, +1 alert
-    useAppStore.setState({
-      history: [
-        {
-          date: todayKey,
-          monitoredSec: 160,
-          goodSec: 125,
-          fairSec: 15,
-          poorSec: 20,
-          alerts: 3,
-          recoveries: 2,
-          patternSec: {},
-          timeline: [],
-        },
-      ],
-    });
 
     vi.spyOn(Date, 'now').mockReturnValue(startTime + 60000);
     recordSessionEnd('monitor');
@@ -276,11 +244,11 @@ describe('telemetry', () => {
       step: 'monitor',
       durationSec: 60,
       locale: 'ja',
-      goodPosturePct: 75, // 45 / 60 = 75%
-      alertCount: 1,      // 3 - 2 = 1 alert
       clientId: expect.any(String),
       sessionId: expect.any(String),
     });
+    expect(sentPayload).not.toHaveProperty('goodPosturePct');
+    expect(sentPayload).not.toHaveProperty('alertCount');
   });
 
   describe('anonymous clientId & sessionId lifecycle', () => {
@@ -329,7 +297,7 @@ describe('telemetry', () => {
   });
 
   describe('onRequestPost (Cloudflare Pages Function)', () => {
-    it('sanitizes and bounds metrics before writing to Analytics Engine', async () => {
+    it('sanitizes and bounds operational metrics before writing to Analytics Engine', async () => {
       const { onRequestPost } = await import('../../functions/api/telemetry');
       const writeDataPoint = vi.fn();
       const mockEnv = {
@@ -338,14 +306,15 @@ describe('telemetry', () => {
 
       const request = new Request('http://localhost:3000/api/telemetry', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Sec-Fetch-Site': 'same-origin',
+        },
         body: JSON.stringify({
           event: 'session_end',
           step: 'monitor',
           durationSec: 120,
           locale: 'KO',
-          goodPosturePct: 88.4,
-          alertCount: 4,
           clientId: '550e8400-e29b-41d4-a716-446655440000',
           sessionId: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
         }),
@@ -366,9 +335,30 @@ describe('telemetry', () => {
           '550e8400-e29b-41d4-a716-446655440000',
           '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
         ],
-        doubles: [120, 88, 4],
+        doubles: [120],
         indexes: ['session_end'],
       });
+    });
+
+    it('rejects cross-site requests via Sec-Fetch-Site header', async () => {
+      const { onRequestPost } = await import('../../functions/api/telemetry');
+      const writeDataPoint = vi.fn();
+      const mockEnv = {
+        ANALYTICS_ENGINE: { writeDataPoint },
+      };
+
+      const request = new Request('http://localhost:3000/api/telemetry', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Sec-Fetch-Site': 'cross-site',
+        },
+        body: JSON.stringify({ event: 'step_transition', step: 'welcome' }),
+      });
+
+      const res = await onRequestPost({ request, env: mockEnv });
+      expect(res.status).toBe(403);
+      expect(writeDataPoint).not.toHaveBeenCalled();
     });
 
     it('rejects invalid locale, malformed IDs, and out-of-range metrics gracefully', async () => {
@@ -386,8 +376,6 @@ describe('telemetry', () => {
           step: 'monitor',
           durationSec: -10,
           locale: 'INVALID-LONG-LOCALE-1234',
-          goodPosturePct: 999, // out of range -> 0
-          alertCount: -2,      // negative -> 0
           clientId: 'bad id with spaces & symbols!',
           sessionId: 'short',
         }),
@@ -398,7 +386,7 @@ describe('telemetry', () => {
 
       expect(writeDataPoint).toHaveBeenCalledWith({
         blobs: ['session_end', 'monitor', '', '', '', '', ''],
-        doubles: [0, 0, 0],
+        doubles: [0],
         indexes: ['session_end'],
       });
     });

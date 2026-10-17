@@ -193,12 +193,20 @@ async function run() {
   }
 
   // 1. Query Workers Analytics Engine for SitRight App Telemetry
+  // Unifies legacy rows (pre-PR#53 where blob6/blob7 were empty '') with current UUID-tagged rows
+  // using deterministic country + UTC date/hour fallback keys.
   if (token && accountId) {
+    const unifiedUserExpr =
+      "IF(blob6 != '', blob6, formatDateTime(timestamp, '%Y-%m-%d'))";
+    const unifiedSessionExpr =
+      "IF(blob7 != '', blob7, formatDateTime(timestamp, '%Y-%m-%d %H'))";
+
     const summarySql = `
       SELECT
         count() AS totalEvents,
-        COUNT(DISTINCT blob6) - MAX(IF(blob6 = '', 1, 0)) AS totalUniqueUsers,
-        COUNT(DISTINCT blob7) - MAX(IF(blob7 = '', 1, 0)) AS totalSessions
+        SUM(IF(blob6 = '', 1, 0)) AS legacyEvents,
+        COUNT(DISTINCT ${unifiedUserExpr}) AS totalUniqueUsers,
+        COUNT(DISTINCT ${unifiedSessionExpr}) AS totalSessions
       FROM sitright_telemetry
       WHERE timestamp > NOW() - INTERVAL '${days}' DAY
     `;
@@ -209,8 +217,8 @@ async function run() {
         blob3 AS errorCode,
         blob4 AS country,
         count() AS count,
-        COUNT(DISTINCT blob6) - MAX(IF(blob6 = '', 1, 0)) AS uniqueUsers,
-        COUNT(DISTINCT blob7) - MAX(IF(blob7 = '', 1, 0)) AS uniqueSessions,
+        COUNT(DISTINCT ${unifiedUserExpr}) AS uniqueUsers,
+        COUNT(DISTINCT ${unifiedSessionExpr}) AS uniqueSessions,
         avg(double1) AS avgDuration
       FROM sitright_telemetry
       WHERE timestamp > NOW() - INTERVAL '${days}' DAY
@@ -272,8 +280,11 @@ async function run() {
     if (accountId) console.log(`🏢 Account ID: ${accountId}`);
   }
   if (report.summary) {
+    const totalEvents = Number(report.summary.totalEvents ?? 0);
+    const legacyEvents = Number(report.summary.legacyEvents ?? 0);
+    const currentEvents = totalEvents - legacyEvents;
     console.log(
-      `👥 App Telemetry Totals: ${report.summary.totalUniqueUsers ?? 0} Unique Users (UU) | ${report.summary.totalSessions ?? 0} Sessions | ${report.summary.totalEvents ?? 0} Events`
+      `👥 App Telemetry Totals: ${report.summary.totalUniqueUsers ?? 0} Unique Users (UU) | ${report.summary.totalSessions ?? 0} Sessions | ${totalEvents} Events (${currentEvents} UUID + ${legacyEvents} legacy unified)`
     );
   }
   console.log('');

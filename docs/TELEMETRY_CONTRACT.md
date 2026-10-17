@@ -39,10 +39,11 @@ To preserve user trust, satisfy global privacy regulations (Korea PIPA, Japan Te
   2. **Runtime Blocker Guard (`src/engine/telemetry.ts:installThirdPartyTelemetryBlocker`)**: Any non-first-party telemetry network attempts via `fetch` or `sendBeacon` are intercepted and fail exactly like a CSP block (`fetch` rejects with `TypeError`, `sendBeacon` returns `false`), so nothing is ever reported as delivered.
 
 
-### Rule 2: Strict Zero Biometric Exfiltration
+### Rule 2: Strict Zero Biometric & Posture Score Exfiltration
 - **Do NOT** transmit video frames, screenshots, image blobs, canvas pixels, or raw skeletal/facial landmark coordinates.
+- **Do NOT** transmit personal posture evaluation scores or alert histories (e.g. good-posture percentages, slouch alert counts, or posture timelines). Those belong strictly in local device storage (`localStorage`).
 - **Do NOT** generate or transmit unique biometric templates or covert hardware/device fingerprints.
-- Telemetry payloads are strictly limited to discrete enum events, scalar diagnostics, and resettable random anonymous identifiers (`clientId` / `sessionId`):
+- Telemetry payloads are strictly limited to discrete enum events, operational diagnostics (setup step, session/load duration, error code, UI locale), and resettable random anonymous identifiers (`clientId` / `sessionId`):
   ```ts
   interface AllowedTelemetryPayload {
     event: 'session_start' | 'step_transition' | 'session_end' | 'camera_permission' | 'model_loaded' | 'error';
@@ -50,8 +51,6 @@ To preserve user trust, satisfy global privacy regulations (Korea PIPA, Japan Te
     durationSec?: number;   // e.g. 180
     errorCode?: string;     // e.g. 'camera_denied' | 'model_timeout'
     locale?: string;        // e.g. 'en' | 'ja' | 'ko'
-    goodPosturePct?: number;// 0..100
-    alertCount?: number;    // 0..1000
     clientId?: string;      // Resettable random UUID v4 in localStorage ('sitright.cid')
     sessionId?: string;     // Ephemeral in-memory random UUID v4 per visit
     ts?: number;
