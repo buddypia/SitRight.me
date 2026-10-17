@@ -87,7 +87,9 @@ npm run preview      # serve out/ with Cloudflare Pages locally (http://localhos
 
 ## Deployment
 
-`main` is deployed to Cloudflare Pages:
+Every push to `main` is deployed to Cloudflare Pages by the `deploy` job in `.github/workflows/ci.yml`, after `check` and `e2e` pass. It needs the repository secrets `CLOUDFLARE_API_TOKEN` (Account → Cloudflare Pages: Edit) and `CLOUDFLARE_ACCOUNT_ID`.
+
+To deploy by hand:
 
 ```bash
 npx wrangler login
