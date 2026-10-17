@@ -103,7 +103,7 @@ export function Metrics({
               />
             </div>
           </div>
-          <p className="w-[84px] text-right font-mono tabular-nums">
+          <p className="w-[84px] text-right tabular-nums">
             <span className="text-xl font-semibold text-ink-1">{r.value}</span>
             <span className="ml-1 text-xs text-ink-3">{r.unit}</span>
           </p>

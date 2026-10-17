@@ -488,7 +488,7 @@ class PostureController {
     if (settings.desktopNotify && !document.hasFocus()) {
       showDesktopNotification(
         t.recoveredToast,
-        t.recoveredBody,
+        '',
         'sitright-posture'
       );
     }

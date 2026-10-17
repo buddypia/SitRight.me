@@ -38,6 +38,8 @@ function copyStyles(target: Document) {
     }
   }
   target.documentElement.lang = document.documentElement.lang;
+  // next/font のフォント変数（--font-inter）は html のクラスに付いている
+  target.documentElement.className = document.documentElement.className;
 }
 
 /** 常に最前面に表示される Picture-in-Picture ウィンドウを開き、その window を返す（React からは createPortal で描画する） */

@@ -13,13 +13,12 @@
   --color-fair: var(--fair);
   --color-poor: var(--poor);
 
+  /* 欧文は Inter（next/font で自前配信）、和文・ハングルは OS のゴシック体に任せる */
   --font-sans:
+    var(--font-inter), system-ui, -apple-system, 'Segoe UI', Roboto,
     'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP',
     'Yu Gothic UI', 'Meiryo', 'Apple SD Gothic Neo', 'Malgun Gothic',
-    'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display:
-    'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', 'AppleMyungjo',
-    'Nanum Myeongjo', 'Noto Serif KR', 'Batang', 'Times New Roman', serif;
+    'Noto Sans KR', sans-serif;
   --font-mono: ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
 
   --radius-panel: 20px;
@@ -71,9 +70,23 @@
   --poor: #ff6b5b;
 }
 
-/* 韓国語は単語（語節）の途中で改行しない */
+/* 韓国語は単語（語節）の途中で改行せず、和文フォントより先にハングルのフォントを使う */
 :lang(ko) {
   word-break: keep-all;
+  font-family:
+    var(--font-inter), system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+}
+
+/* 見出しの最後の 1 語だけが次の行に残らないようにする。日本語は文節で折り返す */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+:lang(ja) :is(h1, h2, h3) {
+  word-break: auto-phrase;
 }
 
 html,
@@ -93,9 +106,12 @@ body {
   background: rgba(77, 234, 196, 0.3);
 }
 
-:focus-visible {
-  outline: 2px solid var(--good);
-  outline-offset: 2px;
+/* base レイヤーに置き、outline-hidden などのユーティリティで打ち消せるようにする */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--good);
+    outline-offset: 2px;
+  }
 }
 
 .panel {

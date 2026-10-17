@@ -558,7 +558,7 @@ export function PostureScene({
       </svg>
       <div
         ref={offsetLabelRef}
-        className="pointer-events-none absolute left-0 top-0 rounded-md bg-[#ffbe5c] px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums text-[#1a1306] shadow-sm transition-opacity duration-300"
+        className="pointer-events-none absolute left-0 top-0 rounded-md bg-[#ffbe5c] px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-[#1a1306] shadow-sm transition-opacity duration-300"
       />
       <div
         ref={loadLabelRef}
@@ -569,7 +569,7 @@ export function PostureScene({
         </span>
         <span
           data-id="kg"
-          className="block font-mono text-good group-data-[level=fair]:text-fair group-data-[level=poor]:text-poor text-[15px] font-semibold tabular-nums"
+          className="block text-good group-data-[level=fair]:text-fair group-data-[level=poor]:text-poor text-[15px] font-semibold tabular-nums"
         />
         <span data-id="ratio" className="block text-[10px] text-white/55" />
       </div>
@@ -582,7 +582,7 @@ export function PostureScene({
       <svg
         ref={gaugeRef}
         viewBox="0 0 160 60"
-        className="pointer-events-none absolute bottom-12 right-3 h-[66px] w-44 rounded-2xl border border-white/10 bg-[#0d1014]/85 shadow-2xl backdrop-blur-md transition-opacity duration-500"
+        className="pointer-events-none absolute bottom-12 right-3 h-[52px] w-36 rounded-xl sm:h-[66px] sm:w-44 sm:rounded-2xl border border-white/10 bg-[#0d1014]/85 shadow-2xl backdrop-blur-md transition-opacity duration-500"
         style={{ '--gauge': 'var(--good)' } as React.CSSProperties}
         role="img"
         aria-label={t.metricLean}
@@ -608,7 +608,7 @@ export function PostureScene({
           fontSize="9.5"
           textAnchor="end"
           fill="var(--gauge)"
-          className="font-mono font-semibold"
+          className="font-semibold tabular-nums"
         >
           {t.leanLevel}
         </text>

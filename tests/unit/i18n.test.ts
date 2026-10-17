@@ -227,12 +227,35 @@ describe('i18n messages', () => {
       expect(allStrings('ja')).not.toContain('いい姿勢に戻りました');
       expect(allStrings('ja')).not.toContain('ストレートネック姿勢');
 
+      expect(allStrings('ja')).not.toContain('アライメント');
+      expect(allStrings('ja')).not.toContain('素晴らしい');
+      expect(allStrings('ja')).not.toContain('ワンポイント');
+
       // Prohibited anti-patterns in English
       expect(allStrings('en')).not.toContain('Pop out');
       expect(allStrings('en')).not.toContain('Close pop-out');
+      for (const phrase of [
+        'Fixed!',
+        'Actionable',
+        'alignment',
+        'Great posture',
+        'Delivers',
+        'tailored to',
+        'stay mindful',
+        'Horn bloom',
+        'Titanium',
+        'organic',
+        ' detected.',
+      ])
+        // キー名（alignmentOptimal など）は対象外にして、表示される文だけを見る
+        expect(Object.values(flatten(MESSAGES.en)).join('\n')).not.toContain(
+          phrase
+        );
 
       // Prohibited anti-patterns in Korean
       expect(allStrings('ko')).not.toContain('작은 창');
+      expect(allStrings('ko')).not.toContain('훌륭한');
+      expect(allStrings('ko')).not.toContain('원포인트');
     });
 
     it('enforces ergonomic and professional terminology consistency', () => {

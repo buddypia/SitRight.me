@@ -107,7 +107,7 @@ export function SettingsSheet({
       aria-hidden={!open}
     >
       <div
-        className={`absolute inset-0 bg-black/50 backdrop-blur-[2px] transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-black/60 transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`}
         onClick={onClose}
       />
       <div
@@ -124,94 +124,54 @@ export function SettingsSheet({
             {t.close}
           </Button>
         </header>
-        <div className="flex-1 space-y-7 overflow-y-auto px-6 py-6">
-          <Field label={t.sensitivity}>
-            <Segmented<Sensitivity>
-              label={t.sensitivity}
-              value={settings.sensitivity}
-              onChange={(v) => {
-                update({ sensitivity: v });
-                controller.resetAlerts();
-              }}
-              options={(['gentle', 'standard', 'strict'] as const).map((v) => ({
-                value: v,
-                label: t[`sensitivity_${v}`],
-              }))}
-            />
-          </Field>
+        <div className="flex-1 space-y-8 overflow-y-auto px-6 py-6">
+          <Section title={t.settingsGroupAlerts}>
+            <Field label={t.sensitivity}>
+              <Segmented<Sensitivity>
+                label={t.sensitivity}
+                value={settings.sensitivity}
+                onChange={(v) => {
+                  update({ sensitivity: v });
+                  controller.resetAlerts();
+                }}
+                options={(['gentle', 'standard', 'strict'] as const).map(
+                  (v) => ({
+                    value: v,
+                    label: t[`sensitivity_${v}`],
+                  })
+                )}
+              />
+            </Field>
 
-          <Field label={t.alertDelay}>
-            <Segmented<number>
-              label={t.alertDelay}
-              value={settings.alertDelaySec}
-              onChange={(v) => update({ alertDelaySec: v })}
-              options={[10, 20, 30, 60, 120].map((v) => ({
-                value: v,
-                label:
-                  v >= 60
-                    ? format(t.minutesShort, { n: v / 60 })
-                    : format(t.seconds, { n: v }),
-              }))}
-            />
-          </Field>
-
-          <Field label={t.cooldown}>
-            <Segmented<number>
-              label={t.cooldown}
-              value={settings.cooldownSec}
-              onChange={(v) => update({ cooldownSec: v })}
-              options={[60, 120, 300, 600].map((v) => ({
-                value: v,
-                label: format(t.minutesShort, { n: v / 60 }),
-              }))}
-            />
-          </Field>
-
-          <Field label={t.periodicNotify}>
-            <div className="space-y-3">
+            <Field label={t.alertDelay}>
               <Segmented<number>
-                label={t.periodicNotify}
-                value={settings.breakIntervalMin}
-                onChange={(v) => update({ breakIntervalMin: v })}
-                options={[0, 15, 30, 45, 60].map((v) => ({
+                label={t.alertDelay}
+                value={settings.alertDelaySec}
+                onChange={(v) => update({ alertDelaySec: v })}
+                options={[10, 20, 30, 60, 120].map((v) => ({
                   value: v,
-                  label: v === 0 ? t.off : format(t.minutesShort, { n: v }),
+                  label:
+                    v >= 60
+                      ? format(t.minutesShort, { n: v / 60 })
+                      : format(t.seconds, { n: v }),
                 }))}
               />
-              {settings.breakIntervalMin > 0 && (
-                <div className="space-y-2.5 rounded-xl border border-line bg-s2/50 p-3.5">
-                  <p className="text-xs font-medium text-ink-2">
-                    {t.periodicMode}
-                  </p>
-                  <Segmented<PeriodicNotifyMode>
-                    label={t.periodicMode}
-                    value={settings.periodicMode}
-                    onChange={(v) => update({ periodicMode: v })}
-                    options={(
-                      ['auto', 'check', 'advice', 'break', 'report'] as const
-                    ).map((mode) => ({
-                      value: mode,
-                      label: t[`periodicMode_${mode}`],
-                    }))}
-                  />
-                  <p className="text-xs leading-relaxed text-ink-3">
-                    {t[`periodicModeHint_${settings.periodicMode}`]}
-                  </p>
-                  <div className="pt-0.5">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => controller.triggerPeriodicNotification()}
-                    >
-                      {t.testPeriodicNotify}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </Field>
+            </Field>
 
-          <div className="space-y-4 rounded-2xl border border-line bg-s2/60 p-4">
+            <Field label={t.cooldown}>
+              <Segmented<number>
+                label={t.cooldown}
+                value={settings.cooldownSec}
+                onChange={(v) => update({ cooldownSec: v })}
+                options={[60, 120, 300, 600].map((v) => ({
+                  value: v,
+                  label: format(t.minutesShort, { n: v / 60 }),
+                }))}
+              />
+            </Field>
+          </Section>
+
+          <Section title={t.settingsGroupNotify}>
             <Row label={t.sound}>
               <Toggle
                 checked={settings.sound}
@@ -223,26 +183,21 @@ export function SettingsSheet({
               />
             </Row>
             {settings.sound && (
-              <div className="pt-1">
-                <p className="mb-2 text-xs font-medium text-ink-3">
-                  {t.soundTheme}
-                </p>
-                <Segmented<SoundTheme>
-                  label={t.soundTheme}
-                  value={settings.soundTheme}
-                  onChange={(v) => {
-                    update({ soundTheme: v });
-                    playChime('alert', 0.5, v);
-                  }}
-                  options={[
-                    { value: 'snap-horn', label: t.soundTheme_snap_horn },
-                    { value: 'snap-bio', label: t.soundTheme_snap_bio },
-                    { value: 'snap-click', label: t.soundTheme_snap_click },
-                    { value: 'snap-pop', label: t.soundTheme_snap_pop },
-                    { value: 'chime', label: t.soundTheme_chime },
-                  ]}
-                />
-              </div>
+              <Select<SoundTheme>
+                label={t.soundTheme}
+                value={settings.soundTheme}
+                onChange={(v) => {
+                  update({ soundTheme: v });
+                  playChime('alert', 0.5, v);
+                }}
+                options={[
+                  { value: 'snap-horn', label: t.soundTheme_snap_horn },
+                  { value: 'snap-bio', label: t.soundTheme_snap_bio },
+                  { value: 'snap-click', label: t.soundTheme_snap_click },
+                  { value: 'snap-pop', label: t.soundTheme_snap_pop },
+                  { value: 'chime', label: t.soundTheme_chime },
+                ]}
+              />
             )}
             {notificationsSupported() && (
               <Row
@@ -258,13 +213,6 @@ export function SettingsSheet({
                 />
               </Row>
             )}
-            <Row label={t.powerSaver}>
-              <Toggle
-                checked={settings.powerSaver}
-                label={t.powerSaver}
-                onChange={(v) => update({ powerSaver: v })}
-              />
-            </Row>
             <Button
               size="sm"
               onClick={async () => {
@@ -281,65 +229,93 @@ export function SettingsSheet({
             >
               {t.testNotification}
             </Button>
-          </div>
 
-          <Field label={t.avatar}>
-            <AvatarPicker
-              value={settings.avatar}
-              onChange={(v) => update({ avatar: v })}
-              t={t}
-            />
-          </Field>
-
-          <div className="border-t border-line pt-6">
-            <Field label={t.privacySectionTitle}>
-              <div className="space-y-4">
-                <Row label={t.telemetryLabel} hint={t.telemetryHint}>
-                  <Toggle
-                    checked={settings.telemetry}
-                    onChange={(v) => update({ telemetry: v })}
-                    label={t.telemetryLabel}
-                  />
-                </Row>
-                <div className="flex flex-col gap-2 pt-1">
-                  <div>
-                    <button
-                      type="button"
-                      onClick={() => setPrivacyOpen(true)}
-                      className="inline-flex items-center gap-1.5 text-xs text-good hover:underline cursor-pointer"
-                    >
-                      <span>🛡️</span>
-                      <span>{t.privacyNoticeButton}</span>
-                      <span aria-hidden>→</span>
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type="button"
-                      onClick={() => setLicensesOpen(true)}
-                      className="inline-flex items-center gap-1.5 text-xs text-good hover:underline cursor-pointer"
-                    >
-                      <span>📜</span>
-                      <span>{t.licensesNoticeButton}</span>
-                      <span aria-hidden>→</span>
-                    </button>
-                  </div>
-                  <div>
-                    <a
-                      href="mailto:contact@buddypia.com"
-                      className="inline-flex items-center gap-1.5 text-xs text-good hover:underline cursor-pointer"
-                    >
-                      <span>✉️</span>
-                      <span>{t.contactNoticeButton}</span>
-                      <span aria-hidden>↗</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
+            <Field label={t.periodicNotify}>
+              <Segmented<number>
+                label={t.periodicNotify}
+                value={settings.breakIntervalMin}
+                onChange={(v) => update({ breakIntervalMin: v })}
+                options={[0, 15, 30, 45, 60].map((v) => ({
+                  value: v,
+                  label: v === 0 ? t.off : format(t.minutesShort, { n: v }),
+                }))}
+              />
             </Field>
-          </div>
+            {settings.breakIntervalMin > 0 && (
+              <div className="space-y-2.5">
+                <Select<PeriodicNotifyMode>
+                  label={t.periodicMode}
+                  value={settings.periodicMode}
+                  onChange={(v) => update({ periodicMode: v })}
+                  options={(
+                    ['auto', 'check', 'advice', 'break', 'report'] as const
+                  ).map((mode) => ({
+                    value: mode,
+                    label: t[`periodicMode_${mode}`],
+                  }))}
+                />
+                <p className="text-xs leading-relaxed text-ink-3">
+                  {t[`periodicModeHint_${settings.periodicMode}`]}
+                </p>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => controller.triggerPeriodicNotification()}
+                >
+                  {t.testPeriodicNotify}
+                </Button>
+              </div>
+            )}
+          </Section>
 
-          <div className="border-t border-line pt-6">
+          <Section title={t.settingsGroupDisplay}>
+            <Field label={t.avatar}>
+              <AvatarPicker
+                value={settings.avatar}
+                onChange={(v) => update({ avatar: v })}
+                t={t}
+              />
+            </Field>
+            <Row label={t.powerSaver}>
+              <Toggle
+                checked={settings.powerSaver}
+                label={t.powerSaver}
+                onChange={(v) => update({ powerSaver: v })}
+              />
+            </Row>
+          </Section>
+
+          <Section title={t.privacySectionTitle}>
+            <Row label={t.telemetryLabel} hint={t.telemetryHint}>
+              <Toggle
+                checked={settings.telemetry}
+                onChange={(v) => update({ telemetry: v })}
+                label={t.telemetryLabel}
+              />
+            </Row>
+            <div className="flex flex-col items-start gap-2">
+              <button
+                type="button"
+                onClick={() => setPrivacyOpen(true)}
+                className="cursor-pointer text-xs text-good hover:underline"
+              >
+                {t.privacyNoticeButton} <span aria-hidden>→</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLicensesOpen(true)}
+                className="cursor-pointer text-xs text-good hover:underline"
+              >
+                {t.licensesNoticeButton} <span aria-hidden>→</span>
+              </button>
+              <a
+                href="mailto:contact@buddypia.com"
+                className="text-xs text-good hover:underline"
+              >
+                {t.contactNoticeButton} <span aria-hidden>↗</span>
+              </a>
+            </div>
+
             <Field label={t.exportData}>
               <p className="mb-3 text-xs leading-relaxed text-ink-3">
                 {t.exportHint}
@@ -395,9 +371,7 @@ export function SettingsSheet({
                 </Button>
               </div>
             </Field>
-          </div>
 
-          <div className="border-t border-line pt-6">
             <Button
               size="sm"
               className={
@@ -416,7 +390,7 @@ export function SettingsSheet({
             >
               {confirmReset ? t.resetConfirm : t.resetData}
             </Button>
-          </div>
+          </Section>
         </div>
       </div>
       <PrivacyModal
@@ -428,6 +402,54 @@ export function SettingsSheet({
         onClose={() => setLicensesOpen(false)}
       />
     </div>
+  );
+}
+
+/** 設定のまとまり。見出しの下に項目を並べ、まとまりの間は線で区切る */
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-5 border-t border-line pt-6 first:border-t-0 first:pt-0">
+      <h3 className="text-xs font-semibold tracking-wide text-ink-3">
+        {title}
+      </h3>
+      {children}
+    </section>
+  );
+}
+
+/** 選択肢が多く、横に並べると折り返してしまう設定用 */
+function Select<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (v: T) => void;
+}) {
+  return (
+    <label className="block text-[13px] font-medium text-ink-2">
+      {label}
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value as T)}
+        className="mt-2.5 block w-full cursor-pointer rounded-xl border border-line bg-s2 px-3 py-2 text-sm font-normal text-ink-1"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 

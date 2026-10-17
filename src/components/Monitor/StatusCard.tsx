@@ -77,8 +77,8 @@ export function StatusCard({
   else if (pattern) detail = pattern.fix;
   else detail = t.alignmentBalanced;
 
-  // 上部バッジのテキスト：AI Slop（● 良い姿勢）を脱却し、
-  // 良い姿勢時は「理想的なアライメント」、崩れている時は「やや崩れています」等の状態を表示
+  // 上部バッジ：良い姿勢のときは見出し（良い姿勢）と重ならない「問題なし」、
+  // 崩れているときは「やや崩れています」などの状態を出す
   const badgeLabel = isGood
     ? t.alignmentOptimal
     : isLoading
@@ -278,7 +278,7 @@ function SpineAlignmentHUD({
           </svg>
           {t.alignmentAllGood}
         </span>
-        <span className="font-mono text-[11px] text-ink-2">
+        <span className="text-[11px] tabular-nums text-ink-2">
           {format(t.alignmentLoadOptimal, { kg: neckLoadKg.toFixed(1) })}
         </span>
       </div>
@@ -325,7 +325,7 @@ function AxisNode({
     <div className="rounded-lg bg-black/25 px-2 py-1.5 text-center">
       <div className="flex items-center justify-between text-[10px] text-ink-3">
         <span className="truncate">{label}</span>
-        <span className="font-mono font-medium text-ink-2">{val}</span>
+        <span className="font-medium tabular-nums text-ink-2">{val}</span>
       </div>
       <div className="relative mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
         {/* センターの理想線 */}
@@ -391,7 +391,7 @@ function ScoreRing({
       {loading ? (
         <Logo size={28} />
       ) : (
-        <span className="font-mono text-lg font-semibold tabular-nums text-ink-1">
+        <span className="text-lg font-semibold tabular-nums text-ink-1">
           {score ?? '–'}
         </span>
       )}
