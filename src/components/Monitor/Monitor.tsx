@@ -85,7 +85,7 @@ export function Monitor() {
             />
           )}
           <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 bg-linear-to-b from-black/50 to-transparent p-5">
-            <div>
+            <div className="min-w-0">
               <h2 className="text-sm font-semibold text-ink-1">{t.sideView}</h2>
               <p className="mt-0.5 text-[11px] text-ink-3">{t.sideViewHint}</p>
             </div>
@@ -99,11 +99,11 @@ export function Monitor() {
                   className="pointer-events-auto flex h-8 shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border border-[rgba(77,234,196,0.4)] bg-[rgba(77,234,196,0.15)] px-3 text-xs font-medium text-good backdrop-blur-sm hover:bg-[rgba(77,234,196,0.25)]"
                 >
                   <PipIcon />
-                  {t.pipOpen}
+                  <span className="hidden sm:inline">{t.pipOpen}</span>
                 </button>
               )}
               <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/10 bg-black/35 py-1 pl-3 pr-1 text-xs text-ink-2 backdrop-blur-sm">
-                <span>{t.xray}</span>
+                <span className="whitespace-nowrap">{t.xray}</span>
                 <Toggle
                   checked={settings.xray}
                   onChange={(v) => updateSettings({ xray: v })}

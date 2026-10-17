@@ -41,20 +41,15 @@ export function AvatarPicker({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <Segmented<Gender>
-          label={t.gender}
-          value={selectedGender}
-          onChange={(g) => setSelectedGender(g)}
-          options={[
-            { value: 'male', label: t.gender_male },
-            { value: 'female', label: t.gender_female },
-          ]}
-        />
-        <span className="text-[11px] text-ink-3">
-          {displayedAvatars.length}
-        </span>
-      </div>
+      <Segmented<Gender>
+        label={t.gender}
+        value={selectedGender}
+        onChange={(g) => setSelectedGender(g)}
+        options={[
+          { value: 'male', label: t.gender_male },
+          { value: 'female', label: t.gender_female },
+        ]}
+      />
 
       <div
         role="radiogroup"
