@@ -86,7 +86,7 @@ function LicensesModalContent({ onClose }: { onClose: () => void }) {
       aria-label={t.licensesModalTitle}
     >
       <div
-        className="fixed inset-0 bg-black/65 backdrop-blur-[2px] transition-opacity"
+        className="fixed inset-0 bg-black/70 transition-opacity"
         onClick={onClose}
       />
       <div

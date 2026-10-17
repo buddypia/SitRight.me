@@ -103,7 +103,7 @@ export function TodayPanel({
           <ExportMenu history={history} locale={locale} t={t} />
         </div>
         <p
-          className="mt-3 font-mono text-[44px] font-semibold leading-none tabular-nums"
+          className="mt-3 text-[44px] font-semibold leading-none tabular-nums"
           style={{
             color: today?.monitoredSec
               ? scoreColor(ratio * 100)
@@ -117,28 +117,28 @@ export function TodayPanel({
         <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
           <div>
             <dt className="text-ink-3">{t.monitored}</dt>
-            <dd className="mt-0.5 font-mono text-sm tabular-nums text-ink-1">
+            <dd className="mt-0.5 text-sm tabular-nums text-ink-1">
               {formatDuration(today?.monitoredSec ?? 0, t)}
             </dd>
           </div>
           <div>
             <dt className="text-ink-3">{t.sitting}</dt>
-            <dd className="mt-0.5 font-mono text-sm tabular-nums text-ink-1">
+            <dd className="mt-0.5 text-sm tabular-nums text-ink-1">
               {format(t.minutes, { n: Math.floor(sittingMin) })}
             </dd>
           </div>
           <div>
             <dt className="text-ink-3">{t.alertsCount}</dt>
-            <dd className="mt-0.5 font-mono text-sm tabular-nums text-ink-1">
+            <dd className="mt-0.5 text-sm tabular-nums text-ink-1">
               {format(t.times, { n: today?.alerts ?? 0 })}
             </dd>
           </div>
           <div>
             <dt className="text-ink-3">{t.resetsCount}</dt>
-            <dd className="mt-0.5 font-mono text-sm tabular-nums text-good flex items-baseline gap-1">
+            <dd className="mt-0.5 text-sm tabular-nums text-good flex items-baseline gap-1">
               <span>{format(t.times, { n: today?.recoveries ?? 0 })}</span>
               {recRate !== null && (
-                <span className="text-[11px] font-sans text-ink-3">
+                <span className="text-[11px] text-ink-3">
                   ({Math.round(recRate * 100)}%)
                 </span>
               )}
@@ -151,7 +151,7 @@ export function TodayPanel({
         <div className="flex items-center justify-between">
           <p className="text-[13px] font-medium text-ink-2">{t.timelineTitle}</p>
           {peak && (
-            <span className="text-[11px] font-mono tabular-nums text-fair/90">
+            <span className="text-[11px] tabular-nums text-fair/90">
               {format(t.peakCollapse, {
                 start: peak.startHour,
                 end: peak.endHour,
@@ -199,7 +199,7 @@ export function TodayPanel({
               <li key={p}>
                 <div className="flex justify-between text-xs">
                   <span className="text-ink-1">{t.pattern[p].name}</span>
-                  <span className="font-mono tabular-nums text-ink-3">
+                  <span className="tabular-nums text-ink-3">
                     {formatDuration(sec, t)}
                   </span>
                 </div>

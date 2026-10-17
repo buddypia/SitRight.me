@@ -60,7 +60,6 @@ function Toast({
     badgeText = p.name;
   } else if (shown.kind === 'recovered') {
     title = t.recoveredToast;
-    body = t.recoveredBody;
   } else {
     const built = buildPeriodicNotification(
       {

@@ -69,7 +69,7 @@ export function detectBrowserLocale(): Locale {
 }
 
 const ja = {
-  appTagline: '首と背中の姿勢を、横から見える形に。',
+  appTagline: 'Webカメラで姿勢チェック',
   loading: '準備しています…',
 
   // welcome
@@ -190,11 +190,11 @@ const ja = {
   resetView: '視点をリセット',
   modelLoadFailed: '3Dモデルの読み込みに失敗しました',
   modelLoadingScene: '3Dアバターを読み込み中…',
-  modelLoadingVision: 'AI姿勢モデルを準備中…',
-  alignmentOptimal: '理想的なアライメント',
-  alignmentBalanced: '自然な重心軸をキープ中',
+  modelLoadingVision: '姿勢推定モデルを読み込み中…',
+  alignmentOptimal: '問題なし',
+  alignmentBalanced: '基準の姿勢に近い状態です',
   alignmentLoadOptimal: '首への負担: 最小 (約{kg}kg)',
-  alignmentAllGood: 'すべての軸が理想範囲内です',
+  alignmentAllGood: 'すべて範囲内',
   neckLoad: '首への負荷',
   neckLoadZero: '負担なし',
   neckLoadRatio: '頭の重さの {ratio} 倍',
@@ -243,9 +243,9 @@ const ja = {
   noBreakdown: 'まだ崩れた記録はありません',
   weekTitle: '過去7日',
   noData: 'データなし',
-  insightTitle: '改善アドバイス',
+  insightTitle: '改善のヒント',
   insightGood:
-    '素晴らしい姿勢を維持できています！定期的に伸びをしてリフレッシュしましょう。',
+    'ここまで大きな崩れはありません。1時間に1回は立ち上がって体を伸ばしましょう。',
   peakCollapse: '崩れのピーク: {start}〜{end}時',
   insightTips: {
     straight_neck:
@@ -262,18 +262,17 @@ const ja = {
   // alerts
   alertTitle: '姿勢をチェック',
   recoveredToast: '良い姿勢に戻りました',
-  recoveredBody: '頸椎と背骨のアライメントが整いました。',
   fixed: '姿勢を直した',
   breakTitle: 'ひと休みしましょう',
   breakBody: '{n}分座り続けています。立ち上がって首と肩を回しましょう。',
-  periodicCheckTitle: '定期姿勢チェック',
+  periodicCheckTitle: '姿勢チェック',
   periodicCheckBadge: 'スコア {score} · {kg}kg',
   periodicCheckGoodBody:
     '現在の姿勢スコアは {score}（首への負担 約{kg}kg）です。耳と肩のラインをこのままキープしましょう。',
   periodicCheckPatternBody: '現在スコア {score}（{pattern}の傾向）。{fix}',
   periodicCheckIdleBody:
     '背筋を軽く伸ばし、あごを引いて耳を肩の真上に整えましょう。',
-  periodicAdviceTitle: 'ワンポイント改善アドバイス',
+  periodicAdviceTitle: '姿勢のヒント',
   periodicReportTitle: '今日のミニレポート',
   periodicReportBadge: '良い姿勢 {ratio}%',
   periodicReportBody:
@@ -287,6 +286,9 @@ const ja = {
 
   // settings
   settingsTitle: '設定',
+  settingsGroupAlerts: '姿勢の通知',
+  settingsGroupNotify: '通知と効果音',
+  settingsGroupDisplay: '表示と動作',
   sensitivity: '判定の厳しさ',
   sensitivity_gentle: '緩め',
   sensitivity_standard: '標準',
@@ -406,7 +408,7 @@ const ja = {
 export type Messages = typeof ja;
 
 const en: Messages = {
-  appTagline: 'See your neck and back posture from the side.',
+  appTagline: 'Webcam posture check',
   loading: 'Getting ready…',
 
   welcomeEyebrow: 'Prevent text neck, forward head and slouching',
@@ -420,27 +422,27 @@ const en: Messages = {
   privacyBody:
     'Pose estimation runs in your browser. Camera video is not recorded or sent to a server.',
   privacyLearnMore: 'Learn more',
-  privacyModalTitle: 'Privacy & Data Notice',
-  privacyNeverTitle: 'Processed on Your Device (Not Sent Externally)',
+  privacyModalTitle: 'Privacy & data',
+  privacyNeverTitle: 'Stays on your device',
   privacyNeverItem1: 'Camera video feeds and recordings',
   privacyNeverItem2: '3D facial and skeletal coordinate data',
   privacyNeverItem3: 'Personal information (such as name, email, or IP address)',
-  privacyCameraTitle: 'Camera & Pose Estimation',
+  privacyCameraTitle: 'Camera and pose estimation',
   privacyCameraBody:
     'Camera video and pose estimation are processed locally in your browser. Video is not uploaded, recorded, or saved to a server, and no facial recognition is performed.',
-  privacyStorageTitle: 'Browser Storage (localStorage)',
+  privacyStorageTitle: 'Browser storage (localStorage)',
   privacyStorageBody:
     'Your baseline posture, settings, and daily stats are saved in your browser to provide core features. You can delete this data at any time in Settings.',
-  privacyTelemetryTitle: 'Diagnostics & Service Improvement',
+  privacyTelemetryTitle: 'Anonymous diagnostics',
   privacyTelemetryIntro:
     'To improve stability and usability, SitRight may send non-identifiable diagnostic data. No third-party advertising or tracking tools are used.',
   privacyTelemetryItem1:
-    'Information sent: Session duration, setup progress, performance and error metrics, and a random anonymous ID (IP addresses are not stored).',
+    'What is sent: session duration, setup progress, performance and error metrics, and a random anonymous ID (IP addresses are not stored).',
   privacyTelemetryItem2:
-    'Destination: SitRight infrastructure (Cloudflare).',
+    'Where it goes: SitRight’s own servers on Cloudflare.',
   privacyTelemetryItem3:
-    'Purpose: Error diagnostics, performance monitoring, and product improvements.',
-  privacyControlTitle: 'Your Controls',
+    'Why: to find errors, check performance, and improve the app.',
+  privacyControlTitle: 'Your controls',
   privacyControlBody:
     'You can turn off anonymous diagnostics or delete your saved browser data at any time in Settings.',
   featureMeasure: 'Measured in cm and degrees',
@@ -492,7 +494,7 @@ const en: Messages = {
   calibrateTip3: 'Eyes on the screen, shoulders relaxed',
   calibrateStart: 'Start recording',
   calibrateHold: 'Hold still…',
-  calibrateUnstable: 'Movement detected. Hold still to continue',
+  calibrateUnstable: 'You moved. Hold still to continue',
   calibrateWaiting: 'Waiting for your head and shoulders',
   calibrateDone: 'Baseline recorded',
   back: 'Back',
@@ -525,11 +527,11 @@ const en: Messages = {
   resetView: 'Reset view',
   modelLoadFailed: '3D model failed to load.',
   modelLoadingScene: 'Loading 3D avatar…',
-  modelLoadingVision: 'Preparing AI pose model…',
-  alignmentOptimal: 'Optimal alignment',
-  alignmentBalanced: 'Balanced & aligned posture',
+  modelLoadingVision: 'Loading the pose model…',
+  alignmentOptimal: 'All clear',
+  alignmentBalanced: 'Close to your baseline',
   alignmentLoadOptimal: 'Neck load: minimal (~{kg}kg)',
-  alignmentAllGood: 'All posture axes aligned',
+  alignmentAllGood: 'All within range',
   neckLoad: 'Load on neck',
   neckLoadZero: 'No extra load',
   neckLoadRatio: '{ratio}× head weight',
@@ -577,26 +579,25 @@ const en: Messages = {
   noBreakdown: 'No posture slips recorded yet',
   weekTitle: 'Last 7 days',
   noData: 'No data',
-  insightTitle: 'Actionable Insight',
+  insightTitle: 'Tip',
   insightGood:
-    'Great posture maintained! Take regular stretch breaks to stay refreshed.',
+    'No major slips so far. Stand up and stretch about once an hour.',
   peakCollapse: 'Peak slump: {start}:00–{end}:00',
   insightTips: {
     straight_neck:
-      'Screen may be too far or text too small. Bring screen closer, enlarge text, and tuck your chin slightly.',
+      'Your screen may be too far away or the text too small. Move it closer or zoom in, and tuck your chin slightly.',
     text_neck:
-      'Prolonged downward tilt detected. Elevate your monitor to eye level with a stand to relieve neck strain.',
+      'You have been looking down for a while. Raise the screen to eye level, for example with a laptop stand.',
     neck_hunch:
-      'Head dropping forward and down. Open your chest, squeeze shoulder blades, and lift the crown of your head.',
+      'Your head keeps dropping forward. Open your chest, draw your shoulder blades together, and lift the crown of your head.',
     slouch:
-      'Pelvis tilted backward causing rounded back. Sit all the way back in your chair and sit tall on your sit bones.',
-    lean: 'Weight tilted to one side. Place both feet flat on the floor and distribute weight evenly across both hips.',
+      'Your pelvis is tipping back and rounding your back. Sit all the way back in the chair and sit up on your sit bones.',
+    lean: 'Your weight is shifting to one side. Put both feet flat on the floor and share your weight evenly across both hips.',
   },
 
   alertTitle: 'Posture check',
   recoveredToast: 'Back to good posture',
-  recoveredBody: 'Your cervical and spinal alignment is restored.',
-  fixed: 'Fixed!',
+  fixed: 'Posture corrected',
   breakTitle: 'Time for a break',
   breakBody:
     'You have been sitting for {n} minutes. Stand up and roll your neck and shoulders.',
@@ -607,7 +608,7 @@ const en: Messages = {
   periodicCheckPatternBody: 'Current score {score} ({pattern} tendency). {fix}',
   periodicCheckIdleBody:
     'Lengthen your spine, tuck your chin slightly, and align your ears over your shoulders.',
-  periodicAdviceTitle: 'Posture improvement tip',
+  periodicAdviceTitle: 'Posture tip',
   periodicReportTitle: 'Today’s posture report',
   periodicReportBadge: '{ratio}% good',
   periodicReportBody:
@@ -620,6 +621,9 @@ const en: Messages = {
   dismiss: 'Dismiss',
 
   settingsTitle: 'Settings',
+  settingsGroupAlerts: 'Posture alerts',
+  settingsGroupNotify: 'Notifications & sound',
+  settingsGroupDisplay: 'Display & performance',
   sensitivity: 'Strictness',
   sensitivity_gentle: 'Gentle',
   sensitivity_standard: 'Standard',
@@ -630,11 +634,11 @@ const en: Messages = {
   minutesShort: '{n} min',
   sound: 'Sound',
   soundTheme: 'Sound theme',
-  soundTheme_snap_horn: 'Snap (Horn bloom)',
-  soundTheme_snap_bio: 'Snap (Bio crack)',
-  soundTheme_snap_click: 'Snap (Titanium click)',
-  soundTheme_snap_pop: 'Pop (Subtle organic)',
-  soundTheme_chime: 'Chime (Classic)',
+  soundTheme_snap_horn: 'Snap (deep)',
+  soundTheme_snap_bio: 'Snap (joint)',
+  soundTheme_snap_click: 'Click',
+  soundTheme_snap_pop: 'Pop (soft)',
+  soundTheme_chime: 'Chime',
   desktopNotify: 'Desktop notifications',
   breakReminder: 'Break reminder',
   periodicNotify: 'Periodic notification interval',
@@ -645,33 +649,33 @@ const en: Messages = {
   periodicMode_break: 'Break',
   periodicMode_report: 'Mini report',
   periodicModeHint_auto:
-    'Automatically rotates posture checks, advice, daily reports, and break reminders based on your session.',
+    'Switches between posture checks, tips, reports, and break reminders based on how long you have been sitting and today’s slips.',
   periodicModeHint_check:
-    'Periodically shares your current posture score and neck load to help you stay mindful.',
+    'Shows your current posture score and neck load at each interval, even when your posture is fine.',
   periodicModeHint_advice:
-    'Delivers ergonomic tips and stretch suggestions tailored to your most frequent posture pattern today.',
+    'Suggests desk setup changes and stretches for today’s most common slip.',
   periodicModeHint_break:
-    'Tracks continuous sitting time and reminds you to stand up and roll your neck and shoulders.',
+    'Tracks how long you have been sitting and reminds you to stand up and roll your neck and shoulders.',
   periodicModeHint_report:
-    'Periodically summarizes today’s good posture ratio, monitored time, and recovery count.',
+    'Sums up today’s good posture ratio, monitored time, and recoveries.',
   testPeriodicNotify: 'Preview periodic notification',
   off: 'Off',
   powerSaver: 'Power saver (measure less often)',
   language: 'Language',
   resetData: 'Delete all history and baseline',
   resetConfirm: 'Press again to delete',
-  exportData: 'Export Data',
+  exportData: 'Export data',
   exportButton: 'Export',
-  exportSummaryCsv: 'Daily Summary (CSV)',
-  exportTimelineCsv: 'Detailed Timeline (CSV)',
-  exportJson: 'Full Data (JSON)',
+  exportSummaryCsv: 'Daily summary (CSV)',
+  exportTimelineCsv: 'Detailed timeline (CSV)',
+  exportJson: 'All data (JSON)',
   exportHint:
     'Download posture statistics stored in your browser as CSV or JSON.',
-  privacySectionTitle: 'Data & Privacy',
-  privacyNoticeButton: 'Privacy Policy & External Transmission',
-  licensesNoticeButton: 'Open Source Licenses',
-  contactNoticeButton: 'Contact & Feedback',
-  licensesModalTitle: 'Open Source Licenses & Notices',
+  privacySectionTitle: 'Data & privacy',
+  privacyNoticeButton: 'Privacy & data use',
+  licensesNoticeButton: 'Open source licenses',
+  contactNoticeButton: 'Contact & feedback',
+  licensesModalTitle: 'Open source licenses',
   licensesIntro:
     'SitRight is built with the following open source software and assets. Copyright notices and license terms are listed below.',
   licensesSourceLink: 'Official website',
@@ -679,9 +683,9 @@ const en: Messages = {
   licenseHideText: 'Hide license text',
   licenseCopyButton: 'Copy license text',
   licenseCopied: 'Copied to clipboard',
-  licenseCategory_core: 'Core Libraries & AI Engine',
-  licenseCategory_framework: 'Framework & State Management',
-  licenseCategory_assets: '3D Models & Assets',
+  licenseCategory_core: 'Core libraries & pose engine',
+  licenseCategory_framework: 'Framework & state management',
+  licenseCategory_assets: '3D models & assets',
   telemetryLabel: 'Send anonymous diagnostics',
   telemetryHint:
     'Sends non-identifiable metrics to help fix errors and improve stability',
@@ -736,7 +740,7 @@ const en: Messages = {
 };
 
 const ko: Messages = {
-  appTagline: '목과 등 자세를, 옆에서 본 모습으로.',
+  appTagline: '웹캠으로 자세 체크',
   loading: '준비하고 있어요…',
 
   // welcome
@@ -860,11 +864,11 @@ const ko: Messages = {
   resetView: '시점 초기화',
   modelLoadFailed: '3D 모델을 불러오지 못했어요.',
   modelLoadingScene: '3D 아바타를 불러오는 중…',
-  modelLoadingVision: 'AI 자세 분석 모델 준비 중…',
-  alignmentOptimal: '이상적인 정렬',
-  alignmentBalanced: '자연스러운 중심축을 유지 중',
+  modelLoadingVision: '자세 추정 모델을 불러오는 중…',
+  alignmentOptimal: '문제 없음',
+  alignmentBalanced: '기준 자세에 가까워요',
   alignmentLoadOptimal: '목 부담: 최소 (약 {kg}kg)',
-  alignmentAllGood: '모든 자세 축이 균형을 이루고 있어요',
+  alignmentAllGood: '모두 범위 안이에요',
   neckLoad: '목에 걸리는 부하',
   neckLoadZero: '부담 없음',
   neckLoadRatio: '머리 무게의 {ratio}배',
@@ -913,9 +917,9 @@ const ko: Messages = {
   noBreakdown: '아직 무너진 기록이 없어요',
   weekTitle: '지난 7일',
   noData: '데이터 없음',
-  insightTitle: '개선 가이드',
+  insightTitle: '개선 팁',
   insightGood:
-    '훌륭한 자세를 유지하고 있습니다! 정기적으로 스트레칭을 하여 몸을 풀어주세요.',
+    '지금까지 크게 무너진 기록이 없어요. 1시간에 한 번은 일어나서 몸을 펴 주세요.',
   peakCollapse: '자세 무너짐 피크: {start}~{end}시',
   insightTips: {
     straight_neck:
@@ -932,18 +936,17 @@ const ko: Messages = {
   // alerts
   alertTitle: '자세를 확인하세요',
   recoveredToast: '좋은 자세로 돌아왔어요',
-  recoveredBody: '경추와 척추의 정렬이 맞춰졌어요.',
   fixed: '자세를 고쳤어요',
   breakTitle: '잠깐 쉬어요',
   breakBody: '{n}분째 앉아 있어요. 일어나서 목과 어깨를 돌려 보세요.',
-  periodicCheckTitle: '정기 자세 점검',
+  periodicCheckTitle: '자세 점검',
   periodicCheckBadge: '점수 {score} · {kg}kg',
   periodicCheckGoodBody:
     '현재 자세 점수는 {score} (목 부담 약 {kg}kg)예요. 귀와 어깨 라인을 이대로 유지해 보세요.',
   periodicCheckPatternBody: '현재 점수 {score} ({pattern} 경향). {fix}',
   periodicCheckIdleBody:
     '허리를 가볍게 펴고 턱을 살짝 당겨 귀가 어깨 바로 위에 오도록 정렬해 보세요.',
-  periodicAdviceTitle: '원포인트 자세 개선 팁',
+  periodicAdviceTitle: '자세 팁',
   periodicReportTitle: '오늘의 미니 리포트',
   periodicReportBadge: '좋은 자세 {ratio}%',
   periodicReportBody:
@@ -958,6 +961,9 @@ const ko: Messages = {
 
   // settings
   settingsTitle: '설정',
+  settingsGroupAlerts: '자세 알림',
+  settingsGroupNotify: '알림과 효과음',
+  settingsGroupDisplay: '화면과 동작',
   sensitivity: '판정 엄격도',
   sensitivity_gentle: '느슨하게',
   sensitivity_standard: '표준',

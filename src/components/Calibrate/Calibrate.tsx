@@ -164,7 +164,7 @@ function ProgressRing({ value, done }: { value: number; done: boolean }) {
           style={{ transition: 'stroke-dashoffset 120ms linear' }}
         />
       </svg>
-      <span className="font-mono text-4xl font-semibold tabular-nums text-ink-1">
+      <span className="text-4xl font-semibold tabular-nums text-ink-1">
         {done ? (
           <svg width="44" height="44" viewBox="0 0 12 12" className="text-good">
             <path

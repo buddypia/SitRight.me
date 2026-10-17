@@ -88,7 +88,7 @@ export function MiniMonitor({
           )}
         </div>
         <span
-          className="font-mono text-xl font-semibold tabular-nums"
+          className="text-xl font-semibold tabular-nums"
           style={{ color }}
           aria-label={t.scoreLabel}
         >
