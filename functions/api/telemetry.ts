@@ -22,8 +22,6 @@ interface TelemetryRequest {
   errorCode?: string;
   ts?: number;
   locale?: string;
-  goodPosturePct?: number;
-  alertCount?: number;
   clientId?: string;
   sessionId?: string;
 }
@@ -35,6 +33,16 @@ export const onRequestPost = async (context: {
   env: Env;
 }): Promise<Response> => {
   try {
+    const secFetchSite = context.request.headers.get('Sec-Fetch-Site');
+    if (
+      secFetchSite &&
+      secFetchSite !== 'same-origin' &&
+      secFetchSite !== 'same-site' &&
+      secFetchSite !== 'none'
+    ) {
+      return new Response(null, { status: 403 });
+    }
+
     const raw = await context.request.json().catch(() => null);
     if (!raw || typeof raw !== 'object') {
       return new Response(null, { status: 400 });
@@ -63,23 +71,11 @@ export const onRequestPost = async (context: {
     const rawSessionId = typeof body.sessionId === 'string' ? body.sessionId.trim().slice(0, 64) : '';
     const sessionId = ANON_ID_PATTERN.test(rawSessionId) ? rawSessionId : '';
 
-    // Bound goodPosturePct (0..100)
-    const rawGoodPct = typeof body.goodPosturePct === 'number' && Number.isFinite(body.goodPosturePct)
-      ? Math.round(body.goodPosturePct)
-      : -1;
-    const goodPosturePct = rawGoodPct >= 0 && rawGoodPct <= 100 ? rawGoodPct : 0;
-
-    // Bound alertCount (>=0, max 1000)
-    const rawAlerts = typeof body.alertCount === 'number' && Number.isFinite(body.alertCount)
-      ? Math.round(body.alertCount)
-      : 0;
-    const alertCount = Math.min(Math.max(0, rawAlerts), 1000);
-
     // Write to Cloudflare Workers Analytics Engine if binding is configured
     if (context.env?.ANALYTICS_ENGINE?.writeDataPoint) {
       context.env.ANALYTICS_ENGINE.writeDataPoint({
         blobs: [event, step, errorCode, country, locale, clientId, sessionId],
-        doubles: [duration, goodPosturePct, alertCount],
+        doubles: [duration],
         indexes: [event.slice(0, 32)],
       });
     }
