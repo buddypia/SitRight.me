@@ -323,9 +323,11 @@ function AxisNode({
   const pct = 50 + offset * 35;
   return (
     <div className="rounded-lg bg-black/25 px-2 py-1.5 text-center">
-      <div className="flex items-center justify-between text-[10px] text-ink-3">
-        <span className="truncate">{label}</span>
-        <span className="font-medium tabular-nums text-ink-2">{val}</span>
+      <div className="flex flex-col items-center gap-0.5 text-[10px] text-ink-3 sm:flex-row sm:justify-between">
+        <span className="max-w-full truncate">{label}</span>
+        <span className="whitespace-nowrap font-medium tabular-nums text-ink-2">
+          {val}
+        </span>
       </div>
       <div className="relative mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
         {/* センターの理想線 */}

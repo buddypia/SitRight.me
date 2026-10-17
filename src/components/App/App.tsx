@@ -108,7 +108,11 @@ function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
           aria-label="SitRight"
         >
           <Logo />
-          <span className="text-[15px] font-semibold tracking-tight">
+          <span
+            className={`text-[15px] font-semibold tracking-tight ${
+              phase === 'monitor' ? 'hidden sm:inline' : ''
+            }`}
+          >
             SitRight
           </span>
           <span className="hidden text-xs text-ink-3 md:inline">
@@ -157,6 +161,7 @@ function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
               <Button
                 size="sm"
                 variant="ghost"
+                className="whitespace-nowrap"
                 onClick={() => controller.setPaused(!live.paused)}
               >
                 {live.paused ? t.resume : t.pause}
@@ -164,6 +169,7 @@ function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
               <Button
                 size="sm"
                 variant="ghost"
+                className="whitespace-nowrap"
                 onClick={() => setPhase('calibrate')}
               >
                 {t.recalibrate}
