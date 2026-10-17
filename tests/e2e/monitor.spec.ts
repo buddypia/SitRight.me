@@ -56,6 +56,8 @@ test('onboarding → calibration → monitoring detects bad posture and recovery
     .locator('xpath=../..')
     .innerText();
   console.log(`[e2e] metrics: ${forward.replace(/\s+/g, ' ')}`);
+  // 計測中の画面は CI の artifact（ui-screenshots）で目視確認する
+  await page.screenshot({ path: 'test-results/screens/alert-desktop.png' });
 
   // 基準姿勢に戻ると回復表示
   await expect(
@@ -91,6 +93,13 @@ test('onboarding → calibration → monitoring detects bad posture and recovery
     )
   );
   expect(outbound).toBe('blocked');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(1000);
+  await page.screenshot({
+    path: 'test-results/screens/monitoring-mobile.png',
+    fullPage: true,
+  });
 });
 
 // 静的書き出しのためハイドレーション後に描画される。SwiftShader では 5 秒前後かかる
