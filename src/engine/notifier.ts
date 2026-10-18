@@ -1,4 +1,5 @@
-import type { SoundTheme } from '@/stores/appStore';
+import { pageTitle } from '@/app/seo';
+import { useAppStore, type SoundTheme } from '@/stores/appStore';
 
 /** 通知チャネル（デスクトップ通知・効果音・タブタイトル） */
 
@@ -188,6 +189,7 @@ const BASE_TITLE = 'SitRight';
 
 export function setTitleState(prefix: string | null): void {
   if (typeof document === 'undefined') return;
-  const next = prefix ? `${prefix} · ${BASE_TITLE}` : BASE_TITLE;
+  const locale = useAppStore.getState().settings.locale;
+  const next = prefix ? `${prefix} · ${BASE_TITLE}` : pageTitle(locale);
   if (document.title !== next) document.title = next;
 }

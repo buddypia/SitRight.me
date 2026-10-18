@@ -40,7 +40,12 @@ for (const file of htmlFiles(out)) {
   for (const [, attrs, body] of html.matchAll(
     /<script\b([^>]*)>([\s\S]*?)<\/script[^>]*>/gi
   )) {
-    if (/\bsrc=/i.test(attrs) || body.length === 0) continue;
+    if (
+      /\bsrc=/i.test(attrs) ||
+      /application\/ld\+json/i.test(attrs) ||
+      body.length === 0
+    )
+      continue;
     hashes.add(createHash('sha256').update(body).digest('base64'));
   }
 }
