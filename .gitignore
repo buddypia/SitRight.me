@@ -11,7 +11,6 @@
 # next.js
 /.next/
 /out/
-/AGENTS.md
 
 # production
 /build
@@ -45,7 +44,9 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 /.playwright-cli/
-/.agents/
+# .agents/ はエージェントのローカル作業場所。skill（.claude/skills への symlink）だけコミットする
+/.agents/*
+!/.agents/skills/
 /tests/e2e/fixtures/*.mjpeg
 /tests/e2e/fixtures/portrait.jpg
 

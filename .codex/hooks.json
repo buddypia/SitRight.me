@@ -52,6 +52,21 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "^(Edit|apply_patch|Write|MultiEdit)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(dirname \"$(git rev-parse --path-format=absolute --git-common-dir || echo /nonexistent/nogit)\")/.cli/_cli-dispatch.mjs\" .cli/hooks/agent-harness-check.mjs codex PostToolUse agent-harness-check",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node \"$(dirname \"$(git rev-parse --path-format=absolute --git-common-dir || echo /nonexistent/nogit)\")/.cli/_cli-dispatch.mjs\" .cli/hooks/scene-backdrop-guard.mjs codex PostToolUse scene-backdrop-guard",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "PermissionRequest": [
