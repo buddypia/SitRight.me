@@ -1,0 +1,35 @@
+{
+  "$comment": "Project-local hooks merged over the managed registry by .cli/lib/hook-registry-overlay.mjs (target-owned, survives re-transplant). An id missing here is treated as disabled by safeHookMainWithProfile. Keep in sync with .claude/settings.json and .codex/hooks.json — see .claude/skills/agent-harness/SKILL.md.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "id": "agent-harness-check",
+            "module": ".cli/hooks/agent-harness-check.mjs",
+            "priority": 40,
+            "profile": "standard",
+            "description": "Re-validate AGENTS.md / CLAUDE.md / skills / hook config right after they are edited (8,000-char always-on cap, skill trigger lines, referenced scripts exist, hooks.json shape) and block with the problems. Rules SSOT: scripts/check-agent-harness.mjs (Harness² tree.validate)",
+            "orchestrated": false,
+            "timeout": 10,
+            "cliTimeout": 10,
+            "cliTargets": ["codex"],
+            "cliMatcherTools": ["Edit", "Write", "MultiEdit"]
+          },
+          {
+            "id": "scene-backdrop-guard",
+            "module": ".cli/hooks/scene-backdrop-guard.mjs",
+            "priority": 41,
+            "profile": "standard",
+            "description": "Block a full-cover (inset-0) element with backdrop-filter written under src/ — over the per-frame WebGL scene it stalls pose estimation without a GPU (#42). Detection SSOT: scripts/lib/scene-backdrop.mjs (shared with ESLint)",
+            "orchestrated": false,
+            "timeout": 5,
+            "cliTargets": ["codex"],
+            "cliMatcherTools": ["Edit", "Write", "MultiEdit"]
+          }
+        ]
+      }
+    ]
+  }
+}

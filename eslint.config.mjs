@@ -1,5 +1,6 @@
 import nextVitals from 'eslint-config-next/core-web-vitals';
 import nextTs from 'eslint-config-next/typescript';
+import { SCENE_BACKDROP_MESSAGE, SCENE_BACKDROP_SELECTORS } from './scripts/lib/scene-backdrop.mjs';
 
 const config = [
   ...nextVitals,
@@ -34,6 +35,16 @@ const config = [
         },
       ],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
+    },
+  },
+  {
+    // 全面を覆う要素の backdrop-filter は 3D シーンの上で推論ループを止める（#42）。検出規則は PostToolUse hook と共有する
+    files: ['src/**'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...SCENE_BACKDROP_SELECTORS.map((selector) => ({ selector, message: SCENE_BACKDROP_MESSAGE })),
+      ],
     },
   },
   {
