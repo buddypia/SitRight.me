@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { syncDocumentSeo } from '@/app/seo';
 import { getController } from '@/engine/controller';
 import {
   recordSessionEnd,
@@ -28,6 +29,7 @@ export function App() {
 
   useEffect(() => {
     document.documentElement.lang = locale;
+    syncDocumentSeo(locale);
     // 言語を切り替えたら URL も /・/ja・/ko に合わせる（共有や検索結果の言語と一致させる）。
     // 再読み込みすると計測が止まるため、履歴の書き換えだけにする
     const { pathname, search, hash } = window.location;

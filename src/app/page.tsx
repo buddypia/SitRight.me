@@ -4,5 +4,5 @@ import { pageMetadata } from './seo';
 export const metadata = pageMetadata('en');
 
 export default function Page() {
-  return <Home />;
+  return <Home locale="en" />;
 }
