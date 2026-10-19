@@ -1,0 +1,10 @@
+{
+  "locale": "en",
+  "rules": [
+    {
+      "tier": "product",
+      "why": "Count all repository changes toward the large-scale threshold (files >= 10 or LOC >= 300) so measureDiffRisk and measureShipScale match",
+      "match": [".*"]
+    }
+  ]
+}

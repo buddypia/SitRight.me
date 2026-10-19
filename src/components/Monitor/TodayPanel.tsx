@@ -161,7 +161,9 @@ export function TodayPanel({
             <span>{t.todayTitle}</span>
             <HelpBadge />
           </p>
-          <ExportMenu history={history} locale={locale} t={t} />
+          <div onMouseEnter={() => setHoveredStat(null)}>
+            <ExportMenu history={history} locale={locale} t={t} />
+          </div>
         </div>
         <div
           className="mt-3 cursor-help"
@@ -240,7 +242,11 @@ export function TodayPanel({
         </dl>
         <div
           role="tooltip"
-          className="pointer-events-none invisible absolute bottom-full left-0 z-30 mb-2 w-64 rounded-xl border border-white/15 bg-[#141820]/95 px-3 py-2 text-[11px] leading-relaxed text-ink-2 opacity-0 shadow-xl transition-opacity duration-150 group-hover/today:visible group-hover/today:opacity-100"
+          className={`pointer-events-none absolute bottom-full left-0 z-30 mb-2 w-64 rounded-xl border border-white/15 bg-[#141820]/95 px-3 py-2 text-[11px] leading-relaxed text-ink-2 shadow-xl transition-opacity duration-150 ${
+            hoveredStat
+              ? 'visible opacity-100'
+              : 'invisible opacity-0'
+          }`}
         >
           <p className="font-semibold text-ink-1">
             {hoveredStat?.title ?? t.goodRatio}
@@ -260,6 +266,7 @@ export function TodayPanel({
           <p
             className="flex cursor-help items-center gap-1.5 text-[13px] font-medium text-ink-2"
             title={t.timelineHint}
+            onMouseEnter={() => setHoveredMinute(null)}
           >
             <span>{t.timelineTitle}</span>
             <HelpBadge />
@@ -333,6 +340,7 @@ export function TodayPanel({
         <p
           className="flex cursor-help items-center gap-1.5 text-[13px] font-medium text-ink-2"
           title={t.breakdownHint}
+          onMouseEnter={() => setHoveredBreakdown(null)}
         >
           <span>{t.breakdownTitle}</span>
           <HelpBadge />
@@ -402,6 +410,7 @@ export function TodayPanel({
         <p
           className="flex cursor-help items-center gap-1.5 text-[13px] font-medium text-ink-2"
           title={t.weekHint}
+          onMouseEnter={() => setHoveredDay(null)}
         >
           <span>{t.weekTitle}</span>
           <HelpBadge />

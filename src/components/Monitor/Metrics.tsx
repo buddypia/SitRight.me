@@ -117,11 +117,7 @@ export function Metrics({
             role="tooltip"
             className="pointer-events-none invisible absolute bottom-full left-5 right-5 z-30 mb-1.5 rounded-xl border border-white/15 bg-[#141820]/95 px-3 py-2 text-[11px] leading-relaxed text-ink-2 opacity-0 shadow-xl transition-opacity duration-150 group-hover/row:visible group-hover/row:opacity-100"
           >
-            <p className="font-semibold text-ink-1">
-              {r.label} ({r.value}
-              {r.unit})
-            </p>
-            <p className="mt-0.5 text-ink-3">{r.hint}</p>
+            <p className="text-ink-2">{r.hint}</p>
           </div>
         </div>
       ))}

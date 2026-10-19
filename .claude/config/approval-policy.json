@@ -1,0 +1,68 @@
+{
+  "ship": {
+    "trust_boundary": {
+      "match": []
+    },
+    "direction": {
+      "match": []
+    },
+    "data_contract": {
+      "reach_tier": "data",
+      "always_one_way": [],
+      "not_contract": [".*"]
+    },
+    "product_large": {
+      "reach_tier": "product",
+      "max_files": 10,
+      "max_loc": 300,
+      "screen_paths": [],
+      "design_system_paths": []
+    },
+    "mass_deletion": {
+      "min_deleted_files": 10,
+      "min_deleted_loc": 300
+    },
+    "mechanical_paths": {
+      "match": [
+        "^docs/",
+        "^README\\.md$",
+        "^AGENTS\\.md$",
+        "^CLAUDE\\.md$"
+      ]
+    },
+    "review_labels": {
+      "T0": [
+        "agent_go",
+        "skill_review_pass",
+        "self_review_pass",
+        "trivial_skip"
+      ],
+      "T1": [
+        "agent_go",
+        "skill_review_pass",
+        "self_review_pass",
+        "trivial_skip"
+      ]
+    }
+  },
+  "escape": {
+    "window_days": 14,
+    "scan_depth": 200,
+    "ignore_paths": [".*"],
+    "guard_paths": [
+      "^tests/",
+      "^\\.cli/hooks/",
+      "^scripts/"
+    ]
+  },
+  "ui": {
+    "one_way_flags": [],
+    "max_existing_screens_changed": 10,
+    "require_automated_critique": false
+  },
+  "stage": {
+    "one_way_stages": [],
+    "one_way_decisions": [],
+    "min_confidence": 0.5
+  }
+}
