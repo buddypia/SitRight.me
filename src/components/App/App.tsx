@@ -3,10 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { syncDocumentSeo } from '@/app/seo';
 import { getController } from '@/engine/controller';
-import {
-  recordSessionEnd,
-  recordStepTransition,
-} from '@/engine/telemetry';
+import { recordSessionEnd, recordStepTransition } from '@/engine/telemetry';
 import { useT } from '@/hooks/useT';
 import { isLocalePath, localePath } from '@/i18n/messages';
 import { useAppStore } from '@/stores/appStore';
@@ -35,7 +32,11 @@ export function App() {
     const { pathname, search, hash } = window.location;
     const target = localePath(locale);
     if (isLocalePath(pathname) && pathname !== target) {
-      window.history.replaceState(window.history.state, '', target + search + hash);
+      window.history.replaceState(
+        window.history.state,
+        '',
+        target + search + hash
+      );
     }
   }, [locale]);
 
@@ -134,39 +135,47 @@ function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
           {phase === 'monitor' && (
             <>
               <span
-                className="mr-1 hidden items-center gap-2 rounded-full border border-line px-3 py-1 text-xs md:flex"
+                className="mr-1 hidden h-7 items-center gap-2 rounded-full border border-line px-3 text-xs leading-none whitespace-nowrap md:flex"
                 style={{ color: STATUS_COLOR[status] }}
               >
-                {status === 'loading' ? (
-                  <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border border-current border-t-transparent" />
-                ) : status === 'good' ? (
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    className="shrink-0 text-good"
-                    aria-hidden
-                  >
-                    <path
-                      d="M8 1.5v13"
-                      stroke="currentColor"
-                      strokeWidth="1.2"
-                      strokeDasharray="1.5 2"
-                      strokeLinecap="round"
-                      opacity="0.45"
+                <span
+                  className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center"
+                  aria-hidden
+                >
+                  {status === 'loading' ? (
+                    <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border border-current border-t-transparent" />
+                  ) : status === 'good' ? (
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      className="shrink-0 text-good"
+                    >
+                      <path
+                        d="M8 1.5v13"
+                        stroke="currentColor"
+                        strokeWidth="1.2"
+                        strokeDasharray="1.5 2"
+                        strokeLinecap="round"
+                        opacity="0.45"
+                      />
+                      <circle cx="8" cy="3.5" r="2" fill="currentColor" />
+                      <circle cx="8" cy="8" r="1.5" fill="currentColor" />
+                      <circle cx="8" cy="12.5" r="1.8" fill="currentColor" />
+                    </svg>
+                  ) : (
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ background: STATUS_COLOR[status] }}
                     />
-                    <circle cx="8" cy="3.5" r="2" fill="currentColor" />
-                    <circle cx="8" cy="8" r="1.5" fill="currentColor" />
-                    <circle cx="8" cy="12.5" r="1.8" fill="currentColor" />
-                  </svg>
-                ) : (
-                  <span
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{ background: STATUS_COLOR[status] }}
-                  />
-                )}
-                {status === 'good' ? t.alignmentOptimal : statusLabel(status, t)}
+                  )}
+                </span>
+                <span>
+                  {status === 'good'
+                    ? t.alignmentOptimal
+                    : statusLabel(status, t)}
+                </span>
               </span>
               <Button
                 size="sm"
@@ -201,8 +210,6 @@ function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
     </header>
   );
 }
-
-
 
 function GearIcon() {
   return (

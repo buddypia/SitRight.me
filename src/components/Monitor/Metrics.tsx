@@ -12,7 +12,7 @@ interface Row {
   value: string;
   unit: string;
   severity: number;
-  hint?: string;
+  hint: string;
 }
 
 export function Metrics({
@@ -50,6 +50,7 @@ export function Metrics({
       value: a ? signed(a.deviation.headForwardCm) : '–',
       unit: t.unitCm,
       severity: a?.severity.forward ?? 0,
+      hint: t.metricForwardHint,
     },
     {
       key: 'down',
@@ -57,6 +58,7 @@ export function Metrics({
       value: a ? signed(a.deviation.headDownDeg, 0) : '–',
       unit: t.unitDeg,
       severity: a?.severity.down ?? 0,
+      hint: t.metricDownHint,
     },
     {
       key: 'slump',
@@ -64,12 +66,14 @@ export function Metrics({
       value: a ? signed(Math.max(-99, a.deviation.compression * 100), 0) : '–',
       unit: '%',
       severity: a?.severity.slump ?? 0,
+      hint: t.metricSlumpHint,
     },
     {
       key: 'lean',
       label: t.metricLean,
       ...leanValue(),
       severity: a?.severity.lean ?? 0,
+      hint: t.metricLeanHint,
     },
     {
       key: 'load',
@@ -88,11 +92,13 @@ export function Metrics({
       {rows.map((r) => (
         <div
           key={r.key}
-          className="flex items-center gap-4 px-5 py-3.5"
+          className="group/row relative flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-white/[0.02]"
           title={r.hint}
         >
           <div className="min-w-0 flex-1">
-            <p className="text-[13px] text-ink-2">{r.label}</p>
+            <p className="truncate text-[13px] leading-5 text-ink-2">
+              {r.label}
+            </p>
             <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/6">
               <div
                 className="h-full rounded-full transition-all duration-500"
@@ -103,10 +109,16 @@ export function Metrics({
               />
             </div>
           </div>
-          <p className="w-[84px] text-right tabular-nums">
+          <p className="w-[88px] shrink-0 whitespace-nowrap text-right tabular-nums">
             <span className="text-xl font-semibold text-ink-1">{r.value}</span>
             <span className="ml-1 text-xs text-ink-3">{r.unit}</span>
           </p>
+          <div
+            role="tooltip"
+            className="pointer-events-none invisible absolute bottom-full left-5 right-5 z-30 mb-1.5 rounded-xl border border-white/15 bg-[#141820]/95 px-3 py-2 text-[11px] leading-relaxed text-ink-2 opacity-0 shadow-xl transition-opacity duration-150 group-hover/row:visible group-hover/row:opacity-100"
+          >
+            <p className="text-ink-2">{r.hint}</p>
+          </div>
         </div>
       ))}
     </section>

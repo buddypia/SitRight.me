@@ -22,6 +22,7 @@
 
 - GitHub Flow。`main` が本番。作業は worktree で行う（`make wt.new BR=feature/<ISSUE#>-<description>`）。
 - `main` への PR で CI（`.github/workflows/ci.yml`）が lint・型・unit test・build・e2e を回し、`main` へのマージで本番へデプロイされる。
+- コード生成と品質検証（`make q.check`・レビュー記録）が完了したら `.claude/config/approval-policy.json` で危険度を判定し、大規模変更（T2: 10 ファイル以上または 300 LOC 以上）のときだけ人間のレビューを求め、それ以外（T0 / T1）は `node .claude/scripts/create-pr/ops.mjs ship-worktree` で自動マージと worktree クリーンアップまで完了させる。
 - e2e が一度でも落ちた PR は、再実行で通っても原因を特定するまでマージしない。CI ログの `[e2e] calibrated at` / `alert at` / `avatar ready at` と各テストの所要時間を main の直近の成功 run と比べ、遅くなっていれば不安定なテストではなく性能の退行として扱う。
 
 ## 作業の前に読むもの

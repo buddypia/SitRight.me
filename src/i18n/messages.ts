@@ -185,11 +185,21 @@ const ja = {
   statusAway: '離席中',
   statusChecking: '計測できません',
   scoreLabel: '姿勢スコア',
+  scoreHint:
+    '現在の姿勢スコア（0〜100）。100に近いほど基準姿勢に近く、70以上が「良い姿勢」です',
   alertIn: '{s}秒続くと通知',
   metricForward: '頭の前方突出',
+  metricForwardHint:
+    '基準姿勢から頭が前に出ている距離（cm）です。前に出るほどバーが伸び、首への負担が増えます',
   metricDown: 'うつむき',
+  metricDownHint:
+    '基準姿勢から頭が下を向いている角度（°）です。うつむきが大きいほどバーが伸びます',
   metricSlump: '背中の丸まり',
+  metricSlumpHint:
+    '基準姿勢からの背中の丸まり・上体の沈み込み（%）です。丸まるほどバーが伸びます',
   metricLean: '左右の傾き',
+  metricLeanHint:
+    '基準姿勢からの体や頭の左右への傾き角度（°）です。中央（0°）がまっすぐな状態です',
   sideLeft: '左',
   sideRight: '右',
   leanLevel: 'まっすぐ',
@@ -199,8 +209,12 @@ const ja = {
   unitDeg: '°',
   unitKg: 'kg',
   ideal: '理想の姿勢',
+  idealHint: '記録した基準姿勢（緑のシルエット）です',
   you: '現在の姿勢',
+  youHint: 'カメラで計測中の現在の姿勢（3Dモデル）です',
   plumbLine: '耳と肩を結ぶ線',
+  plumbLineHint:
+    '肩の真上を通る基準の垂線です。耳の点がこの線の近くにあると首への負担が少なくなります',
   sideView: '横から見たあなたの姿勢',
   sideViewHint: 'ドラッグで回転',
   resetView: '視点をリセット',
@@ -211,6 +225,8 @@ const ja = {
   alignmentBalanced: '基準の姿勢に近い状態です',
   alignmentLoadOptimal: '首への負担 約{kg}kg',
   alignmentAllGood: 'バランス良好',
+  balanceHudHint:
+    '中央の線が基準姿勢（0）です。緑の点が中央に近いほど基準の姿勢に保たれています',
   neckLoad: '首への負担',
   neckLoadZero: '負担なし',
   neckLoadRatio: '頭の重さの {ratio} 倍',
@@ -239,6 +255,7 @@ const ja = {
   showCamera: 'カメラ映像を表示',
   cameraHidden: 'カメラ映像は非表示です（モニタリングは継続中）',
   sitting: '連続着席',
+  sittingHint: '現在続けて座っている時間です。離席すると0分にリセットされます',
   minutes: '{n}分',
   durationHoursMinutes: '{h}時間{m}分',
   durationMinutes: '{m}分',
@@ -248,16 +265,36 @@ const ja = {
   // today
   todayTitle: '今日の記録',
   goodRatio: '良い姿勢の割合',
+  goodRatioHint:
+    '今日の計測時間のうち、良い姿勢（スコア70以上）だった時間の割合です',
   monitored: '計測時間',
+  monitoredHint:
+    '今日カメラで姿勢を計測した合計時間です（一時停止・離席中は含みません）',
   alertsCount: '通知',
+  alertsCountHint: '姿勢の崩れが続いて通知が出た回数です',
   resetsCount: '姿勢改善',
+  resetsCountHint:
+    '通知のあとに良い姿勢へ戻せた回数です（括弧内は通知に対する復帰率）',
   recoveryRate: '復帰率 {n}%',
   times: '{n}回',
   timelineTitle: '直近60分',
+  timelineAgo60: '60分前',
+  timelineAgo30: '30分前',
   timelineNow: '現在',
+  timelineHint:
+    '直近60分の1分ごとの平均姿勢スコア（0〜100）です。棒が高いほど良い姿勢で、緑は70以上、黄は40〜69、赤は39以下、グレーは未計測の分です',
+  timelineBarMeasured: '{time} — 姿勢スコア {score} / 100（{status}）',
+  timelineBarEmpty: '{time} — 計測なし（開始前・一時停止・離席）',
   breakdownTitle: '多かった崩れ方',
+  breakdownHint:
+    '今日、姿勢が崩れていた時間の内訳（長かった順・最大3つ）です。項目にカーソルを当てると詳しい説明と直し方を表示します',
+  breakdownBarDetail: '{name}: {duration}（崩れた時間の {pct}%）',
   noBreakdown: 'まだ崩れた記録はありません',
   weekTitle: '過去7日',
+  weekHint:
+    '過去7日間の日ごとの「良い姿勢の割合（0〜100%）」です。棒が高い日ほど良い姿勢を保てており、白枠の棒が今日です',
+  weekBarMeasured: '{date} — 良い姿勢 {pct}%（計測 {duration}）',
+  weekBarEmpty: '{date} — データなし（計測記録なし）',
   noData: 'データなし',
   insightTitle: '改善のヒント',
   insightGood:
@@ -442,7 +479,8 @@ const en: Messages = {
   privacyNeverTitle: 'Stays on your device',
   privacyNeverItem1: 'Camera video feeds and recordings',
   privacyNeverItem2: '3D facial and skeletal coordinate data',
-  privacyNeverItem3: 'Personal information (such as name, email, or IP address)',
+  privacyNeverItem3:
+    'Personal information (such as name, email, or IP address)',
   privacyCameraTitle: 'Camera and pose estimation',
   privacyCameraBody:
     'Camera video and pose estimation are processed locally in your browser. Video is not uploaded, recorded, or saved to a server, and no facial recognition is performed.',
@@ -454,8 +492,7 @@ const en: Messages = {
     'To improve stability and usability, SitRight may send non-identifiable diagnostic data. No third-party advertising or tracking tools are used.',
   privacyTelemetryItem1:
     'What is sent: session duration, setup progress, performance and error metrics, and a random anonymous ID (IP addresses are not stored).',
-  privacyTelemetryItem2:
-    'Where it goes: SitRight’s own servers on Cloudflare.',
+  privacyTelemetryItem2: 'Where it goes: SitRight’s own servers on Cloudflare.',
   privacyTelemetryItem3:
     'Why: to find errors, check performance, and improve the app.',
   privacyControlTitle: 'Your controls',
@@ -522,11 +559,21 @@ const en: Messages = {
   statusAway: 'Away',
   statusChecking: 'Cannot measure',
   scoreLabel: 'Posture score',
+  scoreHint:
+    'Current posture score (0–100). Closer to 100 means closer to your baseline; 70 or above is good posture',
   alertIn: 'Alert after {s}s',
   metricForward: 'Head forward',
+  metricForwardHint:
+    'How far forward your head is from your baseline (cm). The bar fills as your head moves forward',
   metricDown: 'Looking down',
+  metricDownHint:
+    'How many degrees your head tilts down from your baseline (°). The bar fills as you look further down',
   metricSlump: 'Back rounding',
+  metricSlumpHint:
+    'How much your upper body sinks or rounds compared with your baseline (%). The bar fills as you slouch',
   metricLean: 'Side tilt',
+  metricLeanHint:
+    'How many degrees your body or head tilts left or right from your baseline (°). 0° is level',
   sideLeft: 'L',
   sideRight: 'R',
   leanLevel: 'Level',
@@ -536,8 +583,12 @@ const en: Messages = {
   unitDeg: '°',
   unitKg: 'kg',
   ideal: 'Ideal posture',
+  idealHint: 'Your recorded baseline posture (green silhouette)',
   you: 'Current posture',
+  youHint: 'Your live posture measured by the camera (3D model)',
   plumbLine: 'Ear–shoulder line',
+  plumbLineHint:
+    'Vertical reference line above your shoulder. Keeping your ear near this line reduces load on your neck',
   sideView: 'Your posture from the side',
   sideViewHint: 'Drag to rotate',
   resetView: 'Reset view',
@@ -548,6 +599,8 @@ const en: Messages = {
   alignmentBalanced: 'Close to your baseline',
   alignmentLoadOptimal: 'Neck load ~{kg}kg',
   alignmentAllGood: 'Well balanced',
+  balanceHudHint:
+    'The center line is your baseline (0). The closer the green dot is to the center, the closer you are to your baseline',
   neckLoad: 'Load on neck',
   neckLoadZero: 'No extra load',
   neckLoadRatio: '{ratio}× head weight',
@@ -576,6 +629,8 @@ const en: Messages = {
   showCamera: 'Show camera',
   cameraHidden: 'Camera preview hidden (still monitoring)',
   sitting: 'Sitting',
+  sittingHint:
+    'How long you have been sitting continuously. Resets to 0 when you step away',
   minutes: '{n} min',
   durationHoursMinutes: '{h}h {m}m',
   durationMinutes: '{m}m',
@@ -584,16 +639,37 @@ const en: Messages = {
 
   todayTitle: 'Today',
   goodRatio: 'Good posture',
+  goodRatioHint:
+    'Share of today’s monitored time spent in good posture (score 70 or above)',
   monitored: 'Monitored',
+  monitoredHint:
+    'Total time your posture was measured today (excludes paused and away time)',
   alertsCount: 'Alerts',
+  alertsCountHint:
+    'Number of times an alert was shown after posture stayed off',
   resetsCount: 'Recoveries',
+  resetsCountHint:
+    'Times you returned to good posture after an alert (percentage shows recovery rate)',
   recoveryRate: '{n}% recovered',
   times: '{n}',
   timelineTitle: 'Last 60 minutes',
+  timelineAgo60: '60m ago',
+  timelineAgo30: '30m ago',
   timelineNow: 'now',
+  timelineHint:
+    'Minute-by-minute average posture score (0–100) over the last 60 minutes. Taller bars mean better posture: green is 70+, yellow 40–69, red under 40, and gray is unmeasured',
+  timelineBarMeasured: '{time} — Posture score {score} / 100 ({status})',
+  timelineBarEmpty: '{time} — Not measured (before start, paused, or away)',
   breakdownTitle: 'Most common slips',
+  breakdownHint:
+    'Top posture slips recorded today, ordered by duration (up to 3). Hover an item to see details and how to fix it',
+  breakdownBarDetail: '{name}: {duration} ({pct}% of slip time)',
   noBreakdown: 'No posture slips recorded yet',
   weekTitle: 'Last 7 days',
+  weekHint:
+    'Daily good posture ratio (0–100%) over the last 7 days. Taller bars mean more time in good posture; the outlined bar is today',
+  weekBarMeasured: '{date} — {pct}% good posture ({duration} monitored)',
+  weekBarEmpty: '{date} — No data (not monitored)',
   noData: 'No data',
   insightTitle: 'Posture tip',
   insightGood:
@@ -797,8 +873,7 @@ const ko: Messages = {
   featureMeasureBody:
     '머리가 몇 cm 앞으로 나왔는지, 몇 도 숙였는지를 수치로 표시해요',
   featureSide: '옆에서 본 자세를 3D로',
-  featureSideBody:
-    '바른 자세와 지금 내 머리·등 위치의 차이를 한눈에 비교해요',
+  featureSideBody: '바른 자세와 지금 내 머리·등 위치의 차이를 한눈에 비교해요',
   featureQuiet: '필요할 때만 알림',
   featureQuietBody:
     '나쁜 자세가 계속될 때만 알려요. 잠깐 숙인 정도로는 울리지 않아요',
@@ -858,11 +933,21 @@ const ko: Messages = {
   statusAway: '자리 비움',
   statusChecking: '측정할 수 없어요',
   scoreLabel: '자세 점수',
+  scoreHint:
+    '현재 자세 점수 (0~100). 100에 가까울수록 기준 자세에 가깝고, 70점 이상이 좋은 자세예요',
   alertIn: '{s}초 동안 계속되면 알림',
   metricForward: '고개 앞으로 나옴',
+  metricForwardHint:
+    '기준 자세에서 머리가 앞으로 나온 거리(cm)예요. 앞으로 나올수록 막대가 길어지고 목 부담이 커져요',
   metricDown: '고개 숙임',
+  metricDownHint:
+    '기준 자세에서 고개를 숙인 각도(°)예요. 많이 숙일수록 막대가 길어져요',
   metricSlump: '등 굽음',
+  metricSlumpHint:
+    '기준 자세보다 등이 굽거나 상체가 가라앉은 정도(%)예요. 많이 굽을수록 막대가 길어져요',
   metricLean: '좌우 기울기',
+  metricLeanHint:
+    '기준 자세에서 몸이나 머리가 좌우로 기운 각도(°)예요. 0°가 수평 상태예요',
   sideLeft: '좌',
   sideRight: '우',
   leanLevel: '수평',
@@ -873,8 +958,12 @@ const ko: Messages = {
   unitDeg: '°',
   unitKg: 'kg',
   ideal: '바른 자세',
+  idealHint: '기록해 둔 기준 자세(초록색 실루엣)예요',
   you: '현재 자세',
+  youHint: '카메라로 측정 중인 현재 자세(3D 모델)예요',
   plumbLine: '귀와 어깨를 잇는 선',
+  plumbLineHint:
+    '어깨 바로 위를 지나는 기준 수직선이에요. 귀 위치가 이 선 가까이에 있으면 목 부담이 줄어들어요',
   sideView: '옆에서 본 내 자세',
   sideViewHint: '드래그로 회전',
   resetView: '시점 초기화',
@@ -885,6 +974,8 @@ const ko: Messages = {
   alignmentBalanced: '기준 자세에 가까워요',
   alignmentLoadOptimal: '목 부담 약 {kg}kg',
   alignmentAllGood: '자세 균형 양호',
+  balanceHudHint:
+    '가운데 선이 기준 자세(0)예요. 초록색 점이 가운데에 가까울수록 기준 자세에 잘 맞춰져 있어요',
   neckLoad: '목 부담',
   neckLoadZero: '부담 없음',
   neckLoadRatio: '머리 무게의 {ratio}배',
@@ -913,6 +1004,8 @@ const ko: Messages = {
   showCamera: '카메라 영상 표시',
   cameraHidden: '카메라 영상은 숨겨져 있어요 (모니터링은 계속 중)',
   sitting: '연속 착석',
+  sittingHint:
+    '지금 연속으로 앉아 있는 시간이에요. 자리를 비우면 0분으로 초기화돼요',
   minutes: '{n}분',
   durationHoursMinutes: '{h}시간 {m}분',
   durationMinutes: '{m}분',
@@ -922,16 +1015,36 @@ const ko: Messages = {
   // today
   todayTitle: '오늘의 기록',
   goodRatio: '좋은 자세 비율',
+  goodRatioHint:
+    '오늘 측정한 시간 가운데 좋은 자세(점수 70점 이상)를 유지한 시간의 비율이에요',
   monitored: '측정 시간',
+  monitoredHint:
+    '오늘 카메라로 자세를 측정한 총 시간이에요 (일시 정지·자리 비움 제외)',
   alertsCount: '알림',
+  alertsCountHint: '자세 흐트러짐이 계속되어 알림이 울린 횟수예요',
   resetsCount: '자세 복귀',
+  resetsCountHint:
+    '알림이 울린 뒤 좋은 자세로 돌아온 횟수예요 (괄호 안은 알림 대비 복귀율)',
   recoveryRate: '복귀율 {n}%',
   times: '{n}회',
   timelineTitle: '최근 60분',
+  timelineAgo60: '60분 전',
+  timelineAgo30: '30분 전',
   timelineNow: '지금',
+  timelineHint:
+    '최근 60분 동안의 1분 단위 평균 자세 점수(0~100)예요. 막대가 높을수록 좋은 자세이며 초록은 70점 이상, 노랑은 40~69점, 빨강은 39점 이하, 회색은 측정하지 않은 시간이에요',
+  timelineBarMeasured: '{time} — 자세 점수 {score} / 100 ({status})',
+  timelineBarEmpty: '{time} — 측정 기록 없음 (시작 전·일시 정지·자리 비움)',
   breakdownTitle: '자주 무너진 자세',
+  breakdownHint:
+    '오늘 자세가 흐트러졌던 시간의 내역(길었던 순, 최대 3개)이에요. 항목에 마우스를 올리면 자세한 설명과 교정 방법을 볼 수 있어요',
+  breakdownBarDetail: '{name}: {duration} (흐트러진 시간의 {pct}%)',
   noBreakdown: '아직 무너진 기록이 없어요',
   weekTitle: '지난 7일',
+  weekHint:
+    '지난 7일 동안의 일별 좋은 자세 비율(0~100%)이에요. 막대가 높을수록 좋은 자세를 오래 유지한 날이고, 흰색 테두리가 오늘이에요',
+  weekBarMeasured: '{date} — 좋은 자세 {pct}% (측정 {duration})',
+  weekBarEmpty: '{date} — 데이터 없음 (측정 기록 없음)',
   noData: '데이터 없음',
   insightTitle: '개선 팁',
   insightGood:
@@ -1025,8 +1138,7 @@ const ko: Messages = {
   exportSummaryCsv: '일별 요약 (CSV)',
   exportTimelineCsv: '상세 타임라인 (CSV)',
   exportJson: '전체 데이터 (JSON)',
-  exportHint:
-    '브라우저에 저장된 자세 기록을 CSV 또는 JSON 파일로 내려받아요.',
+  exportHint: '브라우저에 저장된 자세 기록을 CSV 또는 JSON 파일로 내려받아요.',
   privacySectionTitle: '데이터 및 개인정보',
   privacyNoticeButton: '개인정보 처리 및 데이터 수집 안내',
   licensesNoticeButton: '오픈소스 라이선스',
@@ -1043,8 +1155,7 @@ const ko: Messages = {
   licenseCategory_framework: '프레임워크 및 상태 관리',
   licenseCategory_assets: '3D 모델 및 에셋',
   telemetryLabel: '익명 진단 데이터 전송',
-  telemetryHint:
-    '오류 해결과 품질 개선을 위한 익명 통계만 전송돼요',
+  telemetryHint: '오류 해결과 품질 개선을 위한 익명 통계만 전송돼요',
   close: '닫기',
   testNotification: '알림 테스트',
 
@@ -1066,8 +1177,7 @@ const ko: Messages = {
     neck_hunch: {
       name: '거북목',
       short: '머리가 앞쪽 아래로 처져 있어요',
-      detail:
-        '등 윗부분부터 목이 앞으로 굽어 머리가 아래로 처져 있어요.',
+      detail: '등 윗부분부터 목이 앞으로 굽어 머리가 아래로 처져 있어요.',
       fix: '가슴을 살짝 펴고, 정수리를 천장 쪽으로 끌어올리듯 세워 주세요.',
     },
     slouch: {
