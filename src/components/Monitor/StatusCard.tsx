@@ -7,13 +7,7 @@ import type { LiveState } from '@/stores/appStore';
 import { Logo } from '../ui';
 
 export type DisplayStatus =
-  | 'good'
-  | 'fair'
-  | 'poor'
-  | 'paused'
-  | 'away'
-  | 'checking'
-  | 'loading';
+  'good' | 'fair' | 'poor' | 'paused' | 'away' | 'checking' | 'loading';
 
 export function displayStatus(live: LiveState): DisplayStatus {
   if (live.paused) return 'paused';
@@ -85,24 +79,34 @@ export function StatusCard({
       ? t.modelLoadingVision
       : statusLabel(status, t);
 
+  const subtitleText = pattern
+    ? pattern.short
+    : isGood
+      ? t.alignmentBalanced
+      : '\u00A0';
+
   return (
-    <section className="panel relative overflow-hidden p-5">
+    <section className="panel relative p-5">
       <div
-        className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full opacity-[0.16] blur-3xl transition-colors duration-700"
-        style={{ background: color }}
+        className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]"
         aria-hidden
-      />
+      >
+        <div
+          className="absolute -right-16 -top-16 h-48 w-48 rounded-full opacity-[0.16] blur-3xl transition-colors duration-700"
+          style={{ background: color }}
+        />
+      </div>
       <div className="relative flex items-start justify-between gap-4">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p
-            className="flex items-center gap-2 text-[13px] font-medium"
+            className="flex h-5 items-center gap-2 text-[13px] leading-5 font-medium"
             style={{ color }}
             aria-live="polite"
           >
             <StatusIcon status={status} />
-            <span>{badgeLabel}</span>
+            <span className="truncate">{badgeLabel}</span>
           </p>
-          <h2 className="mt-2 text-xl font-semibold leading-snug tracking-tight text-ink-1">
+          <h2 className="mt-2 truncate text-xl font-semibold leading-7 tracking-tight text-ink-1">
             {pattern
               ? pattern.name
               : isGood
@@ -111,134 +115,124 @@ export function StatusCard({
                   ? t.modelLoadingVision
                   : statusLabel(status, t)}
           </h2>
-          {pattern && (
-            <p className="mt-1 text-sm text-ink-2">{pattern.short}</p>
-          )}
-          {isGood && (
-            <p className="mt-1 text-xs text-ink-3">
-              {t.alignmentBalanced}
-            </p>
-          )}
+          <p
+            className={`mt-1 truncate text-[13px] leading-5 ${
+              pattern ? 'text-ink-2' : 'text-ink-3'
+            }`}
+          >
+            {subtitleText}
+          </p>
         </div>
         <ScoreRing
           score={measuring && a ? a.score : null}
           color={color}
           label={t.scoreLabel}
+          hint={t.scoreHint}
           loading={isLoading}
         />
       </div>
 
-      {/* 良い姿勢の時はリアルタイム・アライメントHUDを表示 */}
-      {isGood && a && <SpineAlignmentHUD assessment={a} t={t} />}
-
-      {/* 崩れている時・未測定時の詳細テキスト */}
-      {!isGood && detail && (
-        <p className="relative mt-4 text-[13px] leading-relaxed text-ink-2">
-          {detail}
-        </p>
-      )}
-
-      {/* 姿勢崩れ時の警告カウントダウンバー */}
-      {isPostureCollapsed(status) && (
-        <div className="relative mt-4">
-          <div className="h-1 overflow-hidden rounded-full bg-white/6">
-            <div
-              className="h-full rounded-full transition-[width] duration-300 ease-linear"
-              style={{
-                width: `${Math.round(live.alertProgress * 100)}%`,
-                background: color,
-              }}
-            />
+      {/* 下部スロット：高さを固定し、良い姿勢と崩れた姿勢の切り替えでレイアウトが揺れないようにする */}
+      <div className="relative mt-4 h-[108px] sm:h-[92px]">
+        {isGood && a ? (
+          <SpineAlignmentHUD assessment={a} t={t} />
+        ) : (
+          <div className="flex h-full flex-col justify-between">
+            <p className="line-clamp-2 text-[13px] leading-relaxed text-ink-2">
+              {detail || '\u00A0'}
+            </p>
+            {isPostureCollapsed(status) && (
+              <div>
+                <div className="h-1 overflow-hidden rounded-full bg-white/6">
+                  <div
+                    className="h-full rounded-full transition-[width] duration-300 ease-linear"
+                    style={{
+                      width: `${Math.round(live.alertProgress * 100)}%`,
+                      background: color,
+                    }}
+                  />
+                </div>
+                <p className="mt-1.5 truncate text-[11px] leading-4 text-ink-3">
+                  {format(t.alertIn, { s: alertDelaySec })}
+                </p>
+              </div>
+            )}
           </div>
-          <p className="mt-1.5 text-[11px] text-ink-3">
-            {format(t.alertIn, { s: alertDelaySec })}
-          </p>
-        </div>
-      )}
+        )}
+      </div>
     </section>
   );
 }
 
 /**
  * 身体の垂直アライメント状態を象徴するステータスアイコン
- * AI Slop な単なる丸ポチ（●）ではなく、脊椎・垂直軸の整列状態をミニマルに表現
+ * 状態が変わっても 16x16 の外枠を保ち、テキスト位置のズレを防ぐ
  */
-function StatusIcon({ status }: { status: DisplayStatus }) {
-  if (status === 'loading') {
-    return (
-      <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-    );
-  }
-
-  if (status === 'good') {
-    return (
-      <svg
-        width="15"
-        height="15"
-        viewBox="0 0 16 16"
-        fill="none"
-        className="shrink-0 text-good"
-        aria-hidden
-      >
-        {/* 垂直基準線 */}
-        <path
-          d="M8 1.5v13"
-          stroke="currentColor"
-          strokeWidth="1.2"
-          strokeDasharray="1.5 2"
-          strokeLinecap="round"
-          opacity="0.45"
-        />
-        {/* 3つの整列ノード（頭・首・体幹） */}
-        <circle cx="8" cy="3.5" r="2" fill="currentColor" />
-        <circle cx="8" cy="8" r="1.5" fill="currentColor" />
-        <circle cx="8" cy="12.5" r="1.8" fill="currentColor" />
-      </svg>
-    );
-  }
-
-  if (status === 'fair' || status === 'poor') {
-    return (
-      <svg
-        width="15"
-        height="15"
-        viewBox="0 0 16 16"
-        fill="none"
-        className="shrink-0 text-current"
-        aria-hidden
-      >
-        <path
-          d="M8 1.5v13"
-          stroke="currentColor"
-          strokeWidth="1.2"
-          strokeDasharray="1.5 2"
-          strokeLinecap="round"
-          opacity="0.3"
-        />
-        <path
-          d="M10.5 3.5 C9 6.5 6.5 9 6.5 12.5"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
-        <circle cx="10.5" cy="3.5" r="1.8" fill="currentColor" />
-        <circle cx="6.5" cy="12.5" r="1.8" fill="currentColor" />
-      </svg>
-    );
-  }
-
-  // checking / paused / away
+export function StatusIcon({ status }: { status: DisplayStatus }) {
   return (
-    <span className="relative flex h-2.5 w-2.5">
-      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-current opacity-70" />
+    <span
+      className="inline-flex h-4 w-4 shrink-0 items-center justify-center"
+      aria-hidden
+    >
+      {status === 'loading' ? (
+        <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+      ) : status === 'good' ? (
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 16 16"
+          fill="none"
+          className="shrink-0 text-good"
+        >
+          {/* 垂直基準線 */}
+          <path
+            d="M8 1.5v13"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeDasharray="1.5 2"
+            strokeLinecap="round"
+            opacity="0.45"
+          />
+          {/* 3つの整列ノード（頭・首・体幹） */}
+          <circle cx="8" cy="3.5" r="2" fill="currentColor" />
+          <circle cx="8" cy="8" r="1.5" fill="currentColor" />
+          <circle cx="8" cy="12.5" r="1.8" fill="currentColor" />
+        </svg>
+      ) : status === 'fair' || status === 'poor' ? (
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 16 16"
+          fill="none"
+          className="shrink-0 text-current"
+        >
+          <path
+            d="M8 1.5v13"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeDasharray="1.5 2"
+            strokeLinecap="round"
+            opacity="0.3"
+          />
+          <path
+            d="M10.5 3.5 C9 6.5 6.5 9 6.5 12.5"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
+          <circle cx="10.5" cy="3.5" r="1.8" fill="currentColor" />
+          <circle cx="6.5" cy="12.5" r="1.8" fill="currentColor" />
+        </svg>
+      ) : (
+        <span className="inline-flex h-2.5 w-2.5 rounded-full bg-current opacity-70" />
+      )}
     </span>
   );
 }
 
 /**
  * 良い姿勢の時に表示する「Spine Alignment & Balance Visualizer」
- * 3つの主要アライメント軸（前後・うつむき・左右傾き）が中央の理想垂線（Plumb Line）に
- * どれだけ美しく整列しているかをリアルタイムに可視化
+ * 3つの主要軸（前後・うつむき・左右傾き）が中央の基準（0）にどれだけ近いかを可視化
  */
 function SpineAlignmentHUD({
   assessment,
@@ -248,24 +242,23 @@ function SpineAlignmentHUD({
   t: Messages;
 }) {
   const { deviation, neckLoadKg } = assessment;
-  // 各軸のズレ量（理想は 0）
-  // 1. 前後 (headForwardCm): 許容範囲 ±1.5cm 以内ならジャスト
-  // 2. 角度 (headDownDeg): 許容範囲 ±4° 以内ならジャスト
-  // 3. 傾き (leanDeg): 許容範囲 ±3° 以内ならジャスト
   const fwd = Math.max(-1, Math.min(1, deviation.headForwardCm / 3));
   const pitch = Math.max(-1, Math.min(1, deviation.headDownDeg / 8));
   const lean = Math.max(-1, Math.min(1, deviation.leanDeg / 6));
 
   return (
-    <div className="mt-4 rounded-xl border border-good/20 bg-good/[0.04] p-3">
-      <div className="flex items-center justify-between gap-2 text-xs">
+    <div
+      className="group/hud relative flex h-full flex-col justify-between rounded-xl border border-good/20 bg-good/[0.04] p-3"
+      title={t.balanceHudHint}
+    >
+      <div className="flex h-4 items-center justify-between gap-2 text-xs">
         <span className="flex items-center gap-1.5 font-medium text-good">
           <svg
             width="12"
             height="12"
             viewBox="0 0 12 12"
             fill="none"
-            className="text-good"
+            className="shrink-0 text-good"
             aria-hidden
           >
             <path
@@ -276,24 +269,26 @@ function SpineAlignmentHUD({
               strokeLinejoin="round"
             />
           </svg>
-          {t.alignmentAllGood}
+          <span className="truncate">{t.alignmentAllGood}</span>
         </span>
-        <span className="text-[11px] tabular-nums text-ink-2">
+        <span className="whitespace-nowrap text-[11px] tabular-nums text-ink-2">
           {format(t.alignmentLoadOptimal, { kg: neckLoadKg.toFixed(1) })}
         </span>
       </div>
 
-      {/* 3軸アライメントビジュアライザー */}
-      <div className="mt-2.5 grid grid-cols-3 gap-2">
+      {/* 3軸バランスビジュアライザー */}
+      <div className="grid grid-cols-3 gap-2">
         <AxisNode
           label={t.metricForward}
           val={`${deviation.headForwardCm > 0 ? '+' : ''}${deviation.headForwardCm.toFixed(1)}${t.unitCm}`}
           offset={fwd}
+          hint={`${t.metricForwardHint} (${t.balanceHudHint})`}
         />
         <AxisNode
           label={t.metricDown}
           val={`${deviation.headDownDeg > 0 ? '+' : ''}${Math.round(deviation.headDownDeg)}${t.unitDeg}`}
           offset={pitch}
+          hint={`${t.metricDownHint} (${t.balanceHudHint})`}
         />
         <AxisNode
           label={t.metricLean}
@@ -303,7 +298,15 @@ function SpineAlignmentHUD({
               : `${Math.abs(Math.round(deviation.leanDeg))}${t.unitDeg}`
           }
           offset={lean}
+          hint={`${t.metricLeanHint} (${t.balanceHudHint})`}
         />
+      </div>
+
+      <div
+        role="tooltip"
+        className="pointer-events-none invisible absolute bottom-full left-0 right-0 z-30 mb-2 rounded-xl border border-white/15 bg-[#141820]/95 px-3 py-2 text-[11px] leading-relaxed text-ink-2 opacity-0 shadow-xl transition-opacity duration-150 group-hover/hud:visible group-hover/hud:opacity-100"
+      >
+        {t.balanceHudHint}
       </div>
     </div>
   );
@@ -313,24 +316,29 @@ function AxisNode({
   label,
   val,
   offset,
+  hint,
 }: {
   label: string;
   val: string;
   offset: number;
+  hint: string;
 }) {
   // offset は -1..1 (0 がジャストセンター)
   // % 位置: 50% + offset * 35%
   const pct = 50 + offset * 35;
   return (
-    <div className="rounded-lg bg-black/25 px-2 py-1.5 text-center">
-      <div className="flex flex-col items-center gap-0.5 text-[10px] text-ink-3 sm:flex-row sm:justify-between">
-        <span className="max-w-full truncate">{label}</span>
+    <div
+      className="rounded-lg bg-black/25 px-2 py-1.5 text-center"
+      title={hint}
+    >
+      <div className="flex flex-col items-center gap-0.5 text-[10px] leading-4 text-ink-3 sm:flex-row sm:justify-between">
+        <span className="min-w-0 max-w-full truncate">{label}</span>
         <span className="whitespace-nowrap font-medium tabular-nums text-ink-2">
           {val}
         </span>
       </div>
       <div className="relative mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-        {/* センターの理想線 */}
+        {/* センターの基準線 */}
         <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 bg-white/20" />
         {/* 整列ポインタ */}
         <div
@@ -346,11 +354,13 @@ function ScoreRing({
   score,
   color,
   label,
+  hint,
   loading = false,
 }: {
   score: number | null;
   color: string;
   label: string;
+  hint: string;
   loading?: boolean;
 }) {
   const r = 26;
@@ -358,12 +368,13 @@ function ScoreRing({
   const v = score === null ? 0 : score / 100;
   return (
     <div
-      className="relative grid h-[68px] w-[68px] shrink-0 place-items-center"
+      className="group/score relative grid h-[68px] w-[68px] shrink-0 cursor-help place-items-center"
       role="meter"
       aria-label={label}
       aria-valuenow={score ?? undefined}
       aria-valuemin={0}
       aria-valuemax={100}
+      title={hint}
     >
       <svg viewBox="0 0 64 64" className="absolute inset-0 -rotate-90">
         <circle
@@ -397,6 +408,13 @@ function ScoreRing({
           {score ?? '–'}
         </span>
       )}
+      <div
+        role="tooltip"
+        className="pointer-events-none invisible absolute right-0 top-full z-30 mt-2 w-56 rounded-xl border border-white/15 bg-[#141820]/95 px-3 py-2 text-left text-[11px] leading-relaxed text-ink-2 opacity-0 shadow-xl transition-opacity duration-150 group-hover/score:visible group-hover/score:opacity-100"
+      >
+        <p className="font-semibold text-ink-1">{label}</p>
+        <p className="mt-0.5 text-ink-3">{hint}</p>
+      </div>
     </div>
   );
 }

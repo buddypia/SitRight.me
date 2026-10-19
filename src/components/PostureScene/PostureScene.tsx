@@ -512,9 +512,7 @@ export function PostureScene({
                 <p className="text-xs font-medium tracking-wide text-ink-1">
                   {t.modelLoadingScene}
                 </p>
-                <p className="mt-1 text-[11px] text-ink-3">
-                  {t.loading}
-                </p>
+                <p className="mt-1 text-[11px] text-ink-3">{t.loading}</p>
               </div>
             </div>
           ) : (
@@ -582,11 +580,13 @@ export function PostureScene({
       <svg
         ref={gaugeRef}
         viewBox="0 0 160 60"
-        className="pointer-events-none absolute bottom-12 right-3 h-[52px] w-36 rounded-xl sm:h-[66px] sm:w-44 sm:rounded-2xl border border-white/10 bg-[#0d1014]/85 shadow-2xl backdrop-blur-md transition-opacity duration-500"
+        onPointerDown={(e) => e.stopPropagation()}
+        className="pointer-events-auto absolute bottom-12 right-3 h-[52px] w-36 cursor-help rounded-xl border border-white/10 bg-[#0d1014]/85 shadow-2xl backdrop-blur-md transition-opacity duration-500 sm:h-[66px] sm:w-44 sm:rounded-2xl"
         style={{ '--gauge': 'var(--good)' } as React.CSSProperties}
         role="img"
         aria-label={t.metricLean}
       >
+        <title>{t.metricLeanHint}</title>
         <defs>
           {/* 中央ほど良く、端ほど悪い */}
           <linearGradient id="leanZones" x1="0" x2="1" y1="0" y2="0">

@@ -79,7 +79,9 @@ export function Monitor() {
               avatar={settings.avatar}
               lowPower={settings.powerSaver}
               loadWeights={postureCollapsed}
-              neckLoadKg={measuring ? (live.assessment?.neckLoadKg ?? null) : null}
+              neckLoadKg={
+                measuring ? (live.assessment?.neckLoadKg ?? null) : null
+              }
               t={t}
               className="h-full w-full"
             />
@@ -211,26 +213,59 @@ function PipIcon({ active }: { active?: boolean }) {
       aria-hidden
     >
       <rect x="2" y="3.5" width="20" height="15" rx="2" />
-      <rect x="11.5" y="9.5" width="8.5" height="7" rx="1.2" fill="currentColor" stroke="none" />
+      <rect
+        x="11.5"
+        y="9.5"
+        width="8.5"
+        height="7"
+        rx="1.2"
+        fill="currentColor"
+        stroke="none"
+      />
     </svg>
   );
 }
 
 function Legend({ t }: { t: ReturnType<typeof useT> }) {
+  const items = [
+    {
+      key: 'plumb',
+      label: t.plumbLine,
+      hint: t.plumbLineHint,
+      marker: <span className="h-0 w-4 border-t border-dashed border-good" />,
+    },
+    {
+      key: 'ideal',
+      label: t.ideal,
+      hint: t.idealHint,
+      marker: <span className="h-2.5 w-2.5 rounded-full border border-good" />,
+    },
+    {
+      key: 'you',
+      label: t.you,
+      hint: t.youHint,
+      marker: <span className="h-2 w-2 rounded-full bg-fair" />,
+    },
+  ];
   return (
     <div className="pointer-events-none absolute bottom-3 left-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-ink-3">
-      <span className="flex items-center gap-1.5">
-        <span className="h-0 w-4 border-t border-dashed border-good" />
-        {t.plumbLine}
-      </span>
-      <span className="flex items-center gap-1.5">
-        <span className="h-2.5 w-2.5 rounded-full border border-good" />
-        {t.ideal}
-      </span>
-      <span className="flex items-center gap-1.5">
-        <span className="h-2 w-2 rounded-full bg-fair" />
-        {t.you}
-      </span>
+      {items.map((item) => (
+        <span
+          key={item.key}
+          className="group/leg pointer-events-auto relative flex cursor-help items-center gap-1.5"
+          title={item.hint}
+        >
+          {item.marker}
+          <span>{item.label}</span>
+          <span
+            role="tooltip"
+            className="pointer-events-none invisible absolute bottom-full left-0 z-30 mb-2 w-56 rounded-xl border border-white/15 bg-[#141820]/95 px-3 py-2 text-[11px] leading-relaxed text-ink-2 opacity-0 shadow-xl transition-opacity duration-150 group-hover/leg:visible group-hover/leg:opacity-100"
+          >
+            <span className="block font-semibold text-ink-1">{item.label}</span>
+            <span className="mt-0.5 block text-ink-3">{item.hint}</span>
+          </span>
+        </span>
+      ))}
     </div>
   );
 }
@@ -317,4 +352,3 @@ function NotificationCard() {
     </section>
   );
 }
-

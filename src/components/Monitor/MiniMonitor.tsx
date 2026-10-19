@@ -32,6 +32,11 @@ export function MiniMonitor({
   const postureCollapsed = isPostureCollapsed(status);
   const pattern =
     measuring && a?.pattern && a.level !== 'good' ? t.pattern[a.pattern] : null;
+  const subtitle = pattern
+    ? pattern.fix
+    : status === 'good'
+      ? t.alignmentBalanced
+      : '\u00A0';
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-bg">
@@ -47,65 +52,73 @@ export function MiniMonitor({
         className="min-h-0 flex-1"
       />
       <div className="flex items-center gap-3 border-t border-line px-3 py-2.5">
-        {status === 'loading' ? (
-          <span className="inline-block h-3 w-3 shrink-0 animate-spin rounded-full border border-current border-t-transparent text-ink-3" />
-        ) : status === 'good' ? (
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 16 16"
-            fill="none"
-            className="shrink-0 text-good"
-            aria-hidden
-          >
-            <path
-              d="M8 1.5v13"
-              stroke="currentColor"
-              strokeWidth="1.2"
-              strokeDasharray="1.5 2"
-              strokeLinecap="round"
-              opacity="0.45"
+        <span
+          className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center"
+          aria-hidden
+        >
+          {status === 'loading' ? (
+            <span className="inline-block h-3 w-3 shrink-0 animate-spin rounded-full border border-current border-t-transparent text-ink-3" />
+          ) : status === 'good' ? (
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 16 16"
+              fill="none"
+              className="shrink-0 text-good"
+            >
+              <path
+                d="M8 1.5v13"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                strokeDasharray="1.5 2"
+                strokeLinecap="round"
+                opacity="0.45"
+              />
+              <circle cx="8" cy="3.5" r="2" fill="currentColor" />
+              <circle cx="8" cy="8" r="1.5" fill="currentColor" />
+              <circle cx="8" cy="12.5" r="1.8" fill="currentColor" />
+            </svg>
+          ) : (
+            <span
+              className="h-2.5 w-2.5 shrink-0 rounded-full transition-colors duration-500"
+              style={{ background: color }}
             />
-            <circle cx="8" cy="3.5" r="2" fill="currentColor" />
-            <circle cx="8" cy="8" r="1.5" fill="currentColor" />
-            <circle cx="8" cy="12.5" r="1.8" fill="currentColor" />
-          </svg>
-        ) : (
-          <span
-            className="h-2.5 w-2.5 shrink-0 rounded-full transition-colors duration-500"
-            style={{ background: color }}
-          />
-        )}
+          )}
+        </span>
         <div className="min-w-0 flex-1">
           <p
-            className="truncate text-sm font-semibold text-ink-1"
+            className="truncate text-sm font-semibold leading-5 text-ink-1"
             aria-live="polite"
           >
-            {pattern ? pattern.name : status === 'good' ? t.alignmentOptimal : statusLabel(status, t)}
+            {pattern
+              ? pattern.name
+              : status === 'good'
+                ? t.alignmentOptimal
+                : statusLabel(status, t)}
           </p>
-          {pattern && (
-            <p className="truncate text-[11px] text-ink-3">{pattern.fix}</p>
-          )}
+          <p className="truncate text-[11px] leading-4 text-ink-3">
+            {subtitle}
+          </p>
         </div>
         <span
-          className="text-xl font-semibold tabular-nums"
+          className="shrink-0 whitespace-nowrap text-xl font-semibold tabular-nums"
           style={{ color }}
           aria-label={t.scoreLabel}
         >
           {measuring && a ? a.score : '–'}
         </span>
       </div>
-      {measuring && (
-        <div className="h-1 bg-white/6">
-          <div
-            className="h-full transition-[width] duration-300 ease-linear"
-            style={{
-              width: `${Math.round(live.alertProgress * 100)}%`,
-              background: color,
-            }}
-          />
-        </div>
-      )}
+      <div className="h-1 bg-white/6">
+        <div
+          className="h-full transition-[width] duration-300 ease-linear"
+          style={{
+            width: postureCollapsed
+              ? `${Math.round(live.alertProgress * 100)}%`
+              : '0%',
+            background: color,
+          }}
+        />
+      </div>
     </div>
   );
 }
