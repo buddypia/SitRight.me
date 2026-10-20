@@ -20,7 +20,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "analytics": "node scripts/cf-analytics.mjs",
-    "check:harness": "node scripts/check-agent-harness.mjs"
+    "check:harness": "node scripts/check-agent-harness.mjs",
+    "harness:index": "node scripts/harness-library.mjs"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.1.0",

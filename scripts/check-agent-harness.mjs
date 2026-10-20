@@ -10,21 +10,31 @@
  * - skill は `.claude/skills` と `.agents/skills` の両方にあり、description を持ち、name がディレクトリ名と
  *   一致し、AGENTS.md にトリガー行（`.agents/skills/<name>/SKILL.md`）がある。名前の出てこない skill は開かれない
  * - AGENTS.md と SKILL.md が呼ぶスクリプト、AGENTS.md が指すファイルは実在する
- * - hook 設定の形が正しく、呼ぶモジュールが実在する
+ * - hook 設定の形が正しく、呼ぶモジュールが実在し、構文として通る（ESLint は `.cli/**` を見ない）
+ * - `.claude/config/hook-registry.local.json` の hook は `.claude/settings.json` と `.codex/hooks.json` にも登録されている
+ * - subagent（`.claude/agents/*.md`）は description を持つ
+ * - 経験ライブラリ（docs/harness/）のエントリが揃い、INDEX.md と食い違わない（scripts/harness-library.mjs）
+ *
+ * `--base <ref>` を付けると、ref からの harness の変更（追加・削除・変更）と AGENTS.md の字数の増減も出す
+ * （harness2/core/tree.py#diff_summary）。常駐が増えた、または経験エントリなしで harness を変えたときは警告する。
  *
  * Usage:
- *   node scripts/check-agent-harness.mjs [root]
- *   npm run check:harness
+ *   node scripts/check-agent-harness.mjs [root] [--base <ref>]
+ *   npm run check:harness [-- --base origin/main]
  */
+import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { checkLibrary, EXPERIENCE_DIR, LIBRARY_DIR } from './harness-library.mjs';
 
 export const ALWAYS_ON_MAX = 8000;
 
 const SKILL_DIRS = ['.claude/skills', '.agents/skills'];
 const TRIGGER_DIR = '.agents/skills';
 const HOOK_FILES = ['.codex/hooks.json', '.claude/settings.json'];
+const HOOK_REGISTRY = '.claude/config/hook-registry.local.json';
+const SUBAGENT_DIR = '.claude/agents';
 
 // Codex が発火させる hook イベント（harness2/substrate/codex.py#hook_events）
 const CODEX_HOOK_EVENTS = new Set([
@@ -54,7 +64,8 @@ export function isHarnessPath(rel) {
     rel === 'AGENTS.md' ||
     rel === 'CLAUDE.md' ||
     HOOK_FILES.includes(rel) ||
-    SKILL_DIRS.some((dir) => rel.startsWith(`${dir}/`))
+    rel === HOOK_REGISTRY ||
+    [...SKILL_DIRS, SUBAGENT_DIR, LIBRARY_DIR, '.cli/hooks'].some((dir) => rel.startsWith(`${dir}/`))
   );
 }
 
@@ -204,19 +215,160 @@ function checkHooks(root, errs) {
   }
 }
 
-/** 問題の一覧を返す（空なら合格） */
-export function validateHarness(root) {
+function registeredCommands(root, file, event) {
+  try {
+    const entries = JSON.parse(read(root, file) ?? '{}')?.hooks?.[event];
+    return Array.isArray(entries) ? entries.flatMap((e) => e?.hooks ?? []).map((h) => String(h?.command ?? '')) : [];
+  } catch {
+    return [];
+  }
+}
+
+// hook-registry に載せた hook は、Claude Code と Codex の設定にも載っていないと片方で黙って発火しない
+function checkHookRegistry(root, errs) {
+  let registry;
+  try {
+    registry = JSON.parse(read(root, HOOK_REGISTRY) ?? 'null');
+  } catch (err) {
+    errs.push(`${HOOK_REGISTRY} が JSON として読めません: ${err.message}`);
+    return;
+  }
+  for (const [event, entries] of Object.entries(registry?.hooks ?? {})) {
+    for (const hook of (Array.isArray(entries) ? entries : []).flatMap((e) => e?.hooks ?? [])) {
+      const { id, module } = hook ?? {};
+      if (!id || !module) {
+        errs.push(`${HOOK_REGISTRY}: ${event} の hook に id と module が要ります`);
+        continue;
+      }
+      if (!existsSync(path.join(root, module))) errs.push(`${HOOK_REGISTRY}: ${id} の \`${module}\` がありません`);
+      if (!registeredCommands(root, '.claude/settings.json', event).some((c) => c.includes(module))) {
+        errs.push(
+          `hook "${id}" が .claude/settings.json の ${event} にありません。` +
+            `\`node "\${CLAUDE_PROJECT_DIR}/${module}"\` を登録してください`,
+        );
+      }
+      const codexTarget = (hook.cliTargets ?? []).includes('codex');
+      const inCodex = registeredCommands(root, '.codex/hooks.json', event).some((c) =>
+        c.includes(` codex ${event} ${id}`),
+      );
+      if (codexTarget && !inCodex) {
+        errs.push(
+          `hook "${id}" が .codex/hooks.json の ${event} にありません。` +
+            `\`.cli/_cli-dispatch.mjs ${module} codex ${event} ${id}\` を登録してください`,
+        );
+      }
+    }
+  }
+}
+
+function referencedHookModules(root) {
+  const modules = new Set();
+  for (const file of [...HOOK_FILES, HOOK_REGISTRY]) {
+    for (const [, mod] of (read(root, file) ?? '').matchAll(HOOK_MODULE_REF)) modules.add(mod);
+  }
+  return [...modules].sort();
+}
+
+/**
+ * hook モジュールが構文として通るか（harness2/core/tree.py#_py_compiles に当たる）。構文エラーの hook は実行時に
+ * 握りつぶされ、黙って発火しない。1 件ごとに node を起こすので、PostToolUse hook からは編集したものだけ渡す
+ */
+export function checkHookModulesCompile(root, modules = referencedHookModules(root)) {
+  const errs = [];
+  for (const mod of modules) {
+    const abs = path.join(root, mod);
+    if (!existsSync(abs)) continue;
+    try {
+      execFileSync(process.execPath, ['--check', abs], { stdio: ['ignore', 'ignore', 'pipe'] });
+    } catch (err) {
+      const detail = String(err.stderr ?? '').split('\n').find((line) => /Error/.test(line)) ?? '';
+      errs.push(`\`${mod}\` が構文として通りません（${detail.trim()}）。hook は黙って発火しなくなります`);
+    }
+  }
+  return errs;
+}
+
+function checkSubagents(root, errs) {
+  const abs = path.join(root, SUBAGENT_DIR);
+  if (!existsSync(abs)) return;
+  for (const name of readdirSync(abs).filter((n) => n.endsWith('.md'))) {
+    if (!/^description:\s*\S/m.test(frontmatter(read(root, `${SUBAGENT_DIR}/${name}`) ?? ''))) {
+      errs.push(`${SUBAGENT_DIR}/${name} の frontmatter に description がありません。呼び出し元が使いどころを判断できません`);
+    }
+  }
+}
+
+/** 問題の一覧を返す（空なら合格）。`compile: false` で hook モジュールの構文検査を飛ばす */
+export function validateHarness(root, { compile = true } = {}) {
   const errs = [];
   const body = checkAlwaysOn(root, errs);
   checkSkills(root, body, errs);
   checkScriptRefs(root, 'AGENTS.md', body, '.', errs);
   checkPathRefs(root, body, errs);
   checkHooks(root, errs);
+  checkHookRegistry(root, errs);
+  if (compile) errs.push(...checkHookModulesCompile(root));
+  checkSubagents(root, errs);
+  errs.push(...checkLibrary(root));
   return errs;
 }
 
+function git(root, args) {
+  return execFileSync('git', ['-C', root, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+}
+
+/** base からの harness の変更（作業ツリーと未追跡ファイルを含む）と、AGENTS.md の字数の増減 */
+export function diffHarness(root, base) {
+  const added = [];
+  const removed = [];
+  const modified = [];
+  for (const line of git(root, ['diff', '--name-status', '--no-renames', base, '--']).split('\n')) {
+    const [status, rel] = line.split('\t');
+    if (!rel || !isHarnessPath(rel)) continue;
+    ({ A: added, D: removed }[status] ?? modified).push(rel);
+  }
+  for (const rel of git(root, ['ls-files', '--others', '--exclude-standard']).split('\n')) {
+    if (rel && isHarnessPath(rel)) added.push(rel);
+  }
+  let before = '';
+  try {
+    before = git(root, ['show', `${base}:AGENTS.md`]);
+  } catch {
+    // base に AGENTS.md が無い
+  }
+  const alwaysOnDelta = [...(read(root, 'AGENTS.md') ?? '')].length - [...before].length;
+  return { added: added.sort(), removed: removed.sort(), modified: modified.sort(), alwaysOnDelta };
+}
+
+/** 差分から出す警告（落とさない）。文言の誤字直しや再移植まで記録を強いないため */
+export function diffWarnings({ added, removed, modified, alwaysOnDelta }) {
+  const warnings = [];
+  const changed = [...added, ...removed, ...modified];
+  const touchedHarness = changed.some((rel) => !rel.startsWith(`${LIBRARY_DIR}/`));
+  const recorded = added.some((rel) => rel.startsWith(`${EXPERIENCE_DIR}/`));
+  if (alwaysOnDelta > 0) {
+    warnings.push(
+      `AGENTS.md の常駐が ${alwaysOnDelta} 字増えています。足した分はほかを削って払うか、skill・スクリプト・hook に移せないか見直してください`,
+    );
+  }
+  if (touchedHarness && !recorded) {
+    warnings.push(
+      `harness を変えていますが ${EXPERIENCE_DIR}/ にエントリがありません。観察で支えられる教訓があれば残してください（.agents/skills/agent-harness/SKILL.md）`,
+    );
+  }
+  return warnings;
+}
+
+function parseArgs(argv) {
+  const baseAt = argv.indexOf('--base');
+  const base = baseAt >= 0 ? argv[baseAt + 1] : undefined;
+  const positional = argv.filter((arg, i) => !arg.startsWith('--') && (baseAt < 0 || i !== baseAt + 1));
+  return { rootArg: positional[0], base };
+}
+
 function main() {
-  const root = path.resolve(process.argv[2] ?? path.join(path.dirname(fileURLToPath(import.meta.url)), '..'));
+  const { rootArg, base } = parseArgs(process.argv.slice(2));
+  const root = path.resolve(rootArg ?? path.join(path.dirname(fileURLToPath(import.meta.url)), '..'));
   const errs = validateHarness(root);
   if (errs.length) {
     console.error(`agent harness: ${errs.length} 件の問題`);
@@ -226,6 +378,20 @@ function main() {
   const chars = [...(read(root, 'AGENTS.md') ?? '')].length;
   const skills = listSkills(root, SKILL_DIRS[0]).length;
   console.log(`agent harness OK: AGENTS.md ${chars}/${ALWAYS_ON_MAX} 字, skill ${skills} 件`);
+  if (!base) return;
+
+  const diff = diffHarness(root, base);
+  const sign = diff.alwaysOnDelta > 0 ? '+' : '';
+  console.log(`harness diff vs ${base}: 常駐 ${sign}${diff.alwaysOnDelta} 字`);
+  for (const [label, files] of [
+    ['追加', diff.added],
+    ['削除', diff.removed],
+    ['変更', diff.modified],
+  ]) {
+    if (files.length) console.log(`  ${label}: ${files.join(', ')}`);
+  }
+  const prefix = process.env.GITHUB_ACTIONS ? '::warning title=agent harness::' : 'warning: ';
+  for (const w of diffWarnings(diff)) console.log(`${prefix}${w}`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

@@ -15,13 +15,15 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # PR ではマージコミットの 1 つ目の親（base）と比べて harness の差分を出す
+          fetch-depth: 2
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
       - run: npm ci
       - run: npm run lint
-      - run: npm run check:harness
+      - run: npm run check:harness -- ${{ github.event_name == 'pull_request' && '--base HEAD^1' || '' }}
       - run: npm run type-check
       - run: npm test
       - run: npm run build
