@@ -105,7 +105,7 @@ Bash: make q.fix
 | **unpinned major versions** (optional) | `^X` or `~X` major prefixes in `package.json` — limited to security-critical patch libraries | warn only (Major) |
 | **peer range drift** | `peerDependencies` declarations in lockfile vs actual resolved versions (no install needed — determined purely via lockfile) | warn only (Major) |
 
-**Audit Scope = All npm manifests tracked by git**. The enumeration SSOT is `.claude/scripts/lib/npm-manifests.mjs#discoverNpmManifestDirs` — audits separate npm projects like `infra/aws` / `infra/gcp` alongside root, which a cwd-only audit would miss. Coverage of manifests by `.github/dependabot.yml` npm entries is separately enforced by `tests/unit/dependabot-manifest-coverage.test.mjs`.
+**Audit Scope = All npm manifests tracked by git**. The enumeration SSOT is `.claude/scripts/lib/npm-manifests.mjs#discoverNpmManifestDirs` — audits any separate npm project (a nested `package.json` + lockfile) alongside root, which a cwd-only audit would miss. Coverage of manifests by `.github/dependabot.yml` npm entries is separately enforced by `tests/unit/dependabot-manifest-coverage.test.mjs`.
 
 **Why "tracked by git" is the criterion**: A filesystem walk would include git-ignored local clones (e.g. `oss/*`) whose vulnerabilities this repository does not own. This repository's supply chain is what this repository owns. Extending exclusion lists by name breaks again when the next clone uses a different name. **Trade-off (honestly stated)**: New manifests prior to `git add` are not caught by the audit/coverage contract — they become targets once committed. **Git query failures abort with an error rather than returning an empty list** (to prevent a gate with unknown scope from reporting clean).
 
