@@ -359,15 +359,31 @@ export function diffWarnings({ added, removed, modified, alwaysOnDelta }) {
   return warnings;
 }
 
-function parseArgs(argv) {
-  const baseAt = argv.indexOf('--base');
-  const base = baseAt >= 0 ? argv[baseAt + 1] : undefined;
-  const positional = argv.filter((arg, i) => !arg.startsWith('--') && (baseAt < 0 || i !== baseAt + 1));
+export function parseArgs(argv) {
+  let base;
+  const positional = [];
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === '--base' || arg.startsWith('--base=')) {
+      base = arg === '--base' ? argv[++i] : arg.slice('--base='.length);
+      // 値の無い --base を黙って無視すると、CI で差分の警告が消えたことに気づけない
+      if (!base || base.startsWith('--')) throw new Error('--base には比べる ref を渡してください（例: --base origin/main）');
+    } else if (!arg.startsWith('--')) {
+      positional.push(arg);
+    }
+  }
   return { rootArg: positional[0], base };
 }
 
 function main() {
-  const { rootArg, base } = parseArgs(process.argv.slice(2));
+  let args;
+  try {
+    args = parseArgs(process.argv.slice(2));
+  } catch (err) {
+    console.error(`agent harness: ${err.message}`);
+    process.exit(2);
+  }
+  const { rootArg, base } = args;
   const root = path.resolve(rootArg ?? path.join(path.dirname(fileURLToPath(import.meta.url)), '..'));
   const errs = validateHarness(root);
   if (errs.length) {
@@ -380,7 +396,14 @@ function main() {
   console.log(`agent harness OK: AGENTS.md ${chars}/${ALWAYS_ON_MAX} 字, skill ${skills} 件`);
   if (!base) return;
 
-  const diff = diffHarness(root, base);
+  let diff;
+  try {
+    diff = diffHarness(root, base);
+  } catch (err) {
+    const detail = String(err.stderr ?? err.message).trim().split('\n')[0];
+    console.error(`agent harness: ${base} と比べられません（${detail}）`);
+    process.exit(2);
+  }
   const sign = diff.alwaysOnDelta > 0 ? '+' : '';
   console.log(`harness diff vs ${base}: 常駐 ${sign}${diff.alwaysOnDelta} 字`);
   for (const [label, files] of [

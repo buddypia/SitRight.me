@@ -4,7 +4,13 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { ESLint } from 'eslint';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { ALWAYS_ON_MAX, diffHarness, diffWarnings, validateHarness } from '../../scripts/check-agent-harness.mjs';
+import {
+  ALWAYS_ON_MAX,
+  diffHarness,
+  diffWarnings,
+  parseArgs,
+  validateHarness,
+} from '../../scripts/check-agent-harness.mjs';
 import { buildIndex, parseEntry } from '../../scripts/harness-library.mjs';
 import { findSceneBackdrop } from '../../scripts/lib/scene-backdrop.mjs';
 
@@ -214,6 +220,11 @@ describe('harness-library', () => {
     expect(index).toMatch(/きっかけ: 実行ごとに手順が分かれる/);
   });
 
+  it('値の空いた教訓の欄は、次の行を値として拾わずに落ちる', () => {
+    withEntry(ENTRY.replace('- **教訓**: 分かれた手順を AGENTS.md に 1 行で書く', '- **教訓**:'));
+    expect(validateHarness(root).join('\n')).toMatch(/`- \*\*教訓\*\*:` がありません/);
+  });
+
   it('判定の語・教訓の欄・日付が崩れたエントリは落ちる', () => {
     withEntry(
       ENTRY.replace('| 効いた |', '| たぶん効いた |')
@@ -241,6 +252,13 @@ describe('harness-library', () => {
 });
 
 describe('check-agent-harness --base', SLOW, () => {
+  it('--base <ref> と --base=<ref> を受け、値の無い --base は誤りにする', () => {
+    expect(parseArgs(['--base', 'origin/main'])).toEqual({ rootArg: undefined, base: 'origin/main' });
+    expect(parseArgs(['/repo', '--base=HEAD^1'])).toEqual({ rootArg: '/repo', base: 'HEAD^1' });
+    expect(() => parseArgs(['--base'])).toThrow(/--base には/);
+    expect(() => parseArgs(['--base='])).toThrow(/--base には/);
+  });
+
   function git(...args: string[]) {
     const res = spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', ...args], {
       cwd: root,

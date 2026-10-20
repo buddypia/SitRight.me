@@ -31,19 +31,20 @@ const ENTRY_FILE = /^(\d{4}-\d{2}-\d{2})-[a-z0-9][a-z0-9-]*\.md$/;
 const AREA = /^[a-z0-9][a-z0-9-]*$/;
 
 function meta(src, key) {
-  return src.match(new RegExp(`^- ${key}:\\s*(.+?)\\s*$`, 'm'))?.[1] ?? '';
+  return src.match(new RegExp(`^- ${key}:[ \\t]*(.+?)[ \\t]*$`, 'm'))?.[1] ?? '';
 }
 
 function lessonField(src, key) {
-  return src.match(new RegExp(`^- \\*\\*${key}\\*\\*:\\s*(.+?)\\s*$`, 'm'))?.[1] ?? '';
+  // 値が空のとき次の行を拾わないよう、空白は改行をまたがせない
+  return src.match(new RegExp(`^- \\*\\*${key}\\*\\*:[ \\t]*(.+?)[ \\t]*$`, 'm'))?.[1] ?? '';
 }
 
 function section(src, heading) {
-  const start = src.indexOf(`\n## ${heading}`);
+  const lines = src.split('\n');
+  const start = lines.findIndex((line) => line.trim() === `## ${heading}`);
   if (start < 0) return '';
-  const rest = src.slice(start + 1);
-  const end = rest.indexOf('\n## ', 1);
-  return end < 0 ? rest : rest.slice(0, end);
+  const end = lines.findIndex((line, i) => i > start && line.startsWith('## '));
+  return lines.slice(start, end < 0 ? undefined : end).join('\n');
 }
 
 function tableRows(block) {
