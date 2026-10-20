@@ -780,9 +780,9 @@
       "bundle_version": "1.0",
       "source": {
         "repo": "brief2dev",
-        "commit": "9de27b125e921e7dbff31798c2d976b96896d944"
+        "commit": "241d0c7d842ce4b8ef8f69a4c0cdd1f72c72bc57"
       },
-      "transplanted_at": "2026-10-10T00:54:31.275Z",
+      "transplanted_at": "2026-10-20T13:51:03.564Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle quality-gate-core --target <this-project-root> --json",
       "files": [
         {
@@ -883,7 +883,7 @@
         {
           "path": ".claude/skills/pre-quality-gate/SKILL.md",
           "role": "managed",
-          "sha256": "5f9ad77620f7514dc2947e369130be9b5cc23ac34a2a474574817f1791dd11ed"
+          "sha256": "d3dabd8329a1deb2160d621e78a3ddb89d40a058d58fc5dacf65b24907615da4"
         },
         {
           "path": ".claude/skills/pre-ship-quality-advisor/MANIFEST.json",
