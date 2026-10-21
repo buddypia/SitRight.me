@@ -1,4 +1,5 @@
 {
+  "github_account": "buddypia",
   "base_branch": "main",
   "_adapt": {
     "purpose": "External project adaptation guide (ops.mjs only reads data keys from this file — _adapt is guide-only, not referenced by code).",
