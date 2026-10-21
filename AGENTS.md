@@ -7,7 +7,7 @@
 - Next.js 16（App Router、`output: 'export'` の静的書き出し）、React 19、TypeScript（strict）、MediaPipe Tasks Vision（姿勢推定）、three.js（3D シーン）、Zustand（状態管理）、Tailwind CSS v4。
 - パッケージ管理は npm。`package-lock.json` をコミットする。
 - 確認は `npm run lint` / `npm run type-check` / `npm test`（Vitest、`tests/unit/**/*.test.ts`）/ `npm run build` / `npm run check:harness`。e2e（`npm run test:e2e`、Playwright）は CI で回し、ローカルでは新しいブラウザを起動しない。
-- 配信は Cloudflare Pages。デプロイは `npm run deploy`（`wrangler pages deploy`。`cf pages deploy` は Legacy Pages に未対応）、バインディングは `wrangler.toml`。分析・監視は `cf`（`npm run analytics`、`npx cf rum`、`npx cf speed`）。Workers Assets へ移ったら `wrangler` を外し、`cf deploy` と `cloudflare.config.ts` に一本化する。
+- 配信は Cloudflare Pages。デプロイは `npm run deploy`（`wrangler pages deploy`。`cf pages deploy` は Legacy Pages に未対応）、バインディングは `wrangler.toml`。分析・監視は `cf`（`npm run analytics`、`npx cf rum`、`npx cf speed`）。`cf` と `wrangler` の分担と移行予定は `docs/ANALYTICS.md`。
 
 ## コーディング規則
 
@@ -50,7 +50,7 @@
 - PR を作る直前に、変更の大きさに合うレビュー手段を選ぶときは `.agents/skills/pre-ship-quality-advisor/SKILL.md` を読んで従う。
 - 最終レビュー・QA・コードチェックを頼まれたときは `.agents/skills/final-review/SKILL.md` を読んで従う。
 - worktree の作業を PR にして出すときは `.agents/skills/create-pr/SKILL.md` を読んで従う。
-- AGENTS.md・skill・スクリプト・hook を追加・変更するときは `.agents/skills/agent-harness/SKILL.md` を読んで従う。
+- AGENTS.md・skill・スクリプト・hook を追加・変更するとき、エージェントが指示を守らない・同じ失敗を繰り返すときは `.agents/skills/agent-harness/SKILL.md` を読んで従う。
 
 <!-- BEGIN:nextjs-agent-rules -->
 
