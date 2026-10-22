@@ -29,6 +29,7 @@
 | robots.txt | 検索・回答用のクローラーは `*` で許可（`/lab` だけ除外）。生成 AI の学習用クローラーはすべて拒否する | `src/app/robots.ts` |
 | llms.txt | サイトの要約、主な事実、ページ一覧 | `public/llms.txt` |
 | `<html lang>` | /ja・/ko とその解説ページを書き出し後に書き換える | `scripts/postbuild.mjs` |
+| Search Console の所有権確認 | URL プレフィックス（`https://sitright.pages.dev`）の確認用ファイル | `public/google48d857f6cf4bc674.html` |
 
 方針は「検索と AI の回答には載せ、学習には使わせない」。拒否するのは GPTBot・ClaudeBot・Google-Extended・Applebot-Extended・Meta-ExternalAgent・CCBot（Common Crawl。多くのモデルの学習データになる）。OAI-SearchBot・ChatGPT-User・Claude-SearchBot・Claude-User・PerplexityBot・Googlebot・Bingbot・Applebot・Meta-WebIndexer は名前を書かず `*` で許可する。
 
