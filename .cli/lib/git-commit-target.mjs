@@ -3,8 +3,8 @@
  *
  * Consumers:
  *   - commit-guard (R-CM-008 blocks direct commit on main — deny direction)
- *   - worktree-session-owner-guard (R-CM-036 commit ownership — deny direction)
- *   - milestone-deck-warning (R-CM-030 Rule 12 commit-time reminder — advisory direction)
+ *   - worktree-session-owner-guard (R-CM-036 commit ownership — deny direction). It asks about every
+ *     subcommand that writes commits (`HISTORY_WRITERS`), not `commit` alone — see that constant.
  *
  * v4 (2026-09-27): the answer is a *set* of directories the commit may run in, plus `unknown` when
  * the command can reach a directory this model cannot name. v1–v3 matched one `git … commit` and one
@@ -36,6 +36,7 @@
  *   - Whole-command unknowns: a heredoc body read by a shell (the scanner appends it out of order),
  *     `$( … )` inside an expanding heredoc body (same), function definitions, `trap`, `alias`, `case`.
  *   - Every `git … commit` invocation counts; `--dry-run` (as a real flag, not a message) excludes one.
+ *     "commit" throughout means any subcommand the caller asks about (`subcommands`, default `commit`).
  *
  * Known limits (threat model: an honest agent, not an adversary — a static model cannot fence a shell):
  * commands run through a string (`bash -c '…'`, `ssh`, `xargs sh -c`), scripts, an inherited `CDPATH`
@@ -45,7 +46,10 @@
 
 import { isAbsolute, join } from 'node:path';
 import {
+  MAX_NESTING,
   prefixEffects,
+  scanDoubleQuoted,
+  scanSingleOrAnsiQuoted,
   shellWords,
   splitShellSegments,
   ShellParseError,
@@ -57,7 +61,7 @@ import {
   stripCommandPrefix,
   stripHeredocData,
 } from './heredoc-strip.mjs';
-import { joinLineContinuations, WordStart } from './hook-anchors.mjs';
+import { GIT_GLOBAL_VALUE_OPTIONS, joinLineContinuations, WordStart } from './hook-anchors.mjs';
 
 const QSTR = '__QSTR__';
 
@@ -66,7 +70,8 @@ const QSTR = '__QSTR__';
  * Exported for commit-guard: flag/subcommand detection on the raw command let a commit *message*
  * containing "--dry-run" open the trunk/amend gate (guard bypass, observed 2026-08-26).
  */
-export function stripQuoted(cmd) {
+export function stripQuoted(cmd, depth = 0) {
+  if (depth > MAX_NESTING) return cmd;
   // Escape-awareness is applied to double quotes ONLY, because that asymmetry is the shell's:
   // inside "..." a backslash escapes the quote, so the naive `"[^"]*"` stopped at \" and re-exposed
   // the rest of the message as command surface. Inside '...' POSIX gives backslash no meaning at all —
@@ -83,7 +88,12 @@ export function stripQuoted(cmd) {
   // -b` and `--amend` vanished from the gate (review round 6). The comment is dropped, the newline
   // kept. "Start of a word" is the shared WordStart rule (hook-anchors) — it needs paren nesting and
   // escape tracking, which is why this is a scan and not one regex (review rounds 7-8, 2026-09-28).
+  // Inside "...", `$(...)` and `` `...` `` execute in a subshell (DEBT-460): replacing the entire
+  // double-quoted span with QSTR hid `"$(git commit --amend)"` and `"$(git checkout -b x)"` from
+  // isGitAmend / isGitBranchCreate. We keep QSTR inline (so `-m "$(...)"` stays a single argument)
+  // and append lifted substitutions on fresh lines at the end for command-surface inspection.
   let out = '';
+  const liftedSubs = [];
   const ws = new WordStart();
   for (let i = 0; i < cmd.length; ) {
     const c = cmd[i];
@@ -98,6 +108,16 @@ export function stripQuoted(cmd) {
       i = eol === -1 ? cmd.length : eol;
       continue;
     }
+    if (c === '"') {
+      const dq = scanDoubleQuoted(cmd, i, depth);
+      if (dq) {
+        out += QSTR;
+        for (const sub of dq.subs) liftedSubs.push(stripQuoted(sub, depth + 1));
+        ws.word();
+        i += dq.length;
+        continue;
+      }
+    }
     const quoted = quotedAt(cmd, i);
     if (quoted) {
       out += QSTR;
@@ -109,6 +129,7 @@ export function stripQuoted(cmd) {
     out += c;
     i++;
   }
+  for (const sub of liftedSubs) out += `\n$(${sub})`;
   return out;
 }
 
@@ -161,16 +182,10 @@ function lexeme(cmd, i) {
   return quoted ? [quoted, 'w'] : [1, cmd[i]];
 }
 
-const QUOTED_RES = [/\$'(?:\\.|[^'\\])*'/y, /"(?:\\.|[^"\\])*"/y, /'[^']*'/y];
-
 /** Length of the complete quoted string starting at `i`, or 0 (an unterminated quote stays text). */
 function quotedAt(cmd, i) {
-  for (const re of QUOTED_RES) {
-    re.lastIndex = i;
-    const m = re.exec(cmd);
-    if (m) return m[0].length;
-  }
-  return 0;
+  if (cmd[i] === '"') return scanDoubleQuoted(cmd, i)?.length ?? 0;
+  return scanSingleOrAnsiQuoted(cmd, i);
 }
 
 /** A directory or value this model cannot name. */
@@ -187,7 +202,7 @@ const VAR_WRITERS = new Set(['read', 'readarray', 'mapfile', 'getopts', 'let']);
 const STATE_RUNNERS = new Set(['source', '.', 'eval']);
 const REPO_ENV = new Set(['GIT_DIR', 'GIT_WORK_TREE', 'GIT_COMMON_DIR']);
 /** git global options whose value is the next word. */
-const GIT_VALUE_OPTS = new Set(['-C', '-c', '--git-dir', '--work-tree', '--namespace', '--config-env']);
+const GIT_VALUE_OPTS = new Set(GIT_GLOBAL_VALUE_OPTIONS);
 /** `git commit` options whose value is the next word (so a `--dry-run` there is a message, not a flag). */
 const COMMIT_VALUE_OPTS = new Set([
   '-m', '-F', '-C', '-c', '-t', '--message', '--file', '--template', '--reuse-message',
@@ -201,6 +216,31 @@ const FUNCTION_DEF_RE = /(?:^|[\s;&|(){}])(?:function\s+([A-Za-z_][\w.:-]*)|([A-
 const OPAQUE_WORDS = new Set(['trap', 'alias', 'shopt', 'case']);
 const ANSI_C_RE = /\$'((?:\\.|[^'\\])*)'/g;
 const ANSI_C_ESCAPES = { n: '\n', t: '\t', r: '\r', a: '\x07', b: '\b', e: '\x1b', E: '\x1b', f: '\f', v: '\v' };
+
+/**
+ * Every subcommand that creates commits on the checked-out branch — the ownership guard's question.
+ *
+ * Why: `commit` alone let `git -C <wt> merge origin/main` (a merge commit) through the R-CM-036 lease
+ * unchecked and unclaimed. Observed 2026-10-22: two sessions took over the same worktree, neither
+ * lease named the other, and the collision surfaced only at ship time.
+ * Not the default: commit-guard denies a direct commit on trunk, and `git pull --ff-only` on main is
+ * the standard flow (worktree-new fast-forwards main) — it must stay out of that question.
+ */
+export const HISTORY_WRITERS = Object.freeze([
+  'commit', 'merge', 'pull', 'cherry-pick', 'revert', 'am', 'rebase',
+]);
+const COMMIT_ONLY = Object.freeze(['commit']);
+
+/**
+ * The subcommands asked about, and a pattern naming any of them in text this model cannot parse.
+ * A git subcommand name is letters, digits and `-`, so the pattern matches only a whole name: `\b`
+ * treats `-` as a boundary and read `merge-base`, `merge-tree`, `commit-graph` and `pre-commit` as
+ * `merge` / `commit` — a function-defining command then denied in a foreign worktree and claimed its
+ * lease without writing history. The parsed path already compares whole words (`kind.names`).
+ */
+function writerKind(subcommands = COMMIT_ONLY) {
+  return { names: new Set(subcommands), re: new RegExp(`(?<![\\w-])(?:${subcommands.join('|')})(?![\\w-])`) };
+}
 
 function capped(set) {
   return set.has(UNK) || set.size > MAX_ALTERNATIVES ? UNK_SET : set;
@@ -306,12 +346,12 @@ function isDryRun(args) {
  * The subcommand word is expanded like any other (`S=commit; git $S`), and one this model cannot
  * name (`git $(echo commit)`, an inherited `$S`) counts as a commit.
  */
-function parseGitCommit(words, st) {
+function parseGitCommit(words, st, kind) {
   if (words[0]?.split('/').pop() !== 'git') return null;
   const { cs, repoOverride, sub } = gitGlobals(words);
   if (words[sub] === undefined) return null;
   const subs = expandWord(words[sub], st);
-  const commits = [...subs].some((v) => v === UNK || v.trim().split(/\s+/)[0] === 'commit');
+  const commits = [...subs].some((v) => v === UNK || kind.names.has(v.trim().split(/\s+/)[0]));
   if (!commits || isDryRun(words.slice(sub + 1))) return null;
   return { cs, repoOverride };
 }
@@ -400,10 +440,10 @@ function statementWords(raw) {
   return all.slice(all[2] === '()' ? 3 : 2);
 }
 
-/** Whether `word` is, or expands in `st` to something holding, the word `commit`. */
-function namesCommit(word, st) {
-  if (word === 'commit') return true;
-  return [...expandWord(word, st)].some((v) => v !== UNK && v.split(/\s+/).includes('commit'));
+/** Whether `word` is, or expands in `st` to something holding, a subcommand of `kind`. */
+function namesCommit(word, st, kind) {
+  if (kind.names.has(word)) return true;
+  return [...expandWord(word, st)].some((v) => v !== UNK && v.split(/\s+/).some((w) => kind.names.has(w)));
 }
 
 /** Where `git commit` runs: the statement's directories moved by each `-C`, unknown if the repo moves. */
@@ -449,12 +489,12 @@ function resolveCommandName(words, st) {
  * *not* presumed moved: that stuck for the rest of the command and denied `$PY x && git -C <wt> commit`,
  * a form the rules recommend. Only a statement that names a GIT_DIR-family variable can move it.
  */
-function runDynamic(seg, all, words, input, substs) {
+function runDynamic(seg, all, words, input, substs, kind) {
   const text = [seg.raw, ...substs].join('\n');
   const repoEnv = input.repoEnv || [...REPO_ENV].some((name) => text.includes(name));
   const lost = { ...forgetVars(input, repoEnv), dirs: UNK_SET };
   const commits =
-    words.some((w) => namesCommit(w, input)) || /\bcommit\b/.test(commandSubstText(all, words, substs));
+    words.some((w) => namesCommit(w, input, kind)) || kind.re.test(commandSubstText(all, words, substs));
   return { ok: lost, fail: lost, targets: commits ? UNK_SET : null };
 }
 
@@ -462,20 +502,20 @@ function runDynamic(seg, all, words, input, substs) {
  * What one statement does when it runs from `input`: `ok` (it succeeded), `fail` (it failed, or null
  * when it cannot fail), `targets` (commit directories, or null when it is not a commit).
  */
-function runStatement(seg, input, substs, fns) {
+function runStatement(seg, input, substs, fns, kind) {
   const all = statementWords(seg.raw);
   let words = stripCommandPrefix(all);
   const prefix = all.slice(0, all.length - words.length);
   while (words[0] === 'builtin') words = words.slice(1);
   const st = reservedLead(all).loopVar || DEFAULT_ASSIGN_RE.test(seg.raw) ? forgetVars(input) : input;
   words = resolveCommandName(words, st);
-  if (isDynamicCommand(words[0]) || fns.has(words[0])) return runDynamic(seg, all, words, input, substs);
+  if (isDynamicCommand(words[0]) || fns.has(words[0])) return runDynamic(seg, all, words, input, substs, kind);
   // `A=1 cmd`: A is in cmd's environment only. The shell expands cmd's own words *before* that, so
   // `R=<wt> git -C $R commit` passes the inherited R — words resolve against `st`, never `temp`.
   const temp = assignAll(st, prefix);
   if (!words.length) return { ok: temp, fail: null, targets: null }; // bare assignments persist
 
-  const commit = parseGitCommit(words, st);
+  const commit = parseGitCommit(words, st, kind);
   if (commit) {
     const effects = prefixEffects(prefix);
     let dirs = effects.chdir === null ? st.dirs : resolveDirs(effects.chdir, st.dirs, st);
@@ -536,16 +576,19 @@ function advance(sc, sep, nextSep, input, run, maybe) {
  *
  * @param {string} cmd Bash command
  * @param {string|null} cwd Directory the command starts in (unknown when absent)
+ * @param {{subcommands?: readonly string[]}} [opts] git subcommands that count as a commit
+ *   (default `commit`; the ownership guard passes `HISTORY_WRITERS`)
  * @returns {{bases: string[], unknown: boolean} | null} null when the command runs no `git commit`
  */
-export function commitTargets(cmd, cwd) {
+export function commitTargets(cmd, cwd, opts = {}) {
   if (!cmd || typeof cmd !== 'string') return null;
+  const kind = writerKind(opts.subcommands);
   let segs;
   try {
     segs = splitShellSegments(cmd);
   } catch (err) {
     if (!(err instanceof ShellParseError)) throw err;
-    return /\bcommit\b/.test(stripQuoted(cmd)) ? { bases: [], unknown: true } : null;
+    return kind.re.test(stripQuoted(cmd)) ? { bases: [], unknown: true } : null;
   }
 
   const start = state(cwd ? new Set([cwd]) : UNK_SET);
@@ -575,7 +618,7 @@ export function commitTargets(cmd, cwd) {
 
     const input = seg.sep === '&&' && !maybe ? sc.ok : sc.any;
     const own = [...substScopes].filter(([, s]) => s.parent === seg.scope).map(([id]) => substTextOf(id));
-    const run = runStatement(seg, input, own, fns);
+    const run = runStatement(seg, input, own, fns, kind);
     if (seg.scopeKind !== 'subst') substScopes = new Map();
     else {
       const s = substScopes.get(seg.scope) ?? { parent: seg.parentScope, text: '' };
@@ -592,7 +635,7 @@ export function commitTargets(cmd, cwd) {
   // another) still runs when called: with a function defined, any `commit` word is a commit.
   if (commits === 0) {
     const words = decodeAnsiC(code).replace(/["'\\]/g, '');
-    return fns.size > 0 && /\bcommit\b/.test(words) ? { bases: [], unknown: true } : null;
+    return fns.size > 0 && kind.re.test(words) ? { bases: [], unknown: true } : null;
   }
   const joined = joinLineContinuations(cmd);
   const unordered =

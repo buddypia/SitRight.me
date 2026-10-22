@@ -15,14 +15,19 @@ export function stripIgnoredPlanSections(content) {
     .replace(/<!--[\s\S]*?-->/g, '');
 }
 
-/**
- * Item waiver/cancellation marker vocabulary — **unchecked evaluation and obligation waiver evaluation must share the identical vocabulary.**
- *
- * Specifying separately risks drift where checklists pass while obligations remain un-waived.
- * This constant serves as the SSOT (shared with `plan-obligation.mjs#parseObligationDecisions`).
- */
+/** Item waiver/cancellation marker vocabulary — the words `hasCancelMarker` accepts inside `(…)`. */
+export const CANCEL_MARKER_WORDS = [
+  'cancelled',
+  'Cancelled',
+  '취소됨',
+  'dropped',
+  'Dropped',
+  'deferred',
+  'Deferred',
+];
+
 export const CANCEL_MARKER_SOURCE =
-  '\\(cancelled[^)]*\\)|\\(Cancelled[^)]*\\)|\\(취소됨[^)]*\\)|\\(dropped[^)]*\\)|\\(Dropped[^)]*\\)|\\(deferred[^)]*\\)|\\(Deferred[^)]*\\)|~~';
+  `${CANCEL_MARKER_WORDS.map((w) => `\\(${w}[^)]*\\)`).join('|')}|~~`;
 
 /** Checks whether a line contains a cancellation marker (no global flag — avoids lastIndex state pollution). */
 export function hasCancelMarker(line) {

@@ -34,7 +34,9 @@
  *   - tool is not Edit|Write|MultiEdit|Bash → passthrough
  *   - target not under .worktrees/ (main repo file) → passthrough (worktree-policy-guard domain)
  *   - `.tmp/create-pr-active` exists → passthrough (ship/create-pr carve-out)
- *   - Bash is not `git commit` / is `--dry-run` → passthrough (default `session_owner_scope: "commit"`)
+ *   - Bash creates no commit / is `--dry-run` → passthrough (default `session_owner_scope: "commit"`).
+ *     "Creates a commit" is every subcommand in `HISTORY_WRITERS` (merge, pull, cherry-pick … — why
+ *     there), so a `git -C <wt> merge` checks and claims the lease exactly like `git -C <wt> commit`.
  *   - opt-in `session_owner_scope: "all_bash"` (worktree-policy.json): every Bash command is checked
  *     against every worktree it touches (see `bashTargets`):
  *       · where it runs — cwd, each `cd`, cumulative `git -C` / `make -C` → Layer 1 + Layer 2
@@ -70,7 +72,7 @@ import { HookOutput } from '../lib/hook-output.mjs';
 // Worktree root evaluation SSOT (R-CM-037).
 import { resolveWorktreeRoot } from '../lib/worktree-path.mjs';
 import { extractApplyPatchFilePaths } from '../lib/apply-patch-paths.mjs';
-import { commitTargets } from '../lib/git-commit-target.mjs';
+import { commitTargets, HISTORY_WRITERS } from '../lib/git-commit-target.mjs';
 import { pathArgs, walkSegments } from '../lib/bash-segments.mjs';
 import { loadWorktreePolicy } from '../lib/trunk-branch.mjs';
 // The create-pr carve-out below is a lease with a TTL, not a permanent switch (R-CM-008 Rule 6).
@@ -134,7 +136,7 @@ export function bashTargets(cmd, cwd, baseDir) {
  */
 function commitOwnership(cmd, cwd, baseDir) {
   const start = cwd || baseDir;
-  const t = commitTargets(cmd, start);
+  const t = commitTargets(cmd, start, { subcommands: HISTORY_WRITERS });
   if (!t) return [];
   const dirs = t.unknown ? [...t.bases, start] : t.bases;
   return dirs.map((path) => ({ path, ...OWNING, action: 'commit' }));
@@ -188,7 +190,7 @@ export async function run(rawData) {
 
     const projectDir = resolveProjectDir(rawData);
     // Ship / create-pr flows legitimately manipulate worktree paths → carve-out
-    if (isCreatePrLeaseActive(projectDir)) {
+    if (isCreatePrLeaseActive(projectDir, { sessionId })) {
       return HookOutput.passthrough();
     }
 

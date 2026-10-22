@@ -55,7 +55,7 @@ import {
   withCommandCwd,
 } from '../lib/utils.mjs';
 import { HookOutput } from '../lib/hook-output.mjs';
-import { anchoredPattern, stripGitGlobalOptions, joinLineContinuations } from '../lib/hook-anchors.mjs';
+import { anchoredPattern, gitInspectionViews, joinLineContinuations } from '../lib/hook-anchors.mjs';
 import { stripHeredocData } from '../lib/heredoc-strip.mjs';
 // Worktree evaluation via common SSOT (R-CM-037): every directory the commit may land in (commitTargets)
 // is checked against .worktrees/ via resolveWorktreeRoot (independent of session cwd/ENV).
@@ -98,7 +98,8 @@ const BRANCH_NON_CREATE_FLAG =
   /^(-d|-D|--delete|-l|--list|-r|--remotes?|--show-current|--merged|--no-merged|--contains|--no-contains|--points-at|-m|-M|--move)(=|$)/;
 const BRANCH_COPY_FLAG = /^(--copy|-[a-zA-Z]*[cC][a-zA-Z]*)$/;
 
-// Patterns above require adjacency between `git` and subcommands, so stripGitGlobalOptions removes global options first.
+// Patterns above require adjacency between `git` and subcommands, so they also run on the text with global options
+// stripped (gitInspectionViews — the text as written is tested too, so stripping only ever adds a match).
 // Rationale: R-CM-008 Rule 6 recommends `git -C <worktree-path>` to AI (avoiding chained `cd && git commit` blocking pitfalls).
 
 /**
@@ -122,10 +123,10 @@ const BRANCH_COPY_FLAG = /^(--copy|-[a-zA-Z]*[cC][a-zA-Z]*)$/;
  * `stripQuoted` alone could not cover either: a heredoc body carries no quotes.
  *
  * @param {string} command
- * @returns {string}
+ * @returns {string[]} the surface as written, plus with git global options stripped when that differs
  */
-function inspectableCommand(command) {
-  return stripGitGlobalOptions(stripQuoted(joinLineContinuations(stripHeredocData(command))));
+function inspectableViews(command) {
+  return gitInspectionViews(stripQuoted(joinLineContinuations(stripHeredocData(command))));
 }
 
 /**
@@ -159,8 +160,8 @@ export function isGitCommit(command) {
   // Normalise first — inspecting the raw command let *data* act as command surface in both
   // directions: a message merely containing "--dry-run" opened the trunk/amend gate (bypass), and a
   // message containing "; git commit" false-matched the anchored pattern (observed 2026-08-26).
-  const inspectable = inspectableCommand(command);
-  if (!GIT_COMMIT_PATTERN.test(inspectable)) {
+  const views = inspectableViews(command);
+  if (!views.some((v) => GIT_COMMIT_PATTERN.test(v))) {
     // No literal `git commit`, yet the shell may build one: `$(echo git) commit`, `env $(…) git
     // commit`, `S=com; git ${S}mit`, `gi""t com""mit` passed on main unguarded (2026-09-27/28). The
     // statement model names those. No word test in front of it: the shell joins *both* words out of
@@ -178,9 +179,9 @@ export function isGitCommit(command) {
   // exempt a real commit beside it: `git add . && git commit -m "x" && git push --dry-run` on trunk
   // returned false here, so `run()` took its fast path and the trunk commit went unguarded
   // (reproduced 2026-08-27). A real commit is one whose own segment carries no --dry-run.
-  return inspectable
-    .split(/[\n;&|]+/)
-    .some((seg) => GIT_COMMIT_PATTERN.test(seg.trim()) && !/--dry-run\b/i.test(seg));
+  return views.some((v) =>
+    v.split(/[\n;&|]+/).some((seg) => GIT_COMMIT_PATTERN.test(seg.trim()) && !/--dry-run\b/i.test(seg)),
+  );
 }
 
 /**
@@ -197,7 +198,7 @@ export function isGitAmend(command) {
   if (!command || typeof command !== 'string') return false;
   // Matches git commit ... --amend format only (ignores incidental --amend in other commands).
   // Normalisation: an "--amend" inside the commit message must not trigger the always-deny (false deny).
-  return GIT_AMEND_PATTERN.test(inspectableCommand(command));
+  return inspectableViews(command).some((v) => GIT_AMEND_PATTERN.test(v));
 }
 
 /**
@@ -210,8 +211,10 @@ export function isGitBranchCreate(command) {
   if (!command || typeof command !== 'string') return false;
 
   // Normalisation: "; git branch x" inside a message body must not read as a branch creation.
-  const normalized = inspectableCommand(command);
+  return inspectableViews(command).some(createsBranch);
+}
 
+function createsBranch(normalized) {
   // git checkout -b/-B <branch> (new branch creation, -B is force create)
   if (GIT_CHECKOUT_NEWBRANCH_PATTERN.test(normalized)) return true;
 
@@ -470,7 +473,7 @@ function resolveDecisionContext(data, command, projectDir) {
     baseDir,
     // No `|| ''` coercion: falsy stays falsy so `decide()` can tell "unresolved" from "not trunk".
     branch: safeGit('branch --show-current', projectDir),
-    isCreatePrActive: isCreatePrLeaseActive(PROJECT_DIR),
+    isCreatePrActive: isCreatePrLeaseActive(PROJECT_DIR, { sessionId: data?.session_id }),
     // Worktree evaluation: the commit's actual target only (`git -C` / `cd … &&` / else the start cwd),
     // resolved to a real path and confirmed as a linked worktree by git (isWorktreeCommit).
     isWorktree: isWorktreeCommit(command, data?.cwd, baseDir),

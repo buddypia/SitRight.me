@@ -69,7 +69,7 @@ import { enforcesWorktreeOnAllBranches, isTrunkBranch, loadWorktreePolicy } from
 import { resolveShipBaseBranch, resolveShipBaseRefs } from '../lib/ship-base-branch.mjs';
 // Lease lifetime and path come from the SSOT — this guard already honoured the TTL, but held its
 // own copy of the number, so a future change here would silently diverge from the other consumers.
-import { CREATE_PR_ACTIVE_TTL_MS, createPrLeasePath } from '../lib/create-pr-lease.mjs';
+import { CREATE_PR_ACTIVE_TTL_MS, createPrLeaseHeldByOther, createPrLeasePath } from '../lib/create-pr-lease.mjs';
 // Pre-ship step state SSOT (R-CM-030 Rule 13). Read-only — the guard never advances the sequence.
 // Perspective 1 only: the deployed guard is the separate lightweight template under
 // project-scaffolder/templates/hooks/, so this import never reaches a scaffold (R-CM-028).
@@ -523,9 +523,9 @@ export function evaluate(projectDir, opts = {}) {
   const _isPipelineRunActive = opts._isPipelineRunActive || isPipelineRunActive;
   const _isLandedOnBase = opts._isLandedOnBase || ((p) => isLandedOnBase(p, { _safeGit }));
 
-  // Pass if /create-pr is active
+  // Pass if this session's /create-pr is active (another session's lease does not excuse this one)
   const activeFlag = createPrLeasePath(projectDir);
-  if (_isFresh(activeFlag, CREATE_PR_ACTIVE_TTL_MS)) {
+  if (_isFresh(activeFlag, CREATE_PR_ACTIVE_TTL_MS) && !createPrLeaseHeldByOther(projectDir, opts.sessionId)) {
     return { block: false, candidates: [], skipped_attempt: [], not_owned: [], deferred_run_active: [], reason: 'create-pr-active fresh' };
   }
 
@@ -803,7 +803,7 @@ export function buildBlockMessage(projectDir, candidates) {
       lines.push(
         '     → Select the one actually executed. The first two require execution records in PROOF gates[] for marker creation.',
       );
-      lines.push('     → Rejected before completing all 8 steps (exit 1). Approval is recorded in step 2.');
+      lines.push('     → Rejected before completing every step (exit 1). Approval is recorded in step 2.');
       lines.push(`  4. $OPS ship-worktree --worktree "${rel}" --title "<Conventional Commits>" --body "<Summary>"`);
     }
   } else if (unlanded.length > 0) {

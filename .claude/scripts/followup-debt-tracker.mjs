@@ -32,7 +32,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { resolveSystemFile } from '../../.cli/lib/layout-resolver.mjs';
-import { writeJsonAtomicSync } from './lib/atomic-fs.mjs';
+import { execTimeoutFloorMs } from '../../.cli/lib/utils.mjs';
+import { withFileLockSync, writeJsonAtomicSync } from './lib/atomic-fs.mjs';
 
 const DEFAULT_MAX_AGE_DAYS = 30;
 const COMPACT_CLOSED_DAYS = 30; // Archive threshold for closed (addressed|wontfix) items
@@ -166,10 +167,34 @@ export function loadDebt() {
   }
 }
 
+let ledgerLockHeld = false;
+
+/**
+ * Runs a read-modify-write of the ledger under its file lock. Atomic rename keeps the file whole but
+ * does not stop two sessions that read one version from erasing each other's change (design-lookbook
+ * minted the same DEBT-N twice that way). Lock only the read-modify-write: a lock held across a `gh`
+ * call (no timeout) would make every other writer time out behind a slow network.
+ */
+function withDebtLock(fn) {
+  // Not re-entrant: a nested call would wait on our own live lock until it timed out.
+  if (ledgerLockHeld) throw new Error('withDebtLock: already held (nested ledger lock)');
+  return withFileLockSync(getSsotPath(), () => {
+    ledgerLockHeld = true;
+    try {
+      return fn();
+    } finally {
+      ledgerLockHeld = false;
+    }
+  });
+}
+
 /**
  * Updates SSOT. Throws on atomic write failure so caller can handle fail-open/fail-closed.
+ * Refuses to run outside `withDebtLock`: `set-severity` was added after design-lookbook's port and
+ * that port writes it with no lock, so a writer added later is the case to stop, not to trust.
  */
 function saveDebt(debt) {
+  if (!ledgerLockHeld) throw new Error('saveDebt: ledger write outside withDebtLock');
   const path = getSsotPath();
   debt.updated_at = new Date().toISOString();
   writeJsonAtomicSync(path, debt);
@@ -186,26 +211,28 @@ export function closeDebt(id, opts = {}) {
   if (typeof id !== 'string' || id.length === 0) {
     throw new Error('closeDebt: id required');
   }
-  const debt = loadDebt();
-  const item = (debt.items || []).find((it) => it.id === id);
-  if (!item) throw new Error(`closeDebt: debt not found: ${id}`);
-  if (item.status && item.status !== 'open') {
-    throw new Error(`closeDebt: debt already ${item.status}: ${id}`);
-  }
-  const now = opts.now || new Date().toISOString();
-  if (opts.reason) {
-    if (String(opts.reason).trim().length < 10) {
-      throw new Error('closeDebt: wontfix reason ≥10 chars (R-CM-033 #8)');
+  return withDebtLock(() => {
+    const debt = loadDebt();
+    const item = (debt.items || []).find((it) => it.id === id);
+    if (!item) throw new Error(`closeDebt: debt not found: ${id}`);
+    if (item.status && item.status !== 'open') {
+      throw new Error(`closeDebt: debt already ${item.status}: ${id}`);
     }
-    item.status = 'wontfix';
-    item.wontfix_reason = String(opts.reason).trim();
-  } else {
-    item.status = 'addressed';
-    item.addressed_pr = opts.addressedPr || null;
-  }
-  item.addressed_at = now;
-  saveDebt(debt);
-  return item;
+    const now = opts.now || new Date().toISOString();
+    if (opts.reason) {
+      if (String(opts.reason).trim().length < 10) {
+        throw new Error('closeDebt: wontfix reason ≥10 chars (R-CM-033 #8)');
+      }
+      item.status = 'wontfix';
+      item.wontfix_reason = String(opts.reason).trim();
+    } else {
+      item.status = 'addressed';
+      item.addressed_pr = opts.addressedPr || null;
+    }
+    item.addressed_at = now;
+    saveDebt(debt);
+    return item;
+  });
 }
 
 /**
@@ -218,14 +245,16 @@ export function removeDebtItem(id) {
   if (typeof id !== 'string' || id.length === 0) {
     throw new Error('removeDebtItem: id required');
   }
-  const debt = loadDebt();
-  const items = debt.items || [];
-  const idx = items.findIndex((it) => it.id === id);
-  if (idx === -1) return null;
-  const [removed] = items.splice(idx, 1);
-  debt.items = items;
-  saveDebt(debt);
-  return removed;
+  return withDebtLock(() => {
+    const debt = loadDebt();
+    const items = debt.items || [];
+    const idx = items.findIndex((it) => it.id === id);
+    if (idx === -1) return null;
+    const [removed] = items.splice(idx, 1);
+    debt.items = items;
+    saveDebt(debt);
+    return removed;
+  });
 }
 
 /**
@@ -239,14 +268,16 @@ export function restoreDebtItem(item) {
   if (!item || typeof item !== 'object' || typeof item.id !== 'string' || item.id.length === 0) {
     throw new Error('restoreDebtItem: item with id required');
   }
-  const debt = loadDebt();
-  const items = debt.items || [];
-  if (!items.some((it) => it.id === item.id)) {
-    items.push(item);
-    debt.items = items;
-    saveDebt(debt);
-  }
-  return item;
+  return withDebtLock(() => {
+    const debt = loadDebt();
+    const items = debt.items || [];
+    if (!items.some((it) => it.id === item.id)) {
+      items.push(item);
+      debt.items = items;
+      saveDebt(debt);
+    }
+    return item;
+  });
 }
 
 function nextId(items) {
@@ -613,6 +644,7 @@ function resolveRepoUrl() {
     const url = execFileSync('gh', ['repo', 'view', '--json', 'url', '--jq', '.url'], {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: Math.max(5000, execTimeoutFloorMs()),
     });
     return url.trim() || null;
   } catch {
@@ -673,8 +705,6 @@ function cmdRegister(args) {
     return 0;
   }
 
-  const debt = loadDebt();
-  const now = new Date().toISOString();
   // A caller that already holds the PR URL (ship) passes it, so registering costs no `gh` call.
   let sourceUrl = readOption(args, '--source-url');
   if (!sourceUrl) {
@@ -693,54 +723,59 @@ function cmdRegister(args) {
     process.exit(1);
   }
 
-  const existingDescriptions = new Set(
-    debt.items
-      .filter((it) => it.source_pr === prNumber)
-      .map((it) => normalizeDescription(it.description)),
-  );
+  const { registered, misusedScales, unreadGrades, continuations } = withDebtLock(() => {
+    const debt = loadDebt();
+    const now = new Date().toISOString();
+    const existingDescriptions = new Set(
+      debt.items
+        .filter((it) => it.source_pr === prNumber)
+        .map((it) => normalizeDescription(it.description)),
+    );
 
-  // Snapshotted before the loop: ids minted in this run cannot be cited by it, and letting the set
-  // grow would make item B "continue" a row item A just created.
-  const openIds = new Set(debt.items.filter((it) => it.status === 'open').map((it) => it.id));
+    // Snapshotted before the loop: ids minted in this run cannot be cited by it, and letting the set
+    // grow would make item B "continue" a row item A just created.
+    const openIds = new Set(debt.items.filter((it) => it.status === 'open').map((it) => it.id));
 
-  const registered = [];
-  // Collected here rather than stored on the entry: `misusedScale` is a fact about the *line that
-  // was read*, not about the debt, and the record schema has no field for it. Same for a grade the
-  // parser saw but could not read.
-  const misusedScales = [];
-  const unreadGrades = [];
-  const continuations = [];
-  for (const item of parsed) {
-    const key = normalizeDescription(item.description);
-    if (existingDescriptions.has(key)) continue;
-    const entry = {
-      id: nextId(debt.items),
-      source_pr: prNumber,
-      ...(sourceUrl ? { source_pr_url: sourceUrl } : {}),
-      category,
-      // Per-item marker beats the run-wide flag: the more specific statement wins. R-CM-033
-      // Rule 5's LOW stays the default for an unmarked line.
-      severity: item.severity ?? severity,
-      description: item.description,
-      files: item.files,
-      added_at: now,
-      status: 'open',
-      addressed_pr: null,
-      addressed_at: null,
-      wontfix_reason: null,
-    };
-    debt.items.push(entry);
-    registered.push(entry);
-    if (item.misusedScale) misusedScales.push({ id: entry.id, token: item.misusedScale });
-    else if (!item.severity) {
-      const token = unreadLeadingGrade(item.description);
-      if (token) unreadGrades.push({ id: entry.id, token });
+    const registered = [];
+    // Collected here rather than stored on the entry: `misusedScale` is a fact about the *line that
+    // was read*, not about the debt, and the record schema has no field for it. Same for a grade the
+    // parser saw but could not read.
+    const misusedScales = [];
+    const unreadGrades = [];
+    const continuations = [];
+    for (const item of parsed) {
+      const key = normalizeDescription(item.description);
+      if (existingDescriptions.has(key)) continue;
+      const entry = {
+        id: nextId(debt.items),
+        source_pr: prNumber,
+        ...(sourceUrl ? { source_pr_url: sourceUrl } : {}),
+        category,
+        // Per-item marker beats the run-wide flag: the more specific statement wins. R-CM-033
+        // Rule 5's LOW stays the default for an unmarked line.
+        severity: item.severity ?? severity,
+        description: item.description,
+        files: item.files,
+        added_at: now,
+        status: 'open',
+        addressed_pr: null,
+        addressed_at: null,
+        wontfix_reason: null,
+      };
+      debt.items.push(entry);
+      registered.push(entry);
+      if (item.misusedScale) misusedScales.push({ id: entry.id, token: item.misusedScale });
+      else if (!item.severity) {
+        const token = unreadLeadingGrade(item.description);
+        if (token) unreadGrades.push({ id: entry.id, token });
+      }
+      const cited = citedOpenDebts(item.description, openIds);
+      if (cited.length) continuations.push({ id: entry.id, cited });
     }
-    const cited = citedOpenDebts(item.description, openIds);
-    if (cited.length) continuations.push({ id: entry.id, cited });
-  }
 
-  saveDebt(debt);
+    saveDebt(debt);
+    return { registered, misusedScales, unreadGrades, continuations };
+  });
 
   // Emitted on **both** channels on purpose. stderr serves a human at a terminal; `--json` stdout
   // serves `ops.mjs#registerFollowupDebtFromPr`, the only production caller — and it pipes the
@@ -762,14 +797,14 @@ function cmdRegister(args) {
         `${id}: ${token} is the Actions scale (P0/P1/P2), not a severity — this ledger is keyed on ` +
         `CRITICAL/HIGH/MEDIUM/LOW (R-CM-030 Rule 14). Recorded as ${severity} and the marker was ` +
         `left in the text; no mapping was invented. Restate it as a severity, or escalate with ` +
-        `\`register --severity\`.`,
+        `\`set-severity --id ${id} --severity <CRITICAL|HIGH|MEDIUM|LOW>\`.`,
     ),
     ...unreadGrades.map(
       ({ id, token }) =>
         `${id}: ${token} leads this line but was not read as a severity — the forms read are ` +
         `\`[${token}]\`, \`${token}:\` and \`${token} —\`, optionally behind P0/P1/P2 or inside **bold**. ` +
         `Recorded as ${severity} and the text was left as written. Restate it in one of those ` +
-        `forms, or escalate with \`register --severity\`.`,
+        `forms, or escalate with \`set-severity --id ${id} --severity ${token}\`.`,
     ),
   ];
   // `droppedWarnings` are already on stderr from the early path above; only the JSON channel below
@@ -832,41 +867,82 @@ function cmdClose(args) {
   }
   const id = args[idIdx + 1];
 
-  const debt = loadDebt();
-  const item = debt.items.find((it) => it.id === id);
-  if (!item) {
-    console.error(`Error: ${id} not found`);
+  // Usage is checked before the lock, so a malformed call fails at once instead of queueing.
+  const wontfix = args.includes('--wontfix');
+  const reasonIdx = args.indexOf('--reason');
+  const prIdx = args.indexOf('--addressed-pr');
+  if (wontfix && (reasonIdx < 0 || !args[reasonIdx + 1] || args[reasonIdx + 1].length < 10)) {
+    console.error('Error: --reason "..." required (min 10 chars) for --wontfix');
     process.exit(1);
   }
-  if (item.status !== 'open') {
-    console.error(`Error: ${id} already ${item.status}`);
+  if (!wontfix && (prIdx < 0 || !args[prIdx + 1])) {
+    console.error('Error: --addressed-pr <num> required (or use --wontfix)');
     process.exit(1);
   }
 
-  const now = new Date().toISOString();
-  if (args.includes('--wontfix')) {
-    const reasonIdx = args.indexOf('--reason');
-    if (reasonIdx < 0 || !args[reasonIdx + 1] || args[reasonIdx + 1].length < 10) {
-      console.error('Error: --reason "..." required (min 10 chars) for --wontfix');
-      process.exit(1);
+  // Exit codes are returned, not `process.exit`ed, so the lock is released on the way out.
+  return withDebtLock(() => {
+    const debt = loadDebt();
+    const item = debt.items.find((it) => it.id === id);
+    if (!item) {
+      console.error(`Error: ${id} not found`);
+      return 1;
     }
-    item.status = 'wontfix';
-    item.wontfix_reason = args[reasonIdx + 1];
-    item.addressed_at = now;
-  } else {
-    const prIdx = args.indexOf('--addressed-pr');
-    if (prIdx < 0 || !args[prIdx + 1]) {
-      console.error('Error: --addressed-pr <num> required (or use --wontfix)');
-      process.exit(1);
+    if (item.status !== 'open') {
+      console.error(`Error: ${id} already ${item.status}`);
+      return 1;
     }
-    item.status = 'addressed';
-    item.addressed_pr = parseInt(args[prIdx + 1], 10);
+
+    const now = new Date().toISOString();
+    if (wontfix) {
+      item.status = 'wontfix';
+      item.wontfix_reason = args[reasonIdx + 1];
+    } else {
+      item.status = 'addressed';
+      item.addressed_pr = parseInt(args[prIdx + 1], 10);
+    }
     item.addressed_at = now;
+
+    saveDebt(debt);
+    console.log(`${id} → ${item.status}`);
+    return 0;
+  });
+}
+
+function cmdSetSeverity(args) {
+  const id = readOption(args, '--id');
+  if (!id) {
+    console.error('Error: --id DEBT-<n> required');
+    process.exit(1);
+  }
+  const rawSeverity = readOption(args, '--severity');
+  const severity = rawSeverity ? rawSeverity.toUpperCase() : '';
+  if (!SEVERITIES.has(severity)) {
+    console.error(`Error: --severity must be one of ${Array.from(SEVERITIES).join(', ')}`);
+    process.exit(1);
   }
 
-  saveDebt(debt);
-  console.log(`${id} → ${item.status}`);
-  return 0;
+  return withDebtLock(() => {
+    const debt = loadDebt();
+    const item = debt.items.find((it) => it.id === id);
+    if (!item) {
+      console.error(`Error: ${id} not found`);
+      return 1;
+    }
+
+    const previousSeverity = item.severity;
+    item.severity = severity;
+    saveDebt(debt);
+
+    if (args.includes('--json')) {
+      console.log(
+        JSON.stringify({ ok: true, id, previous_severity: previousSeverity, severity, item }),
+      );
+    } else {
+      console.log(`${id}: severity ${previousSeverity} → ${severity}`);
+    }
+    return 0;
+  });
 }
 
 function cmdAudit(args) {
@@ -933,15 +1009,18 @@ function main() {
       return cmdList(args.slice(1));
     case 'close':
       return cmdClose(args.slice(1));
+    case 'set-severity':
+      return cmdSetSeverity(args.slice(1));
     case 'audit':
       return cmdAudit(args.slice(1));
     default:
-      console.error('Usage: followup-debt-tracker.mjs <register|list|close|audit> [options]');
+      console.error('Usage: followup-debt-tracker.mjs <register|list|close|set-severity|audit> [options]');
       console.error('  register --pr <num> [--from-text "..." | --from-file <path>] [--source-url <url>] [--json]');
       console.error('           [--category code_review_finding|code_reviewer_finding|general_followup]');
       console.error('           [--severity LOW|MEDIUM|HIGH|CRITICAL]');
       console.error('  list [--status open|addressed|wontfix] [--severity CRITICAL|HIGH|MEDIUM|LOW] [--json]');
       console.error('  close --id DEBT-<n> (--addressed-pr <num> | --wontfix --reason "...")');
+      console.error('  set-severity --id DEBT-<n> --severity <LOW|MEDIUM|HIGH|CRITICAL> [--json]');
       console.error('  audit [--max-age-days N] [--json]');
       return 1;
   }

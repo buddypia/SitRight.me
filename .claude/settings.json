@@ -53,11 +53,6 @@
             "type": "command",
             "command": "node \"${CLAUDE_PROJECT_DIR}/.cli/hooks/worktree-owner-tracker.mjs\"",
             "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PROJECT_DIR}/.cli/hooks/milestone-deck-warning.mjs\"",
-            "timeout": 10
           }
         ]
       },

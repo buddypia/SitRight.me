@@ -37,8 +37,8 @@
  * Behavior:
  *   - milestone diff includes working tree changes against merge-base (uncommitted edits form the review subject).
  *   - Output: <main>/.tmp/review-deck/<key>/<stage>/index.html (self-contained HTML). For milestone, <main> is
- *     the repo that owns --worktree, where milestone-deck-warning looks for the deck; a relative --out resolves
- *     there too.
+ *     the repo that owns --worktree, where the ship ledger looks for the deck (`ship-scale.mjs#hasMilestoneDeckTrace`);
+ *     a relative --out resolves there too.
  *   - Feedback loop: review-result.json via ship-deck-bridge.
  *
  * Exit codes: 0 success / 1 invalid arguments or collection failure
@@ -56,6 +56,7 @@ import {
   safeBranchKey,
 } from '../../.cli/lib/worktree-plan-path.mjs';
 import { parseNameStatusRows } from '../../.cli/lib/worktree-ship-report.mjs';
+import { SAFE_EXEC_MAX_BUFFER, withoutInheritedRepository } from '../../.cli/lib/utils.mjs';
 import { resolveMainRepoRoot } from '../../.cli/lib/worktree-path.mjs';
 import { resolveMainRoot } from './mark-pre-ship-confirmed.mjs';
 import { slugify } from './lib/ship-deck-core.mjs';
@@ -84,6 +85,7 @@ import {
   renderSpecDeckHtml,
   renderUiDeckHtml,
 } from './lib/review-deck-render.mjs';
+import { ensureBridgeToken } from './ship-deck-bridge.mjs';
 
 
 /**
@@ -141,7 +143,15 @@ export function collectMilestoneGitData({ worktreePath, baseRef, execFn }) {
 }
 
 function defaultExec(gitArgs) {
-  return execFileSync('git', gitArgs, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  // The milestone diff of a branch that regenerates artifacts runs to tens of MB; the 1 MB
+  // default maxBuffer failed it with ENOBUFS. An inherited GIT_DIR outranks the `-C <worktree>` the
+  // caller passes, so it is scrubbed.
+  return execFileSync('git', gitArgs, {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    maxBuffer: SAFE_EXEC_MAX_BUFFER,
+    env: withoutInheritedRepository(),
+  });
 }
 
 /** Max byte limit for embedding untracked file contents */
@@ -173,6 +183,7 @@ function resolveBaseRef(worktreePath, explicitBase) {
     try {
       execFileSync('git', ['-C', worktreePath, 'rev-parse', '--verify', '--quiet', cand], {
         stdio: 'ignore',
+        env: withoutInheritedRepository(),
       });
       return cand;
     } catch {
@@ -248,10 +259,11 @@ function enforcePlainLanguage(model) {
   return { ...model, glossary: matches };
 }
 
-function writeDeck({ outDir, html, payload }) {
+/** `render` receives the bridge token so the deck can authenticate its POST /result. */
+function writeDeck({ outDir, render, payload }) {
   mkdirSync(outDir, { recursive: true });
   const outPath = join(outDir, 'index.html');
-  writeFileSync(outPath, html, 'utf8');
+  writeFileSync(outPath, render(ensureBridgeToken(outDir)), 'utf8');
   const resultJsonPath = join(outDir, 'review-result.json');
   process.stdout.write(
     `${JSON.stringify(
@@ -286,7 +298,7 @@ function runSpecStage(args, mainRoot) {
   );
   writeDeck({
     outDir: resolveOutDir(args, mainRoot, [model.docKey, 'spec']),
-    html: renderSpecDeckHtml(model),
+    render: (bridgeToken) => renderSpecDeckHtml({ ...model, bridgeToken }),
     payload: {
       stage: 'spec',
       docKey: model.docKey,
@@ -340,13 +352,13 @@ function runMilestoneStage(args, mainRoot) {
       ...readOptionalInputs(args, mainRoot, planText),
     }),
   );
-  // Not the cwd repo: for a worktree of another repo, milestone-deck-warning looks in the owning one.
+  // Not the cwd repo: for a worktree of another repo, the ship ledger looks in the owning one.
   writeDeck({
     outDir: resolveOutDir(args, resolveMainRepoRoot(worktreePath) || mainRoot, [
       safeBranchKey(branch),
       `milestone-${slugify(model.milestoneLabel, 'checkpoint')}`,
     ]),
-    html: renderMilestoneDeckHtml(model),
+    render: (bridgeToken) => renderMilestoneDeckHtml({ ...model, bridgeToken }),
     payload: {
       stage: 'milestone',
       branch,
@@ -395,7 +407,7 @@ function runPlanStage(args, mainRoot) {
   );
   writeDeck({
     outDir: resolveOutDir(args, mainRoot, [branch ? safeBranchKey(branch) : model.docKey, 'plan']),
-    html: renderPlanDeckHtml(model),
+    render: (bridgeToken) => renderPlanDeckHtml({ ...model, bridgeToken }),
     payload: {
       stage: 'plan',
       branch: model.branch,
@@ -426,7 +438,7 @@ function runUiStage(args, mainRoot) {
   );
   writeDeck({
     outDir: resolveOutDir(args, mainRoot, [model.docKey, 'ui']),
-    html: renderUiDeckHtml(model),
+    render: (bridgeToken) => renderUiDeckHtml({ ...model, bridgeToken }),
     payload: {
       stage: 'ui',
       docKey: model.docKey,

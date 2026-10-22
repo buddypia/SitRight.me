@@ -48,7 +48,12 @@ import { HookOutput } from '../lib/hook-output.mjs';
 // is a program and stays inspectable (`bash <<EOF\ngit reset --hard origin/main\nEOF` was invisible
 // here until this fix).
 import { stripHeredocData } from '../lib/heredoc-strip.mjs';
-import { anchoredPattern, stripGitGlobalOptions, joinLineContinuations } from '../lib/hook-anchors.mjs';
+import {
+  anchoredPattern,
+  GIT_GLOBAL_VALUE_OPTIONS,
+  gitInspectionViews,
+  joinLineContinuations,
+} from '../lib/hook-anchors.mjs';
 
 /**
  * Destructive git command patterns definition.
@@ -93,8 +98,14 @@ const DESTRUCTIVE_PATTERNS = [
     allowIf: null,
   },
   {
-    // git push --force, git push -f
-    regex: anchoredPattern('git\\s+push\\s+.*(-f\\b|--force\\b)', 'i'),
+    // git push --force, git push -f, and -f bundled with other short flags (-fu / -uf / -nf):
+    // `-f\b` alone needs a boundary right after `f`, so `git push -fu origin main` passed
+    // unblocked (empirical reproduction 2026-10-13). The bundle branch stays inside one command
+    // segment so a later `rm -rf` in a chained command is not read as a push flag.
+    regex: anchoredPattern(
+      'git\\s+push\\b(?:\\s+.*(-f\\b|--force\\b)|[^\\n;&|]*\\s-[a-z]*f[a-z]*\\b)',
+      'i',
+    ),
     description: 'git push --force destroys history on the remote repository',
     allowIf: null,
   },
@@ -133,10 +144,17 @@ const DESTRUCTIVE_PATTERNS = [
 ];
 
 // ── create-pr Safe Command Allowlist ──
+// The lease exempts one command, never a chain: matched anywhere in the text, the allowlist let
+// `git worktree remove x; git reset --hard HEAD~5` through whole while the lease was fresh
+// (empirical reproduction 2026-10-13). A command that chains or substitutes goes to the full check.
 const CREATE_PR_SAFE_PATTERNS = [
-  /\bgit\s+merge\s+--ff-only\b/i,
-  /\bgit\s+worktree\s+remove\b/i,
+  /^\s*git\s+merge\s+--ff-only\b/i,
+  /^\s*git\s+worktree\s+remove\b/i,
 ];
+const SHELL_CHAINING = /[\n;&|`]|[$<>]\(/;
+// Only `-C <path>` is normalized: stripGitGlobalOptions also drops `-c k=v` / `--git-dir`, which let
+// `git -c core.hooksPath=... worktree remove` through the lease (code review 2026-10-14).
+const GIT_DASH_C_PATH = /^\s*git\s+(?:-C\s+\S+\s+)+/; // case-sensitive: -c is a different option
 
 const WORKTREE_SHIPPING_BRANCH_PREFIXES = [
   'feature',
@@ -154,12 +172,19 @@ const WORKTREE_SHIPPING_BRANCH_PREFIXES = [
 ];
 
 function isCreatePrSafeCommand(command) {
-  return CREATE_PR_SAFE_PATTERNS.some(p => p.test(command));
+  if (SHELL_CHAINING.test(command)) return false;
+  const normalized = command.replace(GIT_DASH_C_PATH, 'git ');
+  return CREATE_PR_SAFE_PATTERNS.some(p => p.test(normalized));
 }
 
 
 /**
- * Strips commit message body in `git commit -m <body>` from inspection.
+ * Strips commit message body in `git commit -m <body>` from inspection — only the part the shell
+ * treats as data (adversarial review 2026-10-14; commit-guard's stripQuoted had these right):
+ *   - inside '…' a backslash is literal, so `'a\'` ends there; reading `\'` as an escape swallowed
+ *     `&& git reset --hard && echo '` into the "message"
+ *   - inside "…" an unescaped `$(` or backtick runs a command, so such a body stays inspected —
+ *     `-m "$(git reset --hard)"` is a reset, not a message
  *
  * @param {string} command
  * @returns {string} stripped command
@@ -170,8 +195,8 @@ export function stripCommitMessageBody(command) {
     /-m\s+"\$\(cat\s+<<\s*['"]?(\w+)['"]?\s*[\r\n][\s\S]*?[\r\n]\1\s*\)"/g,
     '-m ""'
   );
-  result = result.replace(/-m\s+'(?:[^'\\]|\\.)*'/g, "-m ''");
-  result = result.replace(/-m\s+"(?:[^"\\]|\\.)*"/g, '-m ""');
+  result = result.replace(/-m\s+'[^']*'/g, "-m ''");
+  result = result.replace(/-m\s+"(?:[^"\\$`]|\\[\s\S]|\$(?!\())*"/g, '-m ""');
   return result;
 }
 
@@ -193,12 +218,29 @@ function inspectableCommand(command) {
   return stripCommitMessageBody(joinLineContinuations(stripHeredocData(command)));
 }
 
-function shellishTokens(commandSegment) {
+// One part of a shell word: a quoted span (its content), an escape pair or a run of plain chars (kept
+// as written — isBoundedPathspec reads the escapes), or an unclosed quote as a plain char.
+const SHELL_PART = /(\s+)|"((?:\\[\s\S]|[^"\\])*)"|'([^']*)'|(\\[\s\S]?|[^\s"'\\]+|["'])/g;
+
+/**
+ * Shell words of one command segment, quotes removed. Adjacent parts join into one word as in the
+ * shell: splitting at every space made `-c a="b c"` three words, so the value option took `a="b` and
+ * `c"` read as the subcommand — `git -c a="b c" restore .` passed (adversarial review 2026-10-14,
+ * round 2). With `stopAtComment`, an unquoted word starting with `#` ends the segment.
+ */
+function shellishTokens(commandSegment, { stopAtComment = false } = {}) {
   const tokens = [];
-  const tokenPattern = /"((?:\\.|[^"\\])*)"|'((?:\\.|[^'\\])*)'|(\S+)/g;
-  for (const match of commandSegment.matchAll(tokenPattern)) {
-    tokens.push(match[1] ?? match[2] ?? match[3]);
+  let word = null;
+  for (const m of commandSegment.matchAll(SHELL_PART)) {
+    if (m[1] !== undefined) {
+      if (word !== null) tokens.push(word);
+      word = null;
+      continue;
+    }
+    if (stopAtComment && word === null && m[4]?.startsWith('#')) return tokens;
+    word = (word ?? '') + (m[2] ?? m[3] ?? m[4]);
   }
+  if (word !== null) tokens.push(word);
   return tokens;
 }
 
@@ -226,21 +268,7 @@ export function extractFastForwardMergeTarget(command) {
         mergeIndex = i;
         break;
       }
-      if (arg === '-C' || arg === '-c' || arg === '--git-dir' || arg === '--work-tree') {
-        i += 1;
-        continue;
-      }
-      if (
-        arg.startsWith('-C') ||
-        arg.startsWith('-c') ||
-        arg.startsWith('--git-dir=') ||
-        arg.startsWith('--work-tree=') ||
-        arg === '--no-pager' ||
-        arg === '--literal-pathspecs' ||
-        arg === '--no-optional-locks'
-      ) {
-        continue;
-      }
+      if (GIT_VALUE_OPTION_SET.has(arg)) i += 1;
     }
 
     if (mergeIndex < 0) continue;
@@ -329,13 +357,15 @@ function hasShellSubstitution(s) {
   return /\$[({]/.test(s) || s.includes('`');
 }
 
+const GIT_VALUE_OPTION_SET = new Set(GIT_GLOBAL_VALUE_OPTIONS);
+
 function findSubcommandIndex(tokens, names) {
   const gitIndex = tokens.findIndex(t => t === 'git');
   if (gitIndex < 0) return -1;
   for (let i = gitIndex + 1; i < tokens.length; i += 1) {
     const t = tokens[i];
     if (names.includes(t)) return i;
-    if (t === '-C' || t === '-c' || t === '--git-dir' || t === '--work-tree') {
+    if (GIT_VALUE_OPTION_SET.has(t)) {
       i += 1;
       continue;
     }
@@ -542,13 +572,7 @@ const CONFIG_READ_SUBCOMMANDS = new Set(['get', 'list', 'edit', 'get-color', 'ge
  * `shellishTokens`, but a word starting with `#` outside quotes ends the command.
  */
 function segmentWordsUntilComment(segment) {
-  const words = [];
-  const tokenPattern = /"((?:\\.|[^"\\])*)"|'((?:\\.|[^'\\])*)'|(\S+)/g;
-  for (const match of segment.matchAll(tokenPattern)) {
-    if (match[3]?.startsWith('#')) break;
-    words.push(match[1] ?? match[2] ?? match[3]);
-  }
-  return words;
+  return shellishTokens(segment, { stopAtComment: true });
 }
 
 /** Splits `git config` arguments into action flags and positional words. */
@@ -672,9 +696,17 @@ export function checkDestructiveGit(command) {
     };
   }
 
-  const hooksPathOverride = inspectable.match(
-    anchoredPattern('git\\b[^\\n;&|]*\\s-c\\s*core\\.hooksPath\\s*=', 'i'),
-  );
+  // Quotes and escapes fall away before git sees the key, so they are dropped before matching:
+  // `-c "core.hooksPath=…"` and `-c core."hooksPath"=…` set it as surely as the bare form, and so
+  // does `--config-env` (adversarial review 2026-10-14, round 2).
+  const hooksPathOverride = inspectable
+    .replace(/["'\\]/g, '')
+    .match(
+      anchoredPattern(
+        'git\\b[^\\n;&|]*\\s(?:-c\\s*|--config-env(?:=|\\s+))core\\.hooksPath\\s*=',
+        'i',
+      ),
+    );
   if (hooksPathOverride) {
     return {
       blocked: true,
@@ -683,9 +715,9 @@ export function checkDestructiveGit(command) {
     };
   }
 
-  const normalized = stripGitGlobalOptions(inspectable);
+  const views = gitInspectionViews(inspectable);
   for (const pattern of DESTRUCTIVE_PATTERNS) {
-    const match = normalized.match(pattern.regex);
+    const match = views.map((v) => v.match(pattern.regex)).find(Boolean);
     if (match) {
       if (pattern.allowIf && pattern.allowIf(command)) {
         continue;
@@ -714,7 +746,7 @@ export async function run(data) {
     const command = data.tool_input?.command || '';
 
     const projectDir = process.env.CLAUDE_PROJECT_DIR || '';
-    if (isCreatePrLeaseActive(projectDir) && isCreatePrSafeCommand(command)) {
+    if (isCreatePrLeaseActive(projectDir, { sessionId: data.session_id }) && isCreatePrSafeCommand(command)) {
       return HookOutput.passthrough();
     }
 

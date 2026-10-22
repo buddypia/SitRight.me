@@ -125,11 +125,24 @@ export function readLatestTaskPassport(projectDir) {
 /**
  * Prunes older session passports to prevent unbounded disk growth.
  *
+ * Every worktree's sessions share this root (`resolveProjectDir` strips `/.worktrees/`), so a
+ * count-only cap deleted the passport of a live session as soon as more than `keep` sessions ran in
+ * parallel — and the deleting writer was whichever session saved last. A directory is now removed
+ * only when it is outside the newest `keep` AND its mtime is older than PASSPORT_STALE_TTL_HOURS
+ * (the threshold `evaluatePassportRestore` applies to `generated_at`; here it is read from the
+ * directory, so a session idle past it can lose a passport restore would still surface as stale).
+ * The writer's own directory survives because a successful write renames its passport into that
+ * directory just before the prune, which refreshes the directory's mtime. Parallel sessions can
+ * therefore push the count above `keep` for up to a day; that is the price of never deleting live
+ * state.
+ *
  * @param {string} projectDir
  * @param {number} [keep]
+ * @param {{ nowMs?: number }} [opts]
  */
-export function pruneSessionPassports(projectDir, keep = MAX_SESSION_PASSPORTS) {
+export function pruneSessionPassports(projectDir, keep = MAX_SESSION_PASSPORTS, { nowMs = Date.now() } = {}) {
   try {
+    const staleBefore = nowMs - PASSPORT_STALE_TTL_HOURS * 60 * 60 * 1000;
     const bySession = join(sessionRoot(projectDir), 'by-session');
     if (!existsSync(bySession)) return;
     const entries = readdirSync(bySession, { withFileTypes: true })
@@ -141,8 +154,9 @@ export function pruneSessionPassports(projectDir, keep = MAX_SESSION_PASSPORTS) 
         return { dir, mtime };
       })
       .sort((a, b) => b.mtime - a.mtime);
-    for (const stale of entries.slice(keep)) {
-      rmSync(stale.dir, { recursive: true, force: true });
+    for (const old of entries.slice(keep)) {
+      if (old.mtime >= staleBefore) continue;
+      rmSync(old.dir, { recursive: true, force: true });
     }
   } catch {}
 }

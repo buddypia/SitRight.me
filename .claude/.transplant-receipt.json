@@ -5,18 +5,18 @@
   "bundles": {
     "git-worktree-isolation": {
       "title": "Git/Worktree Isolation + AI Safety Git Guards + Worktree Creation Tools (Multi-CLI)",
-      "bundle_version": "1.3",
+      "bundle_version": "1.4",
       "source": {
         "repo": "brief2dev",
-        "commit": "fe1068c76763bc93f921855193e6c6171e72979d"
+        "commit": "061f861a0431e679c1864a9983a216a815b2a752"
       },
-      "transplanted_at": "2026-10-10T04:38:23.150Z",
+      "transplanted_at": "2026-10-22T12:29:21.687Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle git-worktree-isolation --target <this-project-root> --json",
       "files": [
         {
           "path": ".agents/hooks.json",
           "role": "managed",
-          "sha256": "66e1fa35080ea52abae121f5fa4ee5500c5e9a2895723752b161a476d31740e3"
+          "sha256": "2f824938c93db57bbfb15d9783d1ae9c9abdb63450e1fec866726c447f5fd2a2"
         },
         {
           "path": ".claude/config/pre-ship-review-panel-sections.json",
@@ -42,12 +42,12 @@
         {
           "path": ".claude/scripts/create-pr/ops.mjs",
           "role": "managed",
-          "sha256": "4cdb9048712fcf1cf751fe5a8f662a1182bfe51f3a36b4e8004d48a59022a3f0"
+          "sha256": "4c76100711fcb5df19d0679992ddb15cc80802591e9a632e9dba3d6da79f770b"
         },
         {
           "path": ".claude/scripts/followup-debt-tracker.mjs",
           "role": "managed",
-          "sha256": "e8514e4818bec44438f5fbc083861fd2faffe1b350d291bac9150cb58874be06"
+          "sha256": "2af16e4a8eeee701354af52875077b57d55ecb7d842a35017c1777e67168ad25"
         },
         {
           "path": ".claude/scripts/lib/approval-policy.mjs",
@@ -62,7 +62,7 @@
         {
           "path": ".claude/scripts/lib/atomic-fs.mjs",
           "role": "managed",
-          "sha256": "6dde0a0aaeabca8184e726e9ffddae3e6e53b57c335f9b73a85657d810b11461"
+          "sha256": "a0dd31f2999f23a66b7f3c70a5319bc8f5d80c39341dcd6a67f8e66eb770bf64"
         },
         {
           "path": ".claude/scripts/lib/change-reach.mjs",
@@ -137,7 +137,7 @@
         {
           "path": ".claude/scripts/lib/pre-ship-steps.mjs",
           "role": "managed",
-          "sha256": "11274960502e5202963fd312bf3c3dc6b1c8b00fae30310d9907ad76f4e1aeeb"
+          "sha256": "8df9c871889bcc8b8e6a016788c18e377b1f6bb409c67b5f797ad16216b028a4"
         },
         {
           "path": ".claude/scripts/lib/review-deck-core.mjs",
@@ -147,7 +147,7 @@
         {
           "path": ".claude/scripts/lib/review-deck-render.mjs",
           "role": "managed",
-          "sha256": "f9b7c27682cc8f24d370ae423cdc9357dd965e348e8be4f7d6502e64e018591e"
+          "sha256": "89fa858c381f5da4545f9736676ae417ea328e7ae0cab8917b179a55137f9519"
         },
         {
           "path": ".claude/scripts/lib/review-narrative.mjs",
@@ -167,7 +167,7 @@
         {
           "path": ".claude/scripts/lib/ship-deck-render.mjs",
           "role": "managed",
-          "sha256": "f09aed03b96acc0c31e377b5254bc1bc643ceb9d242d60f7d6e43e56f2bb95d2"
+          "sha256": "576aee1ce3eb984a3de5e6fe404ea2f0498d80f9211ceccaa1f4b965ada57b64"
         },
         {
           "path": ".claude/scripts/lib/task-acceptance.mjs",
@@ -177,7 +177,7 @@
         {
           "path": ".claude/scripts/lib/task-passport.mjs",
           "role": "managed",
-          "sha256": "07bad816384eaf2a25a873f12e8e283ba45508fe925df943d41ea0006bc0ddc0"
+          "sha256": "8530d5f415444acb8e88d23d056d29f15a8c4a5c1c5e5aa6952699f02dd26a24"
         },
         {
           "path": ".claude/scripts/lib/worktree-plan-template.mjs",
@@ -197,7 +197,7 @@
         {
           "path": ".claude/scripts/mark-pre-ship-confirmed.mjs",
           "role": "managed",
-          "sha256": "6b08d80ebf2b6f60a13ebd2bf13591805be447d5a5c7cf3fcf5dce64c9eb080d"
+          "sha256": "5670d20aecf650dfa4233a490d40f288abac305a95737038835dffef31735beb"
         },
         {
           "path": ".claude/scripts/pre-ship-steps.mjs",
@@ -217,12 +217,12 @@
         {
           "path": ".claude/scripts/review-deck.mjs",
           "role": "managed",
-          "sha256": "ff94ada16961668bbca0afdddc684a6d6c76ab6ee6d730520a5965a336ac4761"
+          "sha256": "ac990b6e3e22cc05193434a23a79cb8032d2a8bad943f2799033e97c2c6ecf6d"
         },
         {
           "path": ".claude/scripts/ship-deck-bridge.mjs",
           "role": "managed",
-          "sha256": "5bc51b45250afd546fe2967d4f16631bc8e65dc96cffe5242c6c71bd8e2aad13"
+          "sha256": "5879422638587c2c185b0ddab484926b49e6fa6237e4726a5355e65689f6c98e"
         },
         {
           "path": ".claude/scripts/ship-deck.mjs",
@@ -237,7 +237,7 @@
         {
           "path": ".claude/scripts/trunk-ref-guard.mjs",
           "role": "managed",
-          "sha256": "faa9322f472cb245177793ceffbfb3c00327be86bca399350a6bd6e2816f5f51"
+          "sha256": "4f4541b989d20e7e354105073b0731c786d41d40777a2fb97a8f03df5902c5df"
         },
         {
           "path": ".claude/scripts/worktree-init.mjs",
@@ -247,7 +247,7 @@
         {
           "path": ".claude/scripts/worktree-new.mjs",
           "role": "managed",
-          "sha256": "6a04be93d984e7c8a1bc7a28f6441a102a2a13ef9aa0978748b1b46a2a8f18ad"
+          "sha256": "16d5fccac658a0b82fc050b73d74934f6f3ff7df5a3e4c18d2d9a43516e56f47"
         },
         {
           "path": ".claude/scripts/wt-run.mjs",
@@ -276,7 +276,7 @@
         {
           "path": ".claude/skills/create-pr/SKILL.md",
           "role": "managed",
-          "sha256": "d0838daf60a9063095261b4e468c74a5383570c90ed196b4fc71b7f9b2b5f19f"
+          "sha256": "2f281744adff6a2a79ecb339e87f77828b703390664b15d86a166354cab6aad9"
         },
         {
           "path": ".cli/_cli-dispatch.mjs",
@@ -286,22 +286,17 @@
         {
           "path": ".cli/hooks/commit-guard.mjs",
           "role": "managed",
-          "sha256": "892aa402bef20618918b2e29fb014cd810a35e5d56267b2dc8b520b9fbf6f1a3"
+          "sha256": "f28b726145a0fe2bd0414f85d7b0c1d7bc8f42496832078b6c97ba5420cc4848"
         },
         {
           "path": ".cli/hooks/destructive-git-guard.mjs",
           "role": "managed",
-          "sha256": "d132b58e9e151d325dbf8907fd24e9a2c38ac0545a241fac61f9463546e85bf2"
-        },
-        {
-          "path": ".cli/hooks/milestone-deck-warning.mjs",
-          "role": "managed",
-          "sha256": "b49ae6e16e6b5fd35b6ed9afaf615812ed4e761a6cfe7f1406ff25cd77fc10f1"
+          "sha256": "81bfcecedaeda80f46c5d23c1659c5d77cca2d52320ec75f28690d407938a918"
         },
         {
           "path": ".cli/hooks/pre-ship-review-guard.mjs",
           "role": "managed",
-          "sha256": "35b4deb9e0f8cc0c4cd64b4245b53480919688139e2f2158b028a34bad674875"
+          "sha256": "70e609aba6f1267407bfe52b701823b6edccf5f4f6e4e27ff6058d02e8a93a33"
         },
         {
           "path": ".cli/hooks/trunk-start-warning.mjs",
@@ -321,12 +316,12 @@
         {
           "path": ".cli/hooks/worktree-session-owner-guard.mjs",
           "role": "managed",
-          "sha256": "bea36142a76ccc0f181b6836a1f01b7209e87c92ff6faf2739658f47deed2814"
+          "sha256": "edc67cadf0fa90fb3f44cbedaaefd42ced75c1529718a048f382c2006b726bd2"
         },
         {
           "path": ".cli/hooks/worktree-shipping-guard.mjs",
           "role": "managed",
-          "sha256": "f96ef825ad815b789131d613595f141be61eae02b2cbfd1a7edbf7f4724fca63"
+          "sha256": "44d071d7599d6ac5b235196c0e8b1f064cbb357489d2d3bcb1121e4b0915b01d"
         },
         {
           "path": ".cli/lib/apply-patch-paths.mjs",
@@ -341,22 +336,22 @@
         {
           "path": ".cli/lib/bash-segments.mjs",
           "role": "managed",
-          "sha256": "b8849ed9ea249d6429ea186ef9111dedba0e963c0df696022641d0934c21325d"
+          "sha256": "19b3933563a83df5e495f622a281f3c64068d4a5290fb7690e9cd484ef5e9187"
         },
         {
           "path": ".cli/lib/cli-adapter-utils.mjs",
           "role": "managed",
-          "sha256": "9bc87a269a74188b08f0139a8f2807beac1b4a0f0c76d9601da6350fe8a826c1"
+          "sha256": "805861e7766579903eff800bb55a3bea8ed49e4aed4d887e798c8a51bb093815"
         },
         {
           "path": ".cli/lib/create-pr-lease.mjs",
           "role": "managed",
-          "sha256": "ff0b35324e9c53bfe9679a4c5ab8c3fc255a3196b213c20d43591f974ee3b400"
+          "sha256": "379090aaf762f7b44c96d53de0ce7610fb6602486dc1ba9d116f49288e4d6493"
         },
         {
           "path": ".cli/lib/git-commit-target.mjs",
           "role": "managed",
-          "sha256": "99c2b099eb75514479f0c0755552c688d1dfbcd0073961686cf7fa033e07deb1"
+          "sha256": "eabe068d4c5da9473cbf636c660238787a9b008b62fe9ce14e849819d3060aea"
         },
         {
           "path": ".cli/lib/heredoc-strip.mjs",
@@ -366,7 +361,7 @@
         {
           "path": ".cli/lib/hook-anchors.mjs",
           "role": "managed",
-          "sha256": "322ad366f8f43cb8739dfa34ba3cec46147f91cdf79355c0f394cb9b8cebdc13"
+          "sha256": "f7e0faee06e1b18833e72968a18a9c8e145d7f5152ffd4cf6bed27de241a5c5e"
         },
         {
           "path": ".cli/lib/hook-flags.mjs",
@@ -386,17 +381,12 @@
         {
           "path": ".cli/lib/hook-registry.mjs",
           "role": "managed",
-          "sha256": "91d6df8c4a7967ec5db3922312a386b87a40713e9caa089776b980f4e5bc448d"
+          "sha256": "a6c82d84f7e1b7d373d9dd03d72cdae5b1186b0fffd0a75d8db8c3e3f6332445"
         },
         {
           "path": ".cli/lib/layout-resolver.mjs",
           "role": "managed",
           "sha256": "7d7c150474b0b413224ecab4a0622524c0c07f8aa28c49e9a20b1cf1140aca7f"
-        },
-        {
-          "path": ".cli/lib/plan-obligation.mjs",
-          "role": "managed",
-          "sha256": "7b52440233c77b81ea08962502ec12d3639c7e91141cddf918bcf10e4c6e335d"
         },
         {
           "path": ".cli/lib/quality-gate-labels.mjs",
@@ -416,7 +406,7 @@
         {
           "path": ".cli/lib/ship-base-branch.mjs",
           "role": "managed",
-          "sha256": "9a80fb289fab137fe1ac2b1d29c4f195166db28bbaae0b4427c0f39a0406a4e9"
+          "sha256": "acbb1beef833eee22bb304453184e1393bbcebba12bbd96e6b65a70962fc9940"
         },
         {
           "path": ".cli/lib/ship-quality-ledger.mjs",
@@ -426,12 +416,12 @@
         {
           "path": ".cli/lib/ship-scale.mjs",
           "role": "managed",
-          "sha256": "b7d2793fa9fcbf664be513f5e65ed1692b15ac4d968081f44faa43627729d35a"
+          "sha256": "e05f0316e83d46a2cd9004724ee43605c805d24775faf51f00458a5fced227b2"
         },
         {
           "path": ".cli/lib/test-lock.mjs",
           "role": "managed",
-          "sha256": "9f5e91c77b85d595402f8c9866767db117e0b5f61a5da2aaf42b1104b864c890"
+          "sha256": "215aac594a89d2515809f14d192cb7ee5a799de9e16d95b1261c5307af6b8063"
         },
         {
           "path": ".cli/lib/trunk-branch.mjs",
@@ -446,7 +436,7 @@
         {
           "path": ".cli/lib/utils.mjs",
           "role": "managed",
-          "sha256": "6324bae5eccaa0f4d30c5764552bbdab9ff8a1c2b5a993fd02a07d390fd0af11"
+          "sha256": "f5312cf2ba2126ccfc83ba7925ca5fe6eda4fa6c2361e3cb9623654bee43eb7a"
         },
         {
           "path": ".cli/lib/worktree-owner-lease.mjs",
@@ -461,12 +451,12 @@
         {
           "path": ".cli/lib/worktree-plan-path.mjs",
           "role": "managed",
-          "sha256": "e398003c7978affc760df3912ac05024ea83a6f9dad38dcab6b11917e2c46b51"
+          "sha256": "27fcefe400827fa29db247686a65b905394e01e39e43acc9fa7a4c4e7581a71b"
         },
         {
           "path": ".cli/lib/worktree-plan-status.mjs",
           "role": "managed",
-          "sha256": "2d42875267f3ca94d3a83c24fe764e394cc372c5727b79b022bb01eec80cce82"
+          "sha256": "e69ae1ae6f32682478ea48afe1756f241755a329af3b5ce65fd4704c27b46c80"
         },
         {
           "path": ".cli/lib/worktree-ship-report.mjs",
@@ -476,7 +466,7 @@
         {
           "path": ".codex/hooks.json",
           "role": "managed",
-          "sha256": "dd5ad7bdf3eaf49b6c263aa99f55aadd97c9dc237b0b10cda2bc6991f5abbd53"
+          "sha256": "e7acbd71407f7cfdfc2e9e9557779093b9ec699bb34b9c368cf07e6fdf8c755e"
         }
       ],
       "target_notes": [
@@ -555,9 +545,9 @@
       "bundle_version": "1.1",
       "source": {
         "repo": "brief2dev",
-        "commit": "9de27b125e921e7dbff31798c2d976b96896d944"
+        "commit": "061f861a0431e679c1864a9983a216a815b2a752"
       },
-      "transplanted_at": "2026-10-10T00:54:31.017Z",
+      "transplanted_at": "2026-10-22T12:29:22.322Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle feature-delivery-core --target <this-project-root> --json",
       "files": [
         {
@@ -693,17 +683,17 @@
         {
           "path": ".claude/skills/observability-and-instrumentation/MANIFEST.json",
           "role": "managed",
-          "sha256": "2c892702baf13dfd335c15393e733a1b058f58f1c931a2554e9fd3746605f2bf"
+          "sha256": "7e8d31d25e8313bfd7232339cbd4038c769ce58756461a6bc189a2314f21c268"
         },
         {
           "path": ".claude/skills/observability-and-instrumentation/references/observability-checklist.md",
           "role": "managed",
-          "sha256": "de98c1be83546f2c3dd0d3ad08cbfcf7417a78f3d5a6c20a02b9498144998017"
+          "sha256": "d448143482d687ccf8d56d1f0910ea70d39e986f32370ec652f98c1cc546966c"
         },
         {
           "path": ".claude/skills/observability-and-instrumentation/SKILL.md",
           "role": "managed",
-          "sha256": "8019ab3e2b566499eef60faa3a361d5945548b7d3cc98406c75a7149b4bf9955"
+          "sha256": "9a3ab6bd43c872b5d4d8fb136a5bf01867151f964394126f6fe2c5b85c82dde1"
         },
         {
           "path": ".claude/skills/story-decomposer/MANIFEST.json",
@@ -1065,9 +1055,9 @@
       "bundle_version": "1.0",
       "source": {
         "repo": "brief2dev",
-        "commit": "9de27b125e921e7dbff31798c2d976b96896d944"
+        "commit": "061f861a0431e679c1864a9983a216a815b2a752"
       },
-      "transplanted_at": "2026-10-10T00:54:32.721Z",
+      "transplanted_at": "2026-10-22T12:29:22.564Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle feature-orchestration --target <this-project-root> --json",
       "files": [
         {
@@ -1158,7 +1148,7 @@
         {
           "path": ".claude/skills/feature-pilot/SKILL.md",
           "role": "managed",
-          "sha256": "4e8edefbd332196c4bfe6b3ca6b9e5dd0cc9a7f0be1c182b7bb268821276b5c0"
+          "sha256": "cdf5fe2edffa6b14b4fd687d9afcb9b12cd205240fba742a4c0d9afe7b6800a6"
         }
       ],
       "target_notes": [

@@ -40,7 +40,8 @@ function main() {
   const violations = findTrunkViolations({
     updates,
     policy: loadWorktreePolicy(projectDir),
-    leaseActive: isCreatePrLeaseActive(projectDir),
+    // git hook 은 그 명령을 실행한 Bash 의 환경을 물려받는다 — 다른 세션이 잡은 임대로는 풀리지 않는다.
+    leaseActive: isCreatePrLeaseActive(projectDir, { sessionId: process.env.CLAUDE_CODE_SESSION_ID || null }),
     isPublished: makeIsPublished({ updates, isAncestor }),
     isUnmoved: makeIsUnmoved(commonDir),
   });

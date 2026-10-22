@@ -29,8 +29,8 @@
  *   cmdFinalize removes it, as does init's cleanup of an abandoned session; cmdCleanupWorktree does not touch it.
  */
 
-import { execFileSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, writeFileSync, readFileSync, realpathSync, rmSync, statSync, readdirSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, writeFileSync, readFileSync, realpathSync, rmSync, statSync, readdirSync } from 'node:fs';
 import { basename, join, resolve, dirname, isAbsolute, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -48,7 +48,7 @@ import { removeBranchTaskContract } from '../lib/task-passport.mjs';
 // isAncestor: worktree-new.mjs 의 기존 export 재사용 (merge-base --is-ancestor boolean 화 SSOT)
 import { isAncestor } from '../worktree-new.mjs';
 import { classifyScale } from '../lib/ship-deck-core.mjs';
-import { appendJsonlAtomicSync } from '../lib/atomic-fs.mjs';
+import { appendJsonlAtomicSync, writeTextAtomicSync } from '../lib/atomic-fs.mjs';
 import {
   assessTrunk,
   buildShipRecord,
@@ -82,6 +82,7 @@ import {
   hasBrief2devMarker,
 } from '../../../.cli/lib/layout-resolver.mjs';
 import { resolveMainRepoRoot } from '../../../.cli/lib/worktree-path.mjs';
+import { createPrLeaseContent } from '../../../.cli/lib/create-pr-lease.mjs';
 
 export { buildFileTree };
 
@@ -125,7 +126,6 @@ const WT_DIR = join(STATE_DIR, 'wt');
 const PATCH_FILE = join(STATE_DIR, 'patch');
 const BRANCH_FILE = join(STATE_DIR, 'branch');
 const MSG_FILE = join(STATE_DIR, 'msg');
-const BODY_FILE = join(STATE_DIR, 'body');
 const CONFIG_PATH = join(PROJECT_DIR, '.claude', 'skills', 'create-pr', 'config.json');
 
 const CFG = existsSync(CONFIG_PATH) ? JSON.parse(readFileSync(CONFIG_PATH, 'utf-8')) : {};
@@ -186,13 +186,14 @@ export function retryTransient(fn, opts = {}) {
   const attempts = Number.isInteger(opts.attempts) && opts.attempts > 0 ? opts.attempts : 3;
   const sleep = typeof opts.sleep === 'function' ? opts.sleep : defaultSleepSeconds;
   const baseDelaySec = Number.isFinite(opts.baseDelaySec) ? opts.baseDelaySec : 2;
+  const transient = typeof opts.isTransient === 'function' ? opts.isTransient : isTransient;
   let lastErr;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
       return fn();
     } catch (e) {
       lastErr = e;
-      if (attempt >= attempts || !isTransient(e)) throw e;
+      if (attempt >= attempts || !transient(e)) throw e;
       sleep(Math.min(baseDelaySec * attempt, 8));
     }
   }
@@ -232,23 +233,90 @@ function exec(cmd, opts = {}) {
 const git = (args, opts = {}) => exec(['git', ...args], opts);
 
 /**
- * Builds the gh auth token command using the specified or default account.
+ * `exec` that also returns stderr. `execFileSync` returns only stdout from a run that succeeded,
+ * so a gate's output was lost exactly when the gate passed. Failures throw the same shape as
+ * `execOnce`, so `retryTransient` and its callers read them unchanged.
+ */
+function execCapture(cmd, opts = {}) {
+  const once = () => {
+    const r = spawnSync(cmd[0], cmd.slice(1), {
+      cwd: opts.cwd || PROJECT_DIR,
+      encoding: 'utf-8',
+      timeout: opts.timeout ?? 30_000,
+      env: withoutInheritedRepository(opts.env || process.env),
+      maxBuffer: opts.maxBuffer ?? 256 * 1024 * 1024,
+    });
+    const stdout = r.stdout || '';
+    const stderr = (r.stderr || '').trim();
+    if (r.error || r.status !== 0) {
+      const err = new Error(
+        `${cmd[0]} failed: ${stderr || r.error?.message || `Command failed: ${cmd.join(' ')}`}`,
+      );
+      err.stdout = stdout;
+      err.stderr = stderr;
+      throw err;
+    }
+    return { stdout: stdout.trim(), stderr };
+  };
+  return opts.retry > 1
+    ? retryTransient(once, { attempts: opts.retry, sleep: opts.sleep, isTransient: opts.isTransient })
+    : once();
+}
+
+/**
+ * Observations a gate raised as workflow-command lines (`ci-local-status.mjs#gateNotices` writes
+ * them), as `warnings[]` entries naming where they came from. A passing gate has no other way to
+ * reach the person shipping: R-CM-041 Rule 5 keeps a finding the run could not judge as an
+ * observation, and an observation nobody reads is a dropped finding.
+ */
+function gateNotices(text, source) {
+  return [...text.matchAll(/^::(notice|warning)(?: [^\n]*?)?::(.*)$/gm)].map(
+    ([, kind, message]) => `${source} ${kind}: ${message}`,
+  );
+}
+
+// git, ssh and curl write their own failures at column 0 under these names. A pre-push gate that
+// failed shares the stream, and its reasons ("Test timed out in 30000ms") read as network trouble:
+// retrying them re-ran the whole suite for a verdict that could not change.
+const GIT_OWN_FAILURE_LINE = /^(?:fatal|error|ssh|send-pack|kex_exchange_identification|packet_write_wait|banner exchange|Connection)\b/;
+
+function pushFailedOnNetwork(err) {
+  if (!err.stderr) return isTransient(err);
+  return isTransient(err.stderr.split('\n').filter((l) => GIT_OWN_FAILURE_LINE.test(l)).join('\n'));
+}
+
+/**
+ * `git push`, returning what its pre-push gate observed. git hands the hook its own stdout and
+ * stderr (measured, git 2.56: hook stdout arrives on push stdout), so both are read.
+ */
+export function gitPush(args, opts) {
+  const { stdout, stderr } = execCapture(['git', 'push', ...args], {
+    ...opts,
+    isTransient: pushFailedOnNetwork,
+  });
+  return gateNotices(`${stdout}\n${stderr}`, 'pre-push');
+}
+
+/**
+ * Builds the gh auth token command for the configured account, or null when none is configured.
+ * Without an account ops injects no GH_TOKEN and `gh` picks the account itself (its active login,
+ * or a wrapper that routes by directory). Injecting a bare `gh auth token` would pin the active
+ * login and override that choice — PRs then go out under the wrong account.
  */
 export function buildGhTokenCommand(ghAccount) {
-  return ghAccount ? ['gh', 'auth', 'token', '-u', ghAccount] : ['gh', 'auth', 'token'];
+  return ghAccount ? ['gh', 'auth', 'token', '-u', ghAccount] : null;
 }
 
 let cachedToken = null;
 function ghToken() {
   if (cachedToken) return cachedToken;
   const tokenCmd = buildGhTokenCommand(GH_ACCOUNT);
+  if (!tokenCmd) return null;
   try {
     cachedToken = retryTransient(() => exec(tokenCmd), { attempts: 3 });
   } catch (e) {
-    const err = new Error(
-      `Failed to retrieve gh auth token (${GH_ACCOUNT ? `account: ${GH_ACCOUNT}` : 'default login account'}): ${e.message}`
-    );
-    err.details = { hint: `Check gh auth login status, or specify account in config.github_account: ${CONFIG_PATH}` };
+    const err = new Error(`Failed to retrieve gh auth token (account: ${GH_ACCOUNT}): ${e.message}`);
+    err.details = { hint: `Check that gh is logged in as ${GH_ACCOUNT} (gh auth status), or fix config.github_account: ${CONFIG_PATH}` };
     throw err;
   }
   return cachedToken;
@@ -265,12 +333,15 @@ function ghToken() {
  */
 export const PUSH_TIMEOUT_MS = 1_800_000;
 
-const gh = (args, opts = {}) => exec(['gh', ...args], {
-  timeout: 60_000,
-  retry: 3,
-  ...opts,
-  env: { ...process.env, GH_TOKEN: ghToken(), GH_HOST: 'github.com' },
-});
+const gh = (args, opts = {}) => {
+  const token = ghToken();
+  return exec(['gh', ...args], {
+    timeout: 60_000,
+    retry: 3,
+    ...opts,
+    env: { ...process.env, ...(token && { GH_TOKEN: token }), GH_HOST: 'github.com' },
+  });
+};
 
 function resolveRepo() {
   const url = git(['remote', 'get-url', 'origin']);
@@ -747,7 +818,7 @@ function cmdInit() {
   mkdirSync(STATE_DIR, { recursive: true });
   writeFileSync(join(STATE_DIR, '.gitignore'), '*\n');
   writeFileSync(PATCH_FILE, exec(['git', 'diff', '--cached', '--binary'], { raw: true }));
-  writeFileSync(ACTIVE_FLAG, String(Date.now()));
+  writeTextAtomicSync(ACTIVE_FLAG, createPrLeaseContent());
 
   return { ok: true, stagedFiles, baseCommit: git(['rev-parse', 'HEAD']), warnings };
 }
@@ -760,7 +831,7 @@ function cmdIsolate(args) {
   writeFileSync(BRANCH_FILE, branchName);
   git(['apply', '--index', PATCH_FILE], { cwd: WT_DIR });
 
-  writeFileSync(ACTIVE_FLAG, String(Date.now()));
+  writeTextAtomicSync(ACTIVE_FLAG, createPrLeaseContent());
   return { ok: true, branch: branchName, worktreeDir: WT_DIR };
 }
 
@@ -775,7 +846,7 @@ function cmdCommit(args) {
     : ['commit', '-F', MSG_FILE];
   git(cmdArgs, { cwd: WT_DIR });
 
-  writeFileSync(ACTIVE_FLAG, String(Date.now()));
+  writeTextAtomicSync(ACTIVE_FLAG, createPrLeaseContent());
   return { ok: true, sha: git(['rev-parse', 'HEAD'], { cwd: WT_DIR }).slice(0, 7) };
 }
 
@@ -783,9 +854,21 @@ function cmdCommit(args) {
  * Idempotent PR creation: Reuses open PR with same head and updates title/body.
  */
 export function getOrCreatePr({ base, head, title, body, repo }, ghFn = gh) {
-  mkdirSync(STATE_DIR, { recursive: true });
-  writeFileSync(BODY_FILE, body);
+  // One body file per call, outside STATE_DIR. A single `.tmp/create-pr/body` was shared by every
+  // session: one session's ship rewrote it while another's waited on `gh pr list`, so that PR was
+  // created with the other's body, and a Mode A `init` (autoCleanup) could delete it mid-ship.
+  mkdirSync(join(PROJECT_DIR, '.tmp'), { recursive: true });
+  const bodyDir = mkdtempSync(join(PROJECT_DIR, '.tmp', 'create-pr-body-'));
+  const bodyFile = join(bodyDir, 'body');
+  try {
+    writeFileSync(bodyFile, body);
+    return createOrReusePr({ base, head, title, repo, bodyFile }, ghFn);
+  } finally {
+    rmSync(bodyDir, { recursive: true, force: true });
+  }
+}
 
+function createOrReusePr({ base, head, title, repo, bodyFile }, ghFn) {
   const findExistingPr = () => {
     const existing = ghFn([
       'pr', 'list', '--repo', repo, '--head', head, '--state', 'open',
@@ -798,7 +881,7 @@ export function getOrCreatePr({ base, head, title, body, repo }, ghFn = gh) {
   };
   const useExisting = (found) => {
     try {
-      ghFn(['pr', 'edit', String(found.prNumber), '--repo', repo, '--title', title, '--body-file', BODY_FILE]);
+      ghFn(['pr', 'edit', String(found.prNumber), '--repo', repo, '--title', title, '--body-file', bodyFile]);
     } catch {}
     return { prNumber: found.prNumber, prUrl: found.prUrl, existing: true };
   };
@@ -813,7 +896,7 @@ export function getOrCreatePr({ base, head, title, body, repo }, ghFn = gh) {
   try {
     const url = ghFn([
       'pr', 'create', '--repo', repo, '--base', base, '--head', head,
-      '--title', title, '--body-file', BODY_FILE,
+      '--title', title, '--body-file', bodyFile,
     ]);
     const prNumber = parseInt(url.match(/\/pull\/(\d+)/)?.[1] || '0', 10);
     if (!prNumber) throw new Error(`Failed to parse PR number: ${url}`);
@@ -887,7 +970,9 @@ function createAndMergePr({
       fetchBaseBranch(worktreeDir);
       mergeBaseAndRecheck(worktreeDir, priorWarnings, forceQualityGate);
       verifiedSha = git(['rev-parse', 'HEAD'], { cwd: worktreeDir });
-      git(['push', 'origin', head], { cwd: worktreeDir, timeout: PUSH_TIMEOUT_MS, retry: 3 });
+      priorWarnings.push(
+        ...gitPush(['origin', head], { cwd: worktreeDir, timeout: PUSH_TIMEOUT_MS, retry: 3 }),
+      );
       console.log(`[create-pr] Updated branch pushed. Re-checking PR status...`);
       ({ mergeable, state } = waitMergeable(prNumber, repo));
     }
@@ -959,7 +1044,7 @@ function cmdShipFeature(args) {
 
   const headSha = git(['rev-parse', 'HEAD'], { cwd: WT_DIR });
   git(['push', '-u', 'origin', branch], { cwd: WT_DIR, timeout: PUSH_TIMEOUT_MS, retry: 3 });
-  writeFileSync(ACTIVE_FLAG, String(Date.now()));
+  writeTextAtomicSync(ACTIVE_FLAG, createPrLeaseContent());
 
   const result = createAndMergePr({
     base: BASE_BRANCH, head: branch, headSha, title, body,
@@ -1006,8 +1091,6 @@ function cmdFinalize() {
       worktree_cleaned: true, sync_status: 'fetch_failed',
     };
   }
-  // Same stale-ref pruning as syncMainAfterCleanup.
-  try { git(['remote', 'prune', 'origin'], { timeout: 30_000 }); } catch {}
 
   const hasChanges = git(['status', '--porcelain']).trim().length > 0;
   if (hasChanges) {
@@ -1829,9 +1912,11 @@ export function assertQualityGateNotNoGo(absWtPath, force = false, staleReason =
  * point is the only place the rule can live (same reasoning as `.husky/pre-push`).
  *
  * No-op when the merge changed nothing (`Already up to date`), which is the common case.
+ *
+ * @returns {string[]} what the re-verification observed, for `warnings[]` (empty when none ran)
  */
 export function assertQualityGateFreshAfterBaseMerge(absWtPath, force, deps = {}) {
-  if (force) return;
+  if (force) return [];
   const { record } = readQualityGateRecord(absWtPath);
   if (record && record.verdict !== 'no_go') {
     const staleness = checkQualityGateStaleness(record, absWtPath);
@@ -1844,11 +1929,11 @@ export function assertQualityGateFreshAfterBaseMerge(absWtPath, force, deps = {}
     // silently shipping an unverified merged tree.
     const runnerPresent = deps.runCiMirror ? true : existsSync(join(absWtPath, CI_MIRROR_SCRIPT));
     if (staleness.checked && staleness.stale && diffStatus === 'same' && runnerPresent) {
-      reverifyMergedTree(absWtPath, record, deps);
-      return;
+      return reverifyMergedTree(absWtPath, record, deps);
     }
   }
   assertQualityGateNotNoGo(absWtPath, force, BASE_MERGE_STALE_REASON);
+  return [];
 }
 
 /**
@@ -1894,8 +1979,14 @@ function tailLines(text, n = 40) {
  * `changed` and still throws.
  */
 function reverifyMergedTree(absWtPath, record, deps = {}) {
+  // Both streams: the runner writes its human report — summary and notices — to stderr, so stdout
+  // alone left the gate's `detail` empty.
   const runner =
-    deps.runCiMirror ?? ((wt) => exec(CI_MIRROR_CMD, { cwd: wt, timeout: CI_MIRROR_TIMEOUT_MS }));
+    deps.runCiMirror ??
+    ((wt) => {
+      const { stdout, stderr } = execCapture(CI_MIRROR_CMD, { cwd: wt, timeout: CI_MIRROR_TIMEOUT_MS });
+      return `${stdout}\n${stderr}`;
+    });
   const writer = deps.recordFn ?? recordQualityGate;
   console.log(
     `[ship-worktree] Base merge moved HEAD. Re-verifying the merged tree (${CI_MIRROR_CMD.join(' ')})...`,
@@ -1941,6 +2032,9 @@ function reverifyMergedTree(absWtPath, record, deps = {}) {
     );
   }
   console.log(`[ship-worktree] Merged tree verified. PROOF re-recorded at ${res.headSha?.slice(0, 7)}.`);
+  // The re-recorded PROOF lets the push that follows skip the suite, so this run is the only one
+  // whose observations exist.
+  return gateNotices(output, 'merged-tree re-verification');
 }
 
 /**
@@ -2164,7 +2258,7 @@ function mergeBaseAndRecheck(absWtPath, warnings, force) {
   assertApprovalFreshAfterBaseMerge(absWtPath, force);
   // The merge also added a commit, which invalidates the PROOF asserted before it. Re-earned by
   // measurement when the base is provably the only thing that moved.
-  assertQualityGateFreshAfterBaseMerge(absWtPath, force);
+  warnings.push(...assertQualityGateFreshAfterBaseMerge(absWtPath, force));
 }
 
 function cmdShipWorktree(args) {
@@ -2248,20 +2342,32 @@ function cmdShipWorktree(args) {
 
   const qualitySnapshot = collectShipQualitySnapshot({ absWtPath, branch, baseBranch: BASE_BRANCH });
 
-  git(['push', '-u', 'origin', branch], { cwd: absWtPath, timeout: PUSH_TIMEOUT_MS, retry: 3 });
-
   const noMerge = args['no-merge'] === true;
   const cleanup = args['no-cleanup'] !== true;
   const preserveRun = args['preserve-run'] === true;
 
-  const result = createAndMergePr({
-    base: BASE_BRANCH, head: branch, headSha, title, body,
-    deleteBranch: noMerge ? null : branch,
-    noMerge,
-    worktreeDir: absWtPath,
-    forceQualityGate: args['force-quality-gate'] === true,
-    priorWarnings: supersetWarnings,
-  });
+  let result;
+  try {
+    supersetWarnings.push(
+      ...gitPush(['-u', 'origin', branch], { cwd: absWtPath, timeout: PUSH_TIMEOUT_MS, retry: 3 }),
+    );
+    result = createAndMergePr({
+      base: BASE_BRANCH, head: branch, headSha, title, body,
+      deleteBranch: noMerge ? null : branch,
+      noMerge,
+      worktreeDir: absWtPath,
+      forceQualityGate: args['force-quality-gate'] === true,
+      priorWarnings: supersetWarnings,
+    });
+  } catch (err) {
+    // A re-run does not raise these again: the stamp and the re-recorded PROOF skip the gates that
+    // observed them, so a failed push or PR call is the last chance to report them.
+    err.details = {
+      ...(supersetWarnings.length > 0 ? { warnings: [...supersetWarnings] } : {}),
+      ...err.details,
+    };
+    throw err;
+  }
 
   supersetWarnings.push(
     ...recordShipQualityAndDetectStreak({
@@ -2543,8 +2649,6 @@ function syncMainAfterCleanup(worktreeCleaned, warnings) {
   } catch (e) {
     return fail(`${BASE_BRANCH} fetch failed: ${e.message}`, 'Check remote status and sync manually.', 'fetch_failed');
   }
-  // GitHub deletes merged branches, but `fetch origin <base>` never prunes, so origin/<branch> refs pile up.
-  try { git(['remote', 'prune', 'origin'], { cwd: PROJECT_DIR, timeout: 30_000 }); } catch {}
   if (git(['status', '--porcelain'], { cwd: PROJECT_DIR }).trim().length > 0) {
     return fail(
       'Cannot proceed with sync because local uncommitted changes exist.',
@@ -2738,10 +2842,34 @@ function cmdCleanupWorktree(args, { mergedHead = null } = {}) {
 
   clearWorktreeFromContext(wtPath, warnings);
 
-  return (
-    syncMainAfterCleanup(worktreeCleaned, warnings) ??
-    { ok: true, sync_status: 'synced', worktree_cleaned: worktreeCleaned, warnings }
-  );
+  // Non-null is a finished response: a failure, or `no_remote`, which has no ref to drop.
+  const syncResult = syncMainAfterCleanup(worktreeCleaned, warnings);
+  if (syncResult) return syncResult;
+  if (worktreeCleaned) dropGoneTrackingRef(branch, absWtPath);
+  return { ok: true, sync_status: 'synced', worktree_cleaned: worktreeCleaned, warnings };
+}
+
+/**
+ * Drops `origin/<branch>` of the branch this cleanup removed, once the remote no longer has it.
+ * Ship deletes the merged branch on the remote, but `fetch origin <base>` never prunes, so every
+ * ship left its tracking ref behind. Only this branch's ref, and only after the sync succeeded:
+ * another worktree's stale ref is evidence `assessAheadCommits` and `worktreeTrace` still read,
+ * so a repo-wide `git remote prune origin` would turn their landed cleanup into a refusal.
+ * The ref was also the trace a repeated plain cleanup of the same path landed on; once it is
+ * gone that repeat refuses with "nothing refers to it", which is the truth by then.
+ */
+function dropGoneTrackingRef(headBranch, absWtPath) {
+  // The path names the branch when HEAD cannot: a retry after `fetch_failed` finds the worktree
+  // already gone, and a detached HEAD reads as `HEAD`.
+  const branch = headBranch && headBranch !== 'HEAD' ? headBranch : branchFromWorktreePath(absWtPath);
+  // `origin/HEAD` is a symref: deleting it through the ref would delete `origin/<base>`.
+  if (!branch || branch === 'HEAD' || branch === BASE_BRANCH) return;
+  let listed;
+  // `git` errors carry no exit status, so "absent on the remote" is read from empty output; an
+  // unreachable remote throws and keeps the ref.
+  try { listed = git(['ls-remote', 'origin', `refs/heads/${branch}`], { cwd: PROJECT_DIR }); } catch { return; }
+  if (listed) return;
+  try { git(['update-ref', '--no-deref', '-d', `refs/remotes/origin/${branch}`], { cwd: PROJECT_DIR }); } catch {}
 }
 
 // ═ Dispatch ═

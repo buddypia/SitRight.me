@@ -165,7 +165,7 @@ node .claude/scripts/review-deck.mjs --stage ui --wireframe docs/wireframes/<id>
 - **Deck content and narrative contract**: read `references/review-deck-contract.md` before writing `--narrative-json` (original request, impact map, verbatim sections, visuals, risk levels, required narrative and review-depth fields, CP-SHIP impact-first brief, plain-language rule).
 - **Feedback Discipline (Same as R-CM-030 Rule 12)**: In stage decks (with checklists), user's "re-edit required" (`state:"ng"`) verdict slug/note is used directly as task input — do not re-interpret prose. If bridge was launched, read `review-result.json`. Ship decks have no checklist; verdict and revision instructions are received in chat.
 - **Manual Entrypoint**: User may request deck generation at any time (run command directly).
-- **Enforcement (Transparent Disclosure)**: Prompt-level discipline first. Missing large CP-MILESTONE is surfaced before approval by the `milestone-deck` pre-ship step (WARN, honors a PLAN `(dropped: reason)` waiver). CP-SPEC/CP-PLAN/CP-UI and medium milestones rely on audit tracking (R-CM-024).
+- **Enforcement (Transparent Disclosure)**: Prompt-level only. CP-MILESTONE use is measured, not enforced: the ship ledger records `milestone_deck` per ship. Large ships still need the `ship-deck` pre-ship step (R-CM-030 Rule 12). CP-SPEC/CP-PLAN/CP-UI rely on audit tracking (R-CM-024).
 
 ## Built-in Readiness Gate
 

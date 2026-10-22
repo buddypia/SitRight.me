@@ -22,12 +22,12 @@
           {
             "type": "command",
             "command": "node \"$(dirname \"$(git rev-parse --path-format=absolute --git-common-dir || echo /nonexistent/nogit)\")/.cli/_cli-dispatch.mjs\" .cli/hooks/destructive-git-guard.mjs codex PreToolUse destructive-git-guard",
-            "timeout": 30
+            "timeout": 5
           },
           {
             "type": "command",
             "command": "node \"$(dirname \"$(git rev-parse --path-format=absolute --git-common-dir || echo /nonexistent/nogit)\")/.cli/_cli-dispatch.mjs\" .cli/hooks/commit-guard.mjs codex PreToolUse commit-guard",
-            "timeout": 30
+            "timeout": 5
           },
           {
             "type": "command",
@@ -37,7 +37,12 @@
           {
             "type": "command",
             "command": "node \"$(dirname \"$(git rev-parse --path-format=absolute --git-common-dir || echo /nonexistent/nogit)\")/.cli/_cli-dispatch.mjs\" .cli/hooks/pre-ship-review-guard.mjs codex PreToolUse pre-ship-review-guard",
-            "timeout": 30
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"$(dirname \"$(git rev-parse --path-format=absolute --git-common-dir || echo /nonexistent/nogit)\")/.cli/_cli-dispatch.mjs\" .cli/hooks/worktree-policy-guard.mjs codex PreToolUse worktree-policy-guard",
+            "timeout": 5
           }
         ]
       }

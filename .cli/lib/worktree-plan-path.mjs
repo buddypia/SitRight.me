@@ -190,22 +190,6 @@ export function resolveWorktreeTestLockPath(worktreePath, branch = null) {
 }
 
 /**
- * Absolute path to CP-MILESTONE reminder one-shot marker (R-CM-030 Rule 12) — inside worktree mailbox.
- * Recorded by `milestone-deck-warning` after its single notification, by whichever registry entry reminds
- * first: commit-time `milestone-deck-warning` (PostToolUse Bash) or edit-time `milestone-deck-warning-edit`
- * (PostToolUse Write|Edit).
- *
- * Placed *inside* worktree mailbox (rather than main root .tmp) so marker is destroyed along with worktree,
- * structurally eliminating reminder suppression on branch name reuse without GC code (code-review finding 2026-07-18).
- *
- * @param {string} worktreePath — Absolute path to worktree root
- * @param {string|null} branch — Branch name or null (inferred from worktree path)
- */
-export function resolveMilestoneReminderPath(worktreePath, branch = null) {
-  return resolveMailboxFile(worktreePath, branch, 'milestone-reminder-shown');
-}
-
-/**
  * Absolute path to worktree session ownership sidecar (`.session-owner`) (R-CM-036).
  * Recorded with 1-line session_id upon creation by `worktree-owner-tracker` (PostToolUse),
  * read by `worktree-session-owner-guard` (PreToolUse Layer 2) to evaluate ownership.

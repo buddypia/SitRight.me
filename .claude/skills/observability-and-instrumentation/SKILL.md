@@ -20,7 +20,7 @@ description: |
 > **Core Concept**: "Unobservable code is unmaintainable code." Observability is the capability to infer the internal state of a production system solely from its external telemetry.
 > Instrumentation is not an afterthought added after release; like automated tests, it is authored **concurrently** with feature code.
 
-Origin: `oss/agent-skills/skills/observability-and-instrumentation/SKILL.md` (agent-skills project, MIT). Native adaptation — added integration guidance across brief2dev's 3 platform lineups (Next.js / Flutter / Tauri) with idiomatic code examples.
+Origin: `oss/agent-skills/skills/observability-and-instrumentation/SKILL.md` (agent-skills project, MIT). Native adaptation — added integration guidance across brief2dev's current default frameworks (Next.js / Flutter / Tauri) with idiomatic code examples.
 
 ## Not For / Boundaries
 
@@ -40,7 +40,7 @@ Origin: `oss/agent-skills/skills/observability-and-instrumentation/SKILL.md` (ag
 |---|------|:------:|:--------:|
 | PF-001 | Identify target feature / execution code paths for instrumentation | [ ] | True |
 | PF-002 | Define 2–4 on-call operational questions (instrumentation without questions forbidden) | [ ] | True |
-| PF-003 | Confirm platform lineup (Next.js / Flutter / Tauri) | [ ] | False |
+| PF-003 | Confirm the project's platform and framework (notes below cover Next.js / Flutter / Tauri; others apply the general patterns) | [ ] | False |
 
 ---
 
@@ -132,7 +132,7 @@ Every alerting rule must:
 
 ---
 
-## Lineup Implementation Notes
+## Framework Implementation Notes
 
 ### Web (Next.js)
 
