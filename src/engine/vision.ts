@@ -1,12 +1,19 @@
-import type { FaceLandmarker, PoseLandmarker } from '@mediapipe/tasks-vision';
+import type {
+  FaceLandmarker,
+  FilesetResolver,
+  PoseLandmarker,
+} from '@mediapipe/tasks-vision';
+import { poseModelPath, type PoseModel } from '@/core/poseModel';
 import type { VisionFrame } from '@/core/types';
 import { installThirdPartyTelemetryBlocker } from './telemetry';
 
 const WASM_PATH = '/mediapipe/wasm';
-const POSE_MODEL = '/mediapipe/models/pose_landmarker_full.task';
 const FACE_MODEL = '/mediapipe/models/face_landmarker.task';
 
 type Delegate = 'GPU' | 'CPU';
+type WasmFileset = Awaited<
+  ReturnType<typeof FilesetResolver.forVisionTasks>
+>;
 
 const MEDIAPIPE_NOISE_PATTERNS = [
   'INFO: Created TensorFlow Lite',
@@ -53,27 +60,39 @@ export function resetMediapipeConsoleFilterForTesting(): void {
 export class VisionEngine {
   private pose: PoseLandmarker | null = null;
   private face: FaceLandmarker | null = null;
+  private fileset: WasmFileset | null = null;
   private lastTimestamp = 0;
   delegate: Delegate | null = null;
+  poseModel: PoseModel | null = null;
+  private requestedPoseModel: PoseModel | null = null;
 
-  async init(): Promise<void> {
+  private async createPose(
+    fileset: WasmFileset,
+    delegate: Delegate,
+    model: PoseModel
+  ): Promise<PoseLandmarker> {
+    const { PoseLandmarker } = await import('@mediapipe/tasks-vision');
+    return PoseLandmarker.createFromOptions(fileset, {
+      baseOptions: { modelAssetPath: poseModelPath(model), delegate },
+      runningMode: 'VIDEO',
+      numPoses: 1,
+      minPoseDetectionConfidence: 0.5,
+      minPosePresenceConfidence: 0.5,
+      minTrackingConfidence: 0.5,
+    });
+  }
+
+  async init(poseModel: PoseModel): Promise<void> {
     if (this.pose && this.face) return;
     installThirdPartyTelemetryBlocker();
     filterMediapipeInfoLogs();
-    const { FilesetResolver, PoseLandmarker, FaceLandmarker } =
+    const { FilesetResolver, FaceLandmarker } =
       await import('@mediapipe/tasks-vision');
     const fileset = await FilesetResolver.forVisionTasks(WASM_PATH);
 
     const create = async (delegate: Delegate) => {
       const [pose, face] = await Promise.all([
-        PoseLandmarker.createFromOptions(fileset, {
-          baseOptions: { modelAssetPath: POSE_MODEL, delegate },
-          runningMode: 'VIDEO',
-          numPoses: 1,
-          minPoseDetectionConfidence: 0.5,
-          minPosePresenceConfidence: 0.5,
-          minTrackingConfidence: 0.5,
-        }),
+        this.createPose(fileset, delegate, poseModel),
         FaceLandmarker.createFromOptions(fileset, {
           baseOptions: { modelAssetPath: FACE_MODEL, delegate },
           runningMode: 'VIDEO',
@@ -99,8 +118,27 @@ export class VisionEngine {
       created = await create('CPU');
       this.delegate = 'CPU';
     }
+    this.fileset = fileset;
     this.pose = created.pose;
     this.face = created.face;
+    this.poseModel = poseModel;
+    this.requestedPoseModel = poseModel;
+  }
+
+  /** 計測を止めずに姿勢推定モデルだけを差し替える（読み込みが終わるまでは今のモデルで推定を続ける） */
+  async setPoseModel(model: PoseModel): Promise<void> {
+    if (!this.fileset || !this.delegate || !this.pose) return;
+    this.requestedPoseModel = model;
+    if (this.poseModel === model) return;
+    const next = await this.createPose(this.fileset, this.delegate, model);
+    // 読み込み中に閉じられた・別のモデルが選び直された場合は捨てる
+    if (!this.pose || this.requestedPoseModel !== model) {
+      next.close();
+      return;
+    }
+    this.pose.close();
+    this.pose = next;
+    this.poseModel = model;
   }
 
   get ready(): boolean {
@@ -134,5 +172,6 @@ export class VisionEngine {
     this.face?.close();
     this.pose = null;
     this.face = null;
+    this.poseModel = null;
   }
 }

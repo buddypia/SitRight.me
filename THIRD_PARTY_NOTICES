@@ -2,7 +2,7 @@ Third-party notices
 
 This repository redistributes the following third-party files.
 
-MediaPipe Tasks Vision 0.10.35 (https://github.com/google-ai-edge/mediapipe)
+MediaPipe Tasks Vision 1.1.1 (https://github.com/google-ai-edge/mediapipe)
   public/mediapipe/wasm/*      WebAssembly runtime from @mediapipe/tasks-vision
   public/mediapipe/models/*    pose_landmarker_full, pose_landmarker_lite and
                                face_landmarker models
