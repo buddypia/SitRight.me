@@ -7,6 +7,7 @@ import { assess } from '@/core/assessment';
 import { CalibrationCollector } from '@/core/calibration';
 import { extractMetrics, shouldersVisible } from '@/core/metrics';
 import { rigFromDeviation } from '@/core/rig';
+import type { PoseModel } from '@/core/poseModel';
 import { MetricSmoother } from '@/core/smoothing';
 import {
   accumulate,
@@ -92,7 +93,7 @@ class PostureController {
       const startTime = performance.now();
       this.setLive({ engine: 'loading' });
       this.enginePromise = this.vision
-        .init()
+        .init(this.store.settings.poseModel)
         .then(() => {
           this.setLive({ engine: 'ready' });
           const durationSec = (performance.now() - startTime) / 1000;
@@ -107,6 +108,15 @@ class PostureController {
         });
     }
     return this.enginePromise;
+  }
+
+  /** 読み込み前なら次の起動時に設定値が使われるので、読み込み済み・読み込み中のときだけ差し替える */
+  setPoseModel(model: PoseModel): void {
+    this.enginePromise
+      ?.then(() => this.vision.setPoseModel(model))
+      .catch((error) => {
+        console.error('[vision] failed to switch pose model', error);
+      });
   }
 
   /** 起動中に重ねて呼ばれても（StrictMode の二重実行など）ストリームを1本に保つ */
