@@ -25,6 +25,11 @@ import {
 } from '@/components/PostureScene/models';
 import type { CameraErrorKind } from '@/engine/camera';
 import {
+  DEFAULT_POSE_MODEL,
+  isPoseModel,
+  type PoseModel,
+} from '@/core/poseModel';
+import {
   DEFAULT_LOCALE,
   detectBrowserLocale,
   isSupportedLocale,
@@ -56,6 +61,8 @@ export interface Settings {
   breakIntervalMin: number;
   periodicMode: PeriodicNotifyMode;
   powerSaver: boolean;
+  /** 姿勢推定モデル */
+  poseModel: PoseModel;
   showCamera: boolean;
   xray: boolean;
   /** 3D シーンに表示するモデル */
@@ -131,6 +138,7 @@ export const DEFAULT_SETTINGS: Settings = {
   breakIntervalMin: 45,
   periodicMode: 'auto',
   powerSaver: false,
+  poseModel: DEFAULT_POSE_MODEL,
   showCamera: true,
   xray: true,
   avatar: DEFAULT_AVATAR,
@@ -271,6 +279,8 @@ export const useAppStore = create<AppState>()(
         }
         // 削除されたモデルなど、知らない値は既定のモデルに戻す
         if (!isAvatar(settings.avatar)) settings.avatar = DEFAULT_AVATAR;
+        if (!isPoseModel(settings.poseModel))
+          settings.poseModel = DEFAULT_POSE_MODEL;
         const validThemes: SoundTheme[] = [
           'snap-horn',
           'snap-bio',
