@@ -57,6 +57,11 @@ export function localePath(locale: Locale): string {
   return locale === DEFAULT_LOCALE ? '/' : `/${locale}`;
 }
 
+/** 言語ごとの解説ページ（仕組み・よくある質問）の URL。/guide・/ja/guide・/ko/guide */
+export function guidePath(locale: Locale): string {
+  return locale === DEFAULT_LOCALE ? '/guide' : `/${locale}/guide`;
+}
+
 /** 言語ごとのページ（/・/ja・/ko）なら true。/lab などは含まない */
 export function isLocalePath(pathname: string): boolean {
   return pathname === '/' || localeFromPath(pathname) !== null;
@@ -132,6 +137,7 @@ const ja = {
   demoLabel: 'デモ表示',
   disclaimer:
     '本アプリは医療機器ではなく、診断を行うものではありません。痛みやしびれがある場合は医療機関に相談してください。',
+  guideLink: '仕組みとよくある質問',
 
   // setup
   setupStep: 'ステップ {n} / 2',
@@ -379,6 +385,11 @@ const ja = {
   testPeriodicNotify: '定期通知をプレビュー',
   off: 'オフ',
   powerSaver: '省電力モード（計測頻度を下げる）',
+  poseModel: '姿勢推定モデル',
+  poseModel_lite: '軽量',
+  poseModel_full: '高精度',
+  poseModelHint:
+    '軽量は読み込みが速く、処理も軽めです。判定が揺れやすいときは高精度に切り替えてください。',
   language: '言語',
   resetData: '記録と基準をすべて削除',
   resetConfirm: 'もう一度押すと削除します',
@@ -510,6 +521,7 @@ const en: Messages = {
   demoLabel: 'Demo',
   disclaimer:
     'SitRight is not a medical device and does not diagnose. See a professional if you have pain or numbness.',
+  guideLink: 'How it works & FAQ',
 
   setupStep: 'Step {n} of 2',
   setupTitle: 'Position your camera',
@@ -753,6 +765,11 @@ const en: Messages = {
   testPeriodicNotify: 'Preview periodic notification',
   off: 'Off',
   powerSaver: 'Power saver (measure less often)',
+  poseModel: 'Pose model',
+  poseModel_lite: 'Light',
+  poseModel_full: 'Accurate',
+  poseModelHint:
+    'Light loads faster and uses less processing. If detection feels unstable, switch to Accurate.',
   language: 'Language',
   resetData: 'Delete all history and baseline',
   resetConfirm: 'Press again to delete',
@@ -880,6 +897,7 @@ const ko: Messages = {
   demoLabel: '데모 표시',
   disclaimer:
     '이 앱은 의료기기가 아니며 진단을 하지 않아요. 통증이나 저림이 있으면 의료기관에 상담하세요.',
+  guideLink: '작동 방식과 자주 묻는 질문',
 
   // setup
   setupStep: '단계 {n} / 2',
@@ -1130,6 +1148,11 @@ const ko: Messages = {
   testPeriodicNotify: '정기 알림 미리보기',
   off: '끔',
   powerSaver: '절전 모드 (측정 빈도 낮춤)',
+  poseModel: '자세 추정 모델',
+  poseModel_lite: '경량',
+  poseModel_full: '고정밀',
+  poseModelHint:
+    '경량은 로딩이 빠르고 처리도 가벼워요. 판정이 자주 흔들리면 고정밀로 바꿔 주세요.',
   language: '언어',
   resetData: '기록과 기준 모두 삭제',
   resetConfirm: '한 번 더 누르면 삭제해요',

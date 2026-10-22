@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { POSE_MODELS, type PoseModel } from '@/core/poseModel';
 import type { PeriodicNotifyMode, Sensitivity } from '@/core/types';
 import { getController } from '@/engine/controller';
 import {
@@ -276,6 +277,20 @@ export function SettingsSheet({
                 t={t}
               />
             </Field>
+            <Field label={t.poseModel} hint={t.poseModelHint}>
+              <Segmented<PoseModel>
+                label={t.poseModel}
+                value={settings.poseModel}
+                onChange={(v) => {
+                  update({ poseModel: v });
+                  controller.setPoseModel(v);
+                }}
+                options={POSE_MODELS.map((v) => ({
+                  value: v,
+                  label: t[`poseModel_${v}`],
+                }))}
+              />
+            </Field>
             <Row label={t.powerSaver}>
               <Toggle
                 checked={settings.powerSaver}
@@ -455,15 +470,20 @@ function Select<T extends string>({
 
 function Field({
   label,
+  hint,
   children,
 }: {
   label: string;
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
     <div>
       <p className="mb-2.5 text-[13px] font-medium text-ink-2">{label}</p>
       {children}
+      {hint && (
+        <p className="mt-2 text-xs leading-relaxed text-ink-3">{hint}</p>
+      )}
     </div>
   );
 }

@@ -17,12 +17,15 @@ const out = path.resolve(import.meta.dirname, '..', 'out');
 rmSync(path.join(out, 'dev'), { recursive: true, force: true });
 
 // ルートレイアウトは全ページ共通で lang="en" を書き出すため、言語ごとのページだけ書き換える
-// （src/i18n/messages.ts の SUPPORTED_LOCALES のうち既定の en 以外）
-for (const locale of ['ja', 'ko']) {
-  const file = path.join(out, `${locale}.html`);
+// （src/i18n/messages.ts の SUPPORTED_LOCALES のうち既定の en 以外。トップと解説ページ）
+for (const [locale, page] of ['ja', 'ko'].flatMap((l) => [
+  [l, `${l}.html`],
+  [l, `${l}/guide.html`],
+])) {
+  const file = path.join(out, page);
   const html = readFileSync(file, 'utf8');
   if (!html.includes('<html lang="en"')) {
-    throw new Error(`${locale}.html: <html lang="en" が見つからない`);
+    throw new Error(`${page}: <html lang="en" が見つからない`);
   }
   writeFileSync(file, html.replace('<html lang="en"', `<html lang="${locale}"`));
 }
