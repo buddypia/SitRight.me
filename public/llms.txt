@@ -1,0 +1,23 @@
+# SitRight
+
+> SitRight is a free, in-browser posture monitor. Using only a laptop or desktop webcam, it estimates forward head posture (text neck), how far the user looks down, and upper-back rounding relative to the user's own upright baseline, shows the posture from the side in 3D, and notifies only when bad posture persists. Pose estimation (MediaPipe Pose and Face Landmarker) runs in the browser; camera video is never recorded or uploaded.
+
+Key facts:
+
+- Price: free. No account and no installation required (can optionally be installed as a PWA).
+- Requirements: a computer with a webcam and a current version of Chrome, Edge, Safari, or Firefox with WebGL.
+- Privacy: camera video and body landmarks stay on the device; the Content Security Policy blocks sending data to third-party servers. Optional anonymous diagnostics (usage time, errors) go only to SitRight's own server and can be turned off in Settings.
+- Languages: English, Japanese, Korean.
+- SitRight is not a medical device and does not diagnose or treat any condition.
+
+## Pages
+
+- [SitRight (English)](https://sitright.pages.dev/): The web app
+- [How SitRight works & FAQ](https://sitright.pages.dev/guide): Forward head posture, neck load by head angle, how SitRight measures posture, desk setup checklist, FAQ, and sources
+- [SitRight の仕組みとよくある質問（日本語）](https://sitright.pages.dev/ja/guide): Japanese guide
+- [SitRight 작동 방식과 자주 묻는 질문 (한국어)](https://sitright.pages.dev/ko/guide): Korean guide
+
+## Optional
+
+- [Source code (GitHub)](https://github.com/buddypia/SitRight.me): MIT-licensed source
+- [Privacy policy](https://github.com/buddypia/SitRight.me/blob/main/PRIVACY.md)
