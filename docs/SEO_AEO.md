@@ -11,6 +11,9 @@
 | アプリのリッチリザルトは `aggregateRating` か `review` が必須。実在しない評価は載せない | [Google: Software app](https://developers.google.com/search/docs/appearance/structured-data/software-app) |
 | ChatGPT 検索に載るには OAI-SearchBot を robots.txt で許可する（GPTBot は学習用で別） | [OpenAI: Overview of OpenAI Crawlers](https://developers.openai.com/api/docs/bots) |
 | Claude の検索は Claude-SearchBot、ユーザーの依頼による取得は Claude-User、学習は ClaudeBot | [Anthropic: crawler の説明](https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler) |
+| Google-Extended は Gemini の学習と、Gemini アプリ・Vertex AI の grounding を止める token。Google 検索への掲載と順位には影響しない | [Google: common crawlers](https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers) |
+| Applebot-Extended は Apple の生成 AI の学習だけを止める。Applebot による検索（Spotlight・Siri・Safari）には影響しない | [Apple: About Applebot](https://support.apple.com/en-us/119829) |
+| Meta-ExternalAgent は学習用。Meta AI の検索は Meta-WebIndexer、リンクのプレビューは facebookexternalhit で別 | [Meta: Web Crawlers](https://developers.facebook.com/docs/sharing/webmasters/web-crawlers) |
 | llms.txt はサイトの要約とリンクを Markdown で置く提案。Google は不要としているが、置いても害はない | [llmstxt.org](https://llmstxt.org/) |
 | 生成エンジンの回答で引用されやすくなるのは、出典の明記・統計値・権威ある文献からの直接引用。キーワードの詰め込みは逆効果 | [Aggarwal et al. GEO: Generative Engine Optimization (KDD 2024)](https://arxiv.org/abs/2311.09735) |
 
@@ -23,11 +26,15 @@
 | 解説ページ | 問いに直接答える要約、出典付きの本文、よくある質問、出典一覧。JS なしで全文が HTML に入る | `src/components/Guide/`、`src/app/{,ja/,ko/}guide/page.tsx` |
 | 構造化データ（解説） | `Article`（`citation` に出典、`dateModified`）・`FAQPage`・`BreadcrumbList`。表示中の文と同じ内容にする | `guideJsonLd` |
 | サイトマップ | トップと解説ページを hreflang の代替 URL 付きで。解説ページは `lastModified` と画像付き | `src/app/sitemap.ts` |
-| robots.txt | すべてのクローラーを許可（`/lab` だけ除外）。AI の検索用クローラーも `*` で許可される | `src/app/robots.ts` |
+| robots.txt | 検索・回答用のクローラーは `*` で許可（`/lab` だけ除外）。生成 AI の学習用クローラーはすべて拒否する | `src/app/robots.ts` |
 | llms.txt | サイトの要約、主な事実、ページ一覧 | `public/llms.txt` |
 | `<html lang>` | /ja・/ko とその解説ページを書き出し後に書き換える | `scripts/postbuild.mjs` |
 
-学習用クローラー（GPTBot・ClaudeBot・Google-Extended）を止めるかは方針の問題なので、現状は止めていない。止めるときは `robots.ts` にその User-Agent だけのグループを足す（グループを足すとそのクローラーは `*` の規則を読まなくなるので、`/lab` の除外も一緒に書く）。
+方針は「検索と AI の回答には載せ、学習には使わせない」。拒否するのは GPTBot・ClaudeBot・Google-Extended・Applebot-Extended・Meta-ExternalAgent・CCBot（Common Crawl。多くのモデルの学習データになる）。OAI-SearchBot・ChatGPT-User・Claude-SearchBot・Claude-User・PerplexityBot・Googlebot・Bingbot・Applebot・Meta-WebIndexer は名前を書かず `*` で許可する。
+
+- 学習用のクローラーを足すときは、運営元の一次資料で「学習用で、検索用とは別の User-Agent」と確かめてから `trainingCrawlers` に足す。検索と学習を 1 つの User-Agent で兼ねるクローラーは止めない（回答に載らなくなる）。
+- Google-Extended を止めると Gemini アプリの grounding にも使われない。Google 検索・AI Overviews・AI Mode は Googlebot で決まるので影響しない。
+- robots.txt は守らないクローラーを止められない。止めたい相手が守っていないと分かったら、Cloudflare の AI Crawl Control で遮断する。
 
 ## 解説ページの書き方
 
