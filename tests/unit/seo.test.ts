@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { SUPPORTED_LOCALES, MESSAGES, guidePath } from '@/i18n/messages';
 import { GUIDE, Guide } from '@/components/Guide';
 import sitemap from '@/app/sitemap';
+import robots from '@/app/robots';
 import * as seo from '@/app/seo';
 import { Home } from '@/app/Home';
 import { setTitleState } from '@/engine/notifier';
@@ -148,6 +149,22 @@ describe('SEO & OGP metadata, images, and static content', () => {
       expect(urls).toContain(seo.siteUrl + guidePath(locale));
     }
     expect(urls).toHaveLength(SUPPORTED_LOCALES.length * 2);
+  });
+
+  it('blocks AI training crawlers but keeps search and answer crawlers allowed', () => {
+    const rules = [robots().rules].flat();
+    const agentsOf = (r: (typeof rules)[number]) => [r.userAgent ?? []].flat();
+    const blocked = rules.find((r) => agentsOf(r).includes('GPTBot'));
+    expect(blocked?.disallow).toBe('/');
+    expect(agentsOf(blocked!)).not.toContain('*');
+    for (const bot of ['ClaudeBot', 'Google-Extended', 'Applebot-Extended', 'Meta-ExternalAgent', 'CCBot']) {
+      expect(agentsOf(blocked!)).toContain(bot);
+    }
+    for (const bot of ['Googlebot', 'Bingbot', 'OAI-SearchBot', 'ChatGPT-User', 'Claude-SearchBot', 'Claude-User', 'PerplexityBot',
+      'Meta-WebIndexer', 'Applebot']) {
+      expect(rules.some((r) => agentsOf(r).includes(bot))).toBe(false);
+    }
+    expect(rules.find((r) => agentsOf(r).includes('*'))).toMatchObject({ allow: '/', disallow: '/lab' });
   });
 
   it('pre-renders localized semantic HTML content and JSON-LD in Home for crawlers', () => {
