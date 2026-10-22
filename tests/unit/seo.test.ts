@@ -149,6 +149,12 @@ describe('SEO & OGP metadata, images, and static content', () => {
       expect(urls).toContain(seo.siteUrl + guidePath(locale));
     }
     expect(urls).toHaveLength(SUPPORTED_LOCALES.length * 2);
+    expect(
+      readFileSync(
+        path.resolve(process.cwd(), 'public/google48d857f6cf4bc674.html'),
+        'utf8'
+      ).trim()
+    ).toBe('google-site-verification: google48d857f6cf4bc674.html');
   });
 
   it('blocks AI training crawlers but keeps search and answer crawlers allowed', () => {
