@@ -29,6 +29,7 @@
 
 - テレメトリ・分析・外部への通信を追加・変更するときは `docs/TELEMETRY_CONTRACT.md` を読んで従う（集計の運用は `docs/ANALYTICS.md`）。
 - UI 文言（ja / en / ko）を追加・変更するときは `docs/UI_COPY_GUIDELINES.md` を読んで従う。
+- メタ情報・構造化データ・サイトマップ・robots・解説ページ（`/guide`）を追加・変更するときは `docs/SEO_AEO.md` を読んで従う。
 - 新機能の追加・機能変更など、開発の依頼を受けたときは `.agents/skills/feature-pilot/SKILL.md` を読んで従う。
 - ユーザーストーリーや要件から SPEC.md と画面ドキュメントを起こすときは `.agents/skills/feature-architect/SKILL.md` を読んで従う。
 - SPEC.md と画面ドキュメントを新しく書くときは `.agents/skills/feature-spec-generator/SKILL.md` を読んで従う。

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { IDEAL_RIG } from '@/core/rig';
 import { unlockAudio } from '@/engine/notifier';
 import { useT } from '@/hooks/useT';
+import { guidePath } from '@/i18n/messages';
 import { useAppStore } from '@/stores/appStore';
 import { PostureScene } from '../PostureScene';
 import type { DemoPattern } from '../PostureScene/PostureScene';
@@ -15,6 +16,7 @@ export function Welcome() {
   const hasBaseline = useAppStore((s) => s.baseline !== null);
   const setPhase = useAppStore((s) => s.setPhase);
   const avatar = useAppStore((s) => s.settings.avatar);
+  const locale = useAppStore((s) => s.settings.locale);
   const [demo, setDemo] = useState<DemoPattern>('ideal');
   const [privacyOpen, setPrivacyOpen] = useState(false);
 
@@ -89,7 +91,10 @@ export function Welcome() {
           </div>
         </div>
         <p className="mt-4 text-[11px] leading-relaxed text-ink-3">
-          {t.disclaimer}
+          {t.disclaimer}{' '}
+          <a href={guidePath(locale)} className="text-good hover:underline">
+            {t.guideLink}
+          </a>
         </p>
       </section>
 
