@@ -57,7 +57,7 @@ Automates the process of turning parallel AI modifications into Feature PRs and 
 node .claude/scripts/create-pr/ops.mjs <command> [--key value ...]
 ```
 
-Configuration: `.claude/skills/create-pr/config.json` — `github_account`, `base_branch` (the PR base and sync target; default `main`), `enforce_ssh_remote` (default false), `superset_check_local_branches` (default true; `false` drops the unpushed-local-branch superset warning at ship time), `milestone_waiver_short_reason` (`warn` | `block`, default `warn` — whether a too-short `cp-milestone-deck` waiver reason blocks the pre-ship step runner). `ops.mjs` automatically injects `GH_TOKEN` via `gh auth token -u`.
+Configuration: `.claude/skills/create-pr/config.json` — `github_account`, `base_branch` (the PR base and sync target; default `main`), `enforce_ssh_remote` (default false), `superset_check_local_branches` (default true; `false` drops the unpushed-local-branch superset warning at ship time). With `github_account` set, `ops.mjs` injects `GH_TOKEN` via `gh auth token -u`; without it, ops injects nothing and `gh` picks the account itself.
 
 | Command | Mode | Arguments | Role |
 |---|---|---|---|
@@ -122,6 +122,7 @@ Flags in `.tmp/create-pr-active` (30-minute mtime freshness) automatically grant
 - **commit-guard**: Blocks manual `git commit` / branch creations outside `/create-pr` → Allowed while active flag is fresh.
 - **destructive-git-guard**: Allows `git merge --ff-only` and `git worktree remove` exclusively (all other destructive commands remain blocked).
 - `init` / `isolate` / `commit` / `ship-feature` write the flag; `finalize` removes it, as does `init` when it cleans up an abandoned session. `cleanup-worktree` does not touch it.
+- The flag records the session that wrote it (`CLAUDE_CODE_SESSION_ID`); a guard that knows its own session honours only its own session's flag, so one session's create-pr does not relax another's guards (parallel worktree sessions). A flag without a session (old format, or written outside Claude Code) applies to every session as before.
 
 **Concurrency Lock**: `init` rejects execution if an active flag is younger than 30 minutes, preventing multi-session collisions and state corruption.
 

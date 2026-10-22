@@ -24,7 +24,7 @@
     },
     {
       "id": "PF-003",
-      "description": "Confirm platform lineup (Next.js / Flutter / Tauri)",
+      "description": "Confirm the project's platform and framework (notes cover Next.js / Flutter / Tauri; others apply the general patterns)",
       "blocking": false
     }
   ],

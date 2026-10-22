@@ -87,25 +87,12 @@ export function readConfiguredShipBaseBranch(
 
 /** `base_branch` as written in the config, or undefined when the file is absent/unreadable/malformed. */
 function readRawBaseBranch(projectDir, existsFn, readFn) {
-  return readCreatePrConfigKey(projectDir, 'base_branch', { existsFn, readFn });
-}
-
-/**
- * One top-level key of the create-pr config as written, or undefined when the file is
- * absent/unreadable/malformed. Shared so other ship-time settings (e.g. pre-ship-steps'
- * `milestone_waiver_short_reason`) read the same file the same fail-open way.
- *
- * @param {string} projectDir Main repository root.
- * @param {string} key
- * @param {{existsFn?: typeof existsSync, readFn?: typeof readFileSync}} [io] Test-injectable.
- */
-export function readCreatePrConfigKey(projectDir, key, { existsFn = existsSync, readFn = readFileSync } = {}) {
   if (typeof projectDir !== 'string' || !projectDir) return undefined;
   const path = join(projectDir, CREATE_PR_CONFIG_RELPATH);
   try {
     if (!existsFn(path)) return undefined;
     const cfg = JSON.parse(String(readFn(path, 'utf-8')));
-    return cfg && typeof cfg === 'object' ? cfg[key] : undefined;
+    return cfg && typeof cfg === 'object' ? cfg.base_branch : undefined;
   } catch {
     return undefined;
   }

@@ -27,7 +27,7 @@
  * `project-scaffolder/templates/scripts/lib/create-pr-lease.mjs` 에 독립 사본을 두고,
  * 동작 동등성은 위 테스트가 강제한다 (trunk-branch.mjs 와 동일한 관행).
  */
-import { existsSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 /** 임대 유효 기간. 기존 두 hook 구현이 각자 정의하던 값을 단일화한 것. */
@@ -39,14 +39,58 @@ export function createPrLeasePath(projectDir) {
 }
 
 /**
+ * 임대 파일의 내용. 쓰는 쪽은 그 세션을 적는다(`CLAUDE_CODE_SESSION_ID`, 없으면 null). 시각은 적지 않는다 —
+ * 만료는 파일의 mtime 으로 본다. 예전 형식(타임스탬프 숫자 하나)과 세션을 모르는 기록은 session null 이다.
+ */
+export function createPrLeaseContent({ session = process.env.CLAUDE_CODE_SESSION_ID || null } = {}) {
+  return JSON.stringify({ session });
+}
+
+// 읽은 내용에서 세션을 꺼낸다. 형식이 맞지 않으면(예전 형식 · 빈 내용) null — 모든 세션에 적용된다.
+function leaseHolder(raw) {
+  try {
+    const parsed = JSON.parse(raw);
+    return typeof parsed?.session === 'string' && parsed.session ? parsed.session : null;
+  } catch {
+    return null;
+  }
+}
+
+function heldByOther(raw, sessionId) {
+  const holder = leaseHolder(raw);
+  return Boolean(holder && sessionId && holder !== sessionId);
+}
+
+/**
  * 임대가 아직 유효한가. 부재·만료·stat 실패는 모두 false —
  * 판정 불능일 때 가드를 여는 쪽으로 기울지 않는다 (fail-safe: 의심스러우면 보호한다).
+ *
+ * 임대는 그것을 잡은 세션의 권한이다 (design-lookbook 2026-10-19 발견). 파일이 저장소에 하나뿐이라
+ * 한 세션의 create-pr 가 잡은 임대가 30분 동안 **다른 모든 세션**의 commit·owner·shipping 가드와
+ * git hook 을 풀고 있었다 — worktree 마다 AI 가 병렬로 일하는 저장소에서 그것은 다른 세션의 main
+ * commit 과 남의 worktree 조작을 통과시킨다. 묻는 쪽이 자기 세션을 알고(`sessionId`) 임대도 세션을
+ * 적었으면 둘이 같을 때만 유효하다. 어느 한쪽이 모르면 예전처럼 본다.
  */
-export function isCreatePrLeaseActive(projectDir, { now = Date.now() } = {}) {
+export function isCreatePrLeaseActive(projectDir, { now = Date.now(), sessionId = null } = {}) {
   const path = createPrLeasePath(projectDir);
   try {
     if (!existsSync(path)) return false;
-    return now - statSync(path).mtimeMs <= CREATE_PR_ACTIVE_TTL_MS;
+    if (now - statSync(path).mtimeMs > CREATE_PR_ACTIVE_TTL_MS) return false;
+    // 읽지 못하면 throw → false. "세션 없음 = 전역" 으로 읽으면 판정 불능이 가드를 연다.
+    return !heldByOther(readFileSync(path, 'utf-8'), sessionId);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 임대가 묻는 세션이 아닌 다른 세션의 것인가 — 둘 다 알 때만 true. 신선도는 보지 않는다.
+ * 읽지 못하면 false(소유자 없음). 신선도를 스스로 재는 Stop 알림(worktree-shipping-guard)용이라,
+ * 차단하는 가드는 이것 대신 `isCreatePrLeaseActive` 를 쓴다.
+ */
+export function createPrLeaseHeldByOther(projectDir, sessionId) {
+  try {
+    return heldByOther(readFileSync(createPrLeasePath(projectDir), 'utf-8'), sessionId);
   } catch {
     return false;
   }

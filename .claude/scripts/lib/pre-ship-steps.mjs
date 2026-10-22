@@ -19,19 +19,10 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { writeJsonAtomicSync } from './atomic-fs.mjs';
-import {
-  defaultGit,
-  checkShipDeckFreshness,
-  hasMilestoneDeckTrace,
-  measureShipScale,
-} from '../../../.cli/lib/ship-scale.mjs';
+import { defaultGit, checkShipDeckFreshness, measureShipScale } from '../../../.cli/lib/ship-scale.mjs';
 import { safeBranchKey, resolveWorktreePlanPath } from '../../../.cli/lib/worktree-plan-path.mjs';
 import { parseUncheckedPlanItems } from '../../../.cli/lib/worktree-plan-status.mjs';
-import {
-  OBLIGATION_MIN_REASON_LENGTH,
-  parseObligationDecisions,
-} from '../../../.cli/lib/plan-obligation.mjs';
-import { readCreatePrConfigKey, resolveShipBaseBranch } from '../../../.cli/lib/ship-base-branch.mjs';
+import { resolveShipBaseBranch } from '../../../.cli/lib/ship-base-branch.mjs';
 import {
   COUNTED_SCALES,
   assessTrunk,
@@ -361,83 +352,6 @@ function readFreshAnswer(ctx, id) {
   return { fresh: true, stale: false, answer: a };
 }
 
-/**
- * Verdict for a large-scale branch that has no milestone deck trace.
- *
- * An accountable waiver must never cost more than saying nothing. A declared exemption used to
- * return BLOCKED while silence returned WARN, and the remedy read "or revert exemption line" — the
- * cheapest way past the gate was deleting the disclosure (design-lookbook PR #55). "No deck exists"
- * also cannot refute an exemption *from producing a deck*: absence is the expected state under a
- * valid waiver, so the old test was circular. What is checkable is whether the waiver is accountable,
- * which `OBLIGATION_MIN_REASON_LENGTH` already defines. The measurement is quoted beside the claim so
- * a reviewer weighs the two together. A too-short reason is WARN like silence (with a remedy asking
- * for a real reason) — never more severe, unless the project opts into `block` (below).
- *
- * `shortReason: 'block'` (create-pr config `milestone_waiver_short_reason`) makes a too-short reason
- * BLOCKED. Silence stays WARN either way: the key tightens what an accountable waiver must carry, it
- * does not re-create the old gradient where deleting the disclosure was cheaper than keeping it —
- * a project choosing `block` accepts that trade explicitly (design-lookbook does).
- *
- * @param {{dropped?: boolean, reason?: string|null, reason_too_short?: boolean}|undefined} waiver
- * @param {{files:number, loc:number, base?:string}|null} scale
- * @param {{shortReason?: 'warn'|'block'}} [options]
- */
-export function evaluateMilestoneWaiver(waiver, scale, { shortReason = 'warn' } = {}) {
-  const measured = scale
-    ? `measured ${scale.files} files / ${scale.loc} LOC vs ${scale.base ?? 'base'}`
-    : 'scale unmeasured';
-  if (!waiver?.dropped) {
-    return {
-      status: STEP_STATUS.WARN,
-      evidence: `Proceeded without interim milestone deck, and without declaring why — ${measured}`,
-      remedy: 'node .claude/scripts/review-deck.mjs --stage milestone (can be generated now)',
-    };
-  }
-  if (waiver.reason_too_short) {
-    // Same severity as silence — a thin reason is still more disclosure than none, so it must not
-    // cost more. The message asks for a real reason instead.
-    const why = waiver.reason ? `too short a reason ("${waiver.reason}")` : 'no reason';
-    return {
-      status: shortReason === 'block' ? STEP_STATUS.BLOCKED : STEP_STATUS.WARN,
-      evidence: `Exemption declared with ${why} — ${measured}`,
-      remedy:
-        `State a real reason (at least ${OBLIGATION_MIN_REASON_LENGTH} characters) on the obligation line, ` +
-        'or generate the deck: node .claude/scripts/review-deck.mjs --stage milestone',
-    };
-  }
-  return {
-    status: STEP_STATUS.WARN,
-    evidence: `Interim milestone deck waived: "${waiver.reason}" — ${measured}`,
-    remedy: null,
-  };
-}
-
-/** Values of the create-pr config key `milestone_waiver_short_reason`; the first is the default. */
-export const MILESTONE_WAIVER_SHORT_REASON_MODES = Object.freeze(['warn', 'block']);
-
-/**
- * `milestone_waiver_short_reason` from the create-pr config. Only the exact lowercase values are
- * honoured; anything else reads as `warn` and carries a warning (a mistyped `"Block"` silently
- * meaning `warn` is exactly the kind of drift a gate setting must not hide).
- *
- * @returns {{mode: 'warn'|'block', warning: string|null}}
- */
-export function readMilestoneWaiverShortReason(projectDir, io) {
-  const raw = readCreatePrConfigKey(projectDir, 'milestone_waiver_short_reason', io);
-  if (raw === undefined || MILESTONE_WAIVER_SHORT_REASON_MODES.includes(raw)) {
-    return { mode: raw ?? 'warn', warning: null };
-  }
-  return {
-    mode: 'warn',
-    warning: `create-pr config milestone_waiver_short_reason ${JSON.stringify(raw)} is not "warn" or "block" — using "warn"`,
-  };
-}
-
-/** Mode only (see readMilestoneWaiverShortReason). */
-export function resolveMilestoneWaiverShortReason(projectDir, io) {
-  return readMilestoneWaiverShortReason(projectDir, io).mode;
-}
-
 export const PRE_SHIP_STEPS = [
   machine('worktree-clean', 'No uncommitted changes in worktree', (ctx) => {
     const out = String(ctx.git(['status', '--porcelain', '--untracked-files=all'])).trim();
@@ -484,12 +398,9 @@ export const PRE_SHIP_STEPS = [
   machine('quality-gate-proof', 'Quality Gate verdict proof is recorded for current HEAD', (ctx) => {
     const rec = ctx.readQualityFn(ctx.worktreeAbs, ctx.branch);
     if (!rec?.record) {
-      const dropped = ctx.obligations?.get('quality-gate-proof');
       return {
         status: STEP_STATUS.BLOCKED,
-        evidence: dropped?.dropped
-          ? 'Exemption declared in PLAN but no PROOF record exists — declaration contradicts facts'
-          : 'quality-gate.json missing or corrupted',
+        evidence: 'quality-gate.json missing or corrupted',
         remedy:
           'Execute Quality Gate and record proof: node .claude/scripts/record-quality-gate.mjs <branch> --json ...',
       };
@@ -540,26 +451,6 @@ export const PRE_SHIP_STEPS = [
           evidence: deck.reason === 'deck_stale' ? 'New commits added after deck generation' : 'Deck missing',
           remedy: `node .claude/scripts/ship-deck.mjs --worktree ${ctx.worktreeAbs} --narrative-json <path>`,
         };
-  }),
-
-  machine('milestone-deck', 'Implementation interim check deck trace exists for large scale changes', (ctx) => {
-    if (!isLargeScale(ctx)) {
-      return { status: STEP_STATUS.NA, evidence: 'Not large scale — interim review not required' };
-    }
-    let trace = false;
-    try {
-      trace = hasMilestoneDeckTrace(ctx.projectDir, safeBranchKey(ctx.branch), {
-        existsFn: ctx.existsFn,
-        readdirFn: ctx.readdirFn,
-      });
-    } catch {
-      return { status: STEP_STATUS.WARN, evidence: 'Trace query failed — unable to evaluate' };
-    }
-    if (trace) return { status: STEP_STATUS.OK, evidence: 'CP-MILESTONE deck trace found' };
-
-    return evaluateMilestoneWaiver(ctx.obligations?.get('cp-milestone-deck'), ctx.scale, {
-      shortReason: ctx.milestoneWaiverShortReason,
-    });
   }),
 
   // DEFECT 2 visibility fix (contract-reconciliation-harness ADR M3): a 0-criteria acceptance
@@ -653,22 +544,17 @@ function projectCrossReview(ctx, readLedgerFn, readLandingsFn) {
 const injected = (value, resolve) => (value !== undefined ? value : resolve());
 
 /**
- * Project-configured knobs the steps read: create-pr `milestone_waiver_short_reason` and the review
- * panel's `approval_choices`. Each is resolved only when not injected.
+ * Project-configured knob the steps read: the review panel's `approval_choices`. Resolved only when
+ * not injected.
  */
-function projectSettings(projectDir, { milestoneWaiverShortReason, approvalChoices } = {}) {
+function projectSettings(projectDir, { approvalChoices } = {}) {
   const warnings = [];
-  const waiver = injected(milestoneWaiverShortReason, () => {
-    const r = readMilestoneWaiverShortReason(projectDir);
-    if (r.warning) warnings.push(r.warning);
-    return r.mode;
-  });
   const choices = injected(approvalChoices, () => {
     const panel = loadReviewPanelConfig(projectDir);
     if (panel.warning) warnings.push(panel.warning);
     return panel.approvalChoices;
   });
-  return { milestoneWaiverShortReason: waiver, approvalChoices: choices, settingsWarnings: warnings };
+  return { approvalChoices: choices, settingsWarnings: warnings };
 }
 
 /** Scale is advisory — an unmeasurable worktree must not fail the whole evaluation. */
@@ -711,16 +597,6 @@ export function defaultAutoApproval(ctx, { readLedgerFn = readLedger, qualityLab
   }
 }
 
-function readObligationDecisions(worktreeAbs, branch, existsFn, readFn) {
-  try {
-    const planPath = resolveWorktreePlanPath(worktreeAbs, branch);
-    if (!existsFn(planPath)) return new Map();
-    return parseObligationDecisions(readFn(planPath, 'utf-8'));
-  } catch {
-    return new Map();
-  }
-}
-
 /**
  * Fills in `evaluateSteps`' test-injectable defaults (git/fs accessors, ledger/quality readers). Kept
  * separate from `evaluateSteps` itself — each default expression is its own decision point for the
@@ -754,7 +630,6 @@ export function evaluateSteps(opts) {
     gitFn,
     existsFn,
     readFn,
-    readdirFn,
     statFn,
     readQualityFn,
     readLedgerFn,
@@ -779,7 +654,6 @@ export function evaluateSteps(opts) {
     gitFn,
     existsFn,
     readFn,
-    readdirFn,
     statFn,
     readQualityFn,
     readLedgerFn,
@@ -818,7 +692,6 @@ function buildStepContext({
   gitFn,
   existsFn,
   readFn,
-  readdirFn,
   statFn,
   readQualityFn,
   readLedgerFn,
@@ -843,7 +716,6 @@ function buildStepContext({
     git: (args) => gitFn(worktreeAbs, args),
     existsFn,
     readFn,
-    readdirFn,
     statFn,
     readQualityFn,
     readBranchContractFn,
@@ -853,7 +725,6 @@ function buildStepContext({
     scale: null,
     crossReview: null,
     autoApproval: null,
-    obligations: readObligationDecisions(worktreeAbs, branch, existsFn, readFn),
     ...projectSettings(projectDir, settings),
   };
   ctx.scale = measureScaleSafely(worktreeAbs, gitFn);

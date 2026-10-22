@@ -64,24 +64,34 @@ import { evaluateAcceptance, formatAcceptanceReport } from './lib/task-acceptanc
 /**
  * Resolves main project root as parent of git common-dir.
  *
+ * A git call that times out throws instead of returning null: null means "not a git repo", and a
+ * saturated machine made ship-deck report "Called outside git repo" and approval-trust fall back
+ * to cwd.
+ *
  * @param {string} cwd
+ * @param {{ timeoutMs?: number }} [opts]
  * @returns {string|null} Absolute path or null
+ * @throws {Error} When the git call times out
  */
-export function resolveMainRoot(cwd = process.cwd()) {
+export function resolveMainRoot(cwd = process.cwd(), { timeoutMs = 10000 } = {}) {
+  let out;
   try {
-    const out = execSync('git rev-parse --git-common-dir', {
+    out = execSync('git rev-parse --git-common-dir', {
       cwd,
       encoding: 'utf-8',
       stdio: ['ignore', 'pipe', 'ignore'],
-      timeout: 3000,
+      timeout: timeoutMs,
     }).trim();
-    if (!out) return null;
-    const abs = resolve(cwd, out);
-    if (abs === cwd) return cwd;
-    return dirname(abs);
-  } catch {
+  } catch (e) {
+    if (e?.code === 'ETIMEDOUT' || e?.signal === 'SIGTERM') {
+      throw new Error(`git rev-parse --git-common-dir timed out after ${timeoutMs}ms in ${cwd}`);
+    }
     return null;
   }
+  if (!out) return null;
+  const abs = resolve(cwd, out);
+  if (abs === cwd) return cwd;
+  return dirname(abs);
 }
 
 /**

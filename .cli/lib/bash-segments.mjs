@@ -44,7 +44,7 @@
  */
 
 import { isAbsolute, join, relative } from 'node:path';
-import { joinLineContinuations, stripGitGlobalOptions } from './hook-anchors.mjs';
+import { GIT_GLOBAL_VALUE_OPTIONS, joinLineContinuations, WordStart } from './hook-anchors.mjs';
 import {
   expandingHeredocBodies,
   stripCommandPrefix,
@@ -69,47 +69,116 @@ export class ShellParseError extends Error {}
 
 /** Segments made only of these words run nothing (`fi`, `done` after a `;`). */
 const CLOSING_RESERVED = new Set(['}', 'fi', 'done', 'esac']);
+const SINGLE_OR_ANSI_QUOTED_RES = [/\$'(?:\\.|[^'\\])*'/y, /'[^']*'/y];
 
-/** Index just past the quoted string opening at `i` (backslash escapes only inside "…"). */
-function skipQuoted(text, i) {
-  const q = text[i];
-  for (let j = i + 1; j < text.length; j++) {
-    if (q === '"' && text[j] === '\\') j++;
-    else if (text[j] === q) return j + 1;
+/** Length of complete `'...'` or `$'...'` starting at `i`, or 0 when unterminated. */
+export function scanSingleOrAnsiQuoted(text, i) {
+  for (const re of SINGLE_OR_ANSI_QUOTED_RES) {
+    re.lastIndex = i;
+    const m = re.exec(text);
+    if (m) return m[0].length;
   }
-  return text.length;
+  return 0;
 }
 
 /**
- * Index just past the `)` closing the `(` at `open`, respecting quotes and nesting.
- * Unbalanced input returns text.length (the rest is taken as the body — conservative).
+ * Scans a double-quoted string starting at `start` (`cmd[start] === '"'`), respecting nested
+ * `$(...)` and `` `...` `` command substitutions (whose inner quotes, comments, and parens do not
+ * close the outer `"`). Returns `{ length, subs }` when closed, or `null` if unterminated/over-nested.
  */
-function closeParen(text, open) {
-  let depth = 0;
-  for (let i = open; i < text.length; ) {
-    const c = text[i];
-    if (c === "'" || c === '"') {
-      i = skipQuoted(text, i);
-      continue;
-    }
+export function scanDoubleQuoted(cmd, start, depth = 0) {
+  if (depth > MAX_NESTING) return null;
+  const subs = [];
+  for (let j = start + 1; j < cmd.length; ) {
+    const c = cmd[j];
     if (c === '\\') {
-      i += 2;
+      j += 2;
       continue;
     }
-    if (c === '(') depth++;
-    else if (c === ')' && --depth === 0) return i + 1;
-    i++;
+    if (cmd.startsWith('$(', j)) {
+      const end = closeParen(cmd, j + 1, depth + 1, false);
+      if (end === null) return null;
+      if (cmd[j + 2] !== '(') subs.push(cmd.slice(j + 2, end - 1));
+      j = end;
+      continue;
+    }
+    if (c === '`') {
+      const end = closeBacktick(cmd, j, false);
+      if (end === null) return null;
+      subs.push(cmd.slice(j + 1, end).replace(/\\([\\"$`])/g, '$1'));
+      j = end + 1;
+      continue;
+    }
+    if (c === '"') return { length: j + 1 - start, subs };
+    j++;
   }
-  return text.length;
+  return null;
 }
 
-/** Index of the backtick closing the one at `open` (escape-aware), or text.length. */
-function closeBacktick(text, open) {
+/** End index after a `"..."`, `'...'`, `$'...'`, or `` `...` `` span at `i`, `-1` if unclosed, or `0` if none. */
+function skipQuotedOrBacktick(text, i, depth) {
+  const c = text[i];
+  if (c === '"') {
+    const dq = scanDoubleQuoted(text, i, depth + 1);
+    return dq ? i + dq.length : -1;
+  }
+  if (c === '`') {
+    const end = closeBacktick(text, i, false);
+    return end === null ? -1 : end + 1;
+  }
+  if (c === "'" || text.startsWith("$'", i)) {
+    const sq = scanSingleOrAnsiQuoted(text, i);
+    return sq ? i + sq : -1;
+  }
+  return 0;
+}
+
+/** Advances past `\x`, `#...\n`, or a quote/backtick at `i`; returns next index, `-1` if unclosed, or `0` for plain char. */
+function skipParenToken(text, i, open, depth, ws) {
+  const c = text[i];
+  if (c === '\\') {
+    if (!/[\r\n]/.test(text.charAt(i + 1))) ws.word();
+    return i + 2;
+  }
+  if (i > open && c === '#' && ws.at) return text.indexOf('\n', i);
+  const spanEnd = skipQuotedOrBacktick(text, i, depth);
+  if (spanEnd > 0) ws.word();
+  return spanEnd;
+}
+
+/**
+ * Index just past the `)` closing the `(` at `open`, respecting word-start `#` comments,
+ * `$'...'` / `'...'` / `"..."` quotes, backticks, and nested parens.
+ * When `allowUnclosed` is true (default), unbalanced input returns `text.length`; otherwise `null`.
+ */
+export function closeParen(text, open, depth = 0, allowUnclosed = true) {
+  const fallback = allowUnclosed ? text.length : null;
+  if (depth > MAX_NESTING) return fallback;
+  let parenDepth = 0;
+  const ws = new WordStart();
+  for (let i = open; i < text.length; ) {
+    const next = skipParenToken(text, i, open, depth, ws);
+    if (next !== 0) {
+      if (next < 0) return fallback;
+      i = next;
+      continue;
+    }
+    const c = text[i];
+    ws.char(c, text[i - 1]);
+    if (c === '(') parenDepth++;
+    else if (c === ')' && --parenDepth === 0) return i + 1;
+    i++;
+  }
+  return fallback;
+}
+
+/** Index of the backtick closing the one at `open` (escape-aware), or `text.length` / `null`. */
+function closeBacktick(text, open, allowUnclosed = true) {
   for (let i = open + 1; i < text.length; i++) {
     if (text[i] === '\\') i++;
     else if (text[i] === '`') return i;
   }
-  return text.length;
+  return allowUnclosed ? text.length : null;
 }
 
 /**
@@ -154,13 +223,13 @@ class Scanner {
     this.scopeKind = scopeKind;
     this.scopeStack = [];
     this.sep = '';
-    this.mode = 'n'; // n | sq | dq | comment
+    this.mode = 'n'; // n | sq | ansi | dq | comment
     this.cur = this.fresh();
   }
 
   fresh() {
-    const { depth, group, scope, parentScope, scopeKind } = this;
-    return { raw: '', redirect: false, depth, group, scope, parentScope, scopeKind };
+    const { depth, group, sep, scope, parentScope, scopeKind } = this;
+    return { raw: '', redirect: false, depth, group, sep, scope, parentScope, scopeKind };
   }
 
   push() {
@@ -191,6 +260,7 @@ class Scanner {
       this.escapeEnd = { seg: this.cur, at: this.cur.raw.length };
       return i + 2;
     }
+    if (this.mode === 'ansi') return this.quoted(i, "'");
     // Command substitution runs in both unquoted and double-quoted context.
     if (c === '$' && this.text[i + 1] === '(') return this.dollarParen(i);
     if (c === '`') {
@@ -233,7 +303,13 @@ class Scanner {
   }
 
   openQuote(i) {
-    this.mode = this.text[i] === "'" ? 'sq' : 'dq';
+    if (this.text[i] === "'") {
+      const raw = this.cur.raw;
+      const escaped = this.escapeEnd?.seg === this.cur && this.escapeEnd.at === raw.length;
+      this.mode = !escaped && raw.endsWith('$') ? 'ansi' : 'sq';
+    } else {
+      this.mode = 'dq';
+    }
     this.cur.raw += this.text[i];
     return i + 1;
   }
@@ -454,9 +530,17 @@ function envSplitString(prefix) {
 /**
  * Command text for pattern matching: words re-joined (quotes removed) with git global options
  * stripped, so `git -C /x --no-pager log` is judged as `git log`.
+ *
+ * Options are dropped as *words*, before the join: joining first erased the quotes, so the text
+ * stripper split `-c a="b c"` / `-C "/my repo"` at the space and judged `git c reset --hard` —
+ * `git -c "x=1 status" reset --hard` then matched a `git\s+status` trunk allowlist entry
+ * (adversarial review 2026-10-14).
  */
 export function commandText(words) {
-  return stripGitGlobalOptions(words.join(' '));
+  if (words[0]?.split('/').pop().toLowerCase() !== 'git') return words.join(' ');
+  let i = 1;
+  while (i < words.length && words[i].startsWith('-')) i += GIT_VALUE_OPTIONS.has(words[i]) ? 2 : 1;
+  return [words[0], ...words.slice(i)].join(' ');
 }
 
 /** A word to resolve as a path: path-like, or something that expands (`$X`, `~`). */
@@ -488,7 +572,7 @@ function dirOptionAt(words, i, attachedPrefix, longName) {
 }
 
 /** git global options that take a separate value (skipped while looking for `-C`). */
-const GIT_VALUE_OPTIONS = new Set(['-c', '--git-dir', '--work-tree', '--namespace']);
+const GIT_VALUE_OPTIONS = new Set(GIT_GLOBAL_VALUE_OPTIONS);
 
 /**
  * Folds directory options cumulatively (each relative to the previous, as git and make do).

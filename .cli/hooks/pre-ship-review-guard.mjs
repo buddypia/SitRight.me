@@ -19,7 +19,7 @@
  *
  * Marker creation responsibility:
  *   AI presents the full Human Review Panel, completes every step of `pre-ship-steps`
- *   (including recording answers for human judgement steps ⑦⑧), then runs `mark-pre-ship-confirmed.mjs <branch> --quality <label>`.
+ *   (including recording the answer for the human `approval` step), then runs `mark-pre-ship-confirmed.mjs <branch> --quality <label>`.
  *   Marker CLI rejects incomplete steps (R-CM-030 Rule 13) — this hook inspects the resulting marker.
  */
 

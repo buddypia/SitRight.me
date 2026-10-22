@@ -122,9 +122,11 @@ function orchestratesEditHooks(settings) {
  * Test-file classification. Mirrors the `paths:` frontmatter of `.claude/rules/common/testing.md`
  * (R-CM-002) so "what counts as a test" has one shape across the rule and the guard.
  */
+const JS_TEST_FILE = /\.(test|spec)\.[cm]?[jt]sx?$/;
+
 export const TEST_FILE_PATTERNS = Object.freeze([
   /(^|\/)(tests?|__tests__)\//,
-  /\.(test|spec)\.[cm]?[jt]sx?$/,
+  JS_TEST_FILE,
   /_test\.(py|go|rs|dart)$/,
   /Test\.(java|kt|swift|cs|php)$/,
 ]);
@@ -545,13 +547,18 @@ export function parseRunnerScope(source, { fragment = false } = {}) {
  * Locked files the runner config would no longer run: matched by an `exclude` glob, or left out by a
  * present `include` list. A config that cannot be read or parsed yields `[]` (fail-open, R-CM-006 Rule 2).
  *
+ * Only JS/TS test files are judged. Anything under `tests/` is locked (a weakened fixture weakens its
+ * test), but fixtures, helpers and other-language tests are never run by name, so "not included"
+ * says nothing about them; counting them denied every commit after a red commit that shipped a stub.
+ *
  * @param {{root: string, files: string[], readFile?: (abs: string) => string|null,
  *          configs?: string[]}} args
  * @returns {{path: string, config: string, why: 'excluded'|'not_included', glob: string|null}[]}
  */
 export function unreachableLockedFiles({ root, files, readFile = defaultReadFile, configs = RUNNER_CONFIG_FILES }) {
   const out = [];
-  if (!root || files.length === 0) return out;
+  const runnable = files.filter((f) => JS_TEST_FILE.test(f));
+  if (!root || runnable.length === 0) return out;
   for (const cfg of configs) {
     const source = readFile(resolve(root, cfg));
     if (!source) continue;
@@ -559,7 +566,7 @@ export function unreachableLockedFiles({ root, files, readFile = defaultReadFile
     for (const key of unverified) out.push({ path: null, config: cfg, why: 'unverifiable', glob: key });
     const excludeRes = exclude.map((g) => [g, globToRegExp(g)]);
     const includeRes = include ? include.map((g) => globToRegExp(g)) : null;
-    for (const f of files) {
+    for (const f of runnable) {
       const hit = excludeRes.find(([, re]) => re.test(f));
       if (hit) out.push({ path: f, config: cfg, why: 'excluded', glob: hit[0] });
       else if (includeRes && !includeRes.some((re) => re.test(f))) {

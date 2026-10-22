@@ -1,7 +1,7 @@
 # Pre-Release Observability Checklist
 
 > **Source**: `oss/agent-skills/references/observability-checklist.md` (MIT)
-> **Adaptation**: Translated to English prose with added context notes for brief2dev's 3 platform lineups (Next.js / Flutter / Tauri). Section structure and checkbox hierarchy preserved from original.
+> **Adaptation**: Translated to English prose with added context notes for brief2dev's current default frameworks (Next.js / Flutter / Tauri). Section structure and checkbox hierarchy preserved from original.
 > **Loaded by**: Referenced in `observability-and-instrumentation/SKILL.md` during verification.
 
 A quick reference for instrumenting production code. Use in conjunction with the `observability-and-instrumentation` skill.
@@ -45,7 +45,7 @@ Telemetry without questions is noise. Verify before writing instrumentation:
 - [ ] Span attributes are scrubbed of secrets and PII.
 - [ ] Defaults to low-rate head-based sampling; error traces are 100% preserved when tail sampling is available.
 
-> **Platform Lineup Note**: Next.js Edge Runtime does not support the full Node OTel SDK — verify lightweight HTTP trace exporters for Edge routes. Mobile (Flutter) and Desktop (Tauri) apply client-side APM patterns (see `SKILL.md`).
+> **Framework Note**: Next.js Edge Runtime does not support the full Node OTel SDK — verify lightweight HTTP trace exporters for Edge routes. Mobile (Flutter) and Desktop (Tauri) apply client-side APM patterns (see `SKILL.md`).
 
 ## Alerting
 

@@ -511,7 +511,7 @@ export function renderMilestoneDeckHtml(model) {
     pageTitle: `Review Deck (Milestone) — ${model.branch}`,
     headerHtml,
     sectionsHtml,
-    deckData: { branch: model.branch, docKey: model.docKey, tool: 'review-deck:milestone' },
+    deckData: { branch: model.branch, docKey: model.docKey, tool: 'review-deck:milestone', bridgeToken: model.bridgeToken },
   });
 }
 
@@ -617,7 +617,7 @@ export function renderSpecDeckHtml(model) {
     pageTitle: `Review Deck (SPEC) — ${model.docKey}`,
     headerHtml,
     sectionsHtml,
-    deckData: { branch: model.docKey, docKey: model.docKey, tool: 'review-deck:spec' },
+    deckData: { branch: model.docKey, docKey: model.docKey, tool: 'review-deck:spec', bridgeToken: model.bridgeToken },
   });
 }
 
@@ -684,7 +684,7 @@ export function renderPlanDeckHtml(model) {
     pageTitle: `Review Deck (PLAN) — ${model.branch}`,
     headerHtml,
     sectionsHtml,
-    deckData: { branch: model.branch, docKey: model.docKey, tool: 'review-deck:plan' },
+    deckData: { branch: model.branch, docKey: model.docKey, tool: 'review-deck:plan', bridgeToken: model.bridgeToken },
   });
 }
 
@@ -750,7 +750,7 @@ export function renderUiDeckHtml(model) {
     pageTitle: `Review Deck (UI) — ${model.docKey}`,
     headerHtml,
     sectionsHtml,
-    deckData: { branch: model.docKey, docKey: model.docKey, tool: 'review-deck:ui' },
+    deckData: { branch: model.docKey, docKey: model.docKey, tool: 'review-deck:ui', bridgeToken: model.bridgeToken },
   });
 }
 

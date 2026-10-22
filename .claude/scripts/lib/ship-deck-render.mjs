@@ -456,16 +456,27 @@ export const DECK_JS = `
 
   function pushBridge(sum) {
     if (!bridgeConnected) return;
+    // The bridge refuses POST /result without the deck's token (ship-deck-bridge.mjs#BRIDGE_TOKEN_HEADER).
+    var headers = { 'content-type': 'application/json' };
+    if (data.bridgeToken) headers['x-ship-deck-token'] = data.bridgeToken;
     fetch(bridgeBase + '/result', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: headers,
       body: JSON.stringify(buildResult(sum)),
+    }).then(function (r) {
+      // A refused POST (403: this deck's token is not the bridge's) saved nothing — say so.
+      bridgeRejected = !r.ok;
+      setBridgeStatus(bridgeConnected);
     }).catch(function () { setBridgeStatus(false); });
   }
 
+  var bridgeRejected = false;
   function setBridgeStatus(connected) {
     bridgeConnected = connected;
-    if (bridgeStatusEl) bridgeStatusEl.textContent = connected ? 'Auto-save: Connected (port ' + bridgePort + ')' : 'Auto-save: Not connected';
+    if (!bridgeStatusEl) return;
+    bridgeStatusEl.textContent = !connected ? 'Auto-save: Not connected'
+      : bridgeRejected ? 'Auto-save: Rejected by bridge (re-render the deck)'
+      : 'Auto-save: Connected (port ' + bridgePort + ')';
   }
 
   var failCount = 0;

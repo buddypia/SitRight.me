@@ -33,7 +33,7 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, realpathSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, lstatSync, realpathSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readConfiguredShipBaseBranch, resolveShipBaseBranchStrict } from '../../.cli/lib/ship-base-branch.mjs';
@@ -89,6 +89,24 @@ based on local <base> if it contains origin/<base>, else origin/<base> → workt
 /* ============================================================
  * Helpers (injectable for tests)
  * ============================================================ */
+
+// `worktree add` checks out the whole tree; on a loaded machine it ran past
+// 45s, and the old 60s cap killed it after `-b` had already created the branch,
+// leaving the branch with no worktree. The cap only guards against a hang.
+export const WORKTREE_ADD_TIMEOUT_MS = 300_000;
+
+// `--quiet` keeps checkout progress out of stderr, so what is left is the error;
+// a timeout carries no stderr of its own and is named explicitly.
+export function describeWorktreeAddFailure(e, branch) {
+  const timedOut = e?.code === 'ETIMEDOUT' || e?.signal === 'SIGTERM';
+  const detail = timedOut
+    ? `timed out after ${WORKTREE_ADD_TIMEOUT_MS / 1000}s`
+    : (e?.stderr || e?.message || '').toString().trim();
+  return (
+    `git worktree add failed: ${detail}. ` +
+    `Re-run the same command: if branch "${branch}" was created, the retry attaches it.`
+  );
+}
 
 export function defaultGitFn(args, opts = {}) {
   return execFileSync('git', args, {
@@ -216,6 +234,85 @@ export function remoteExists(remote = 'origin', cwd, gitFn = defaultGitFn) {
   } catch {
     return false;
   }
+}
+
+/** Files each CLI reads its hook registrations from (Claude Code / Codex / Antigravity). */
+export const HOOK_REGISTRATION_FILES = Object.freeze(['.claude/settings.json', '.codex/hooks.json', '.claude/hooks.json']);
+
+/**
+ * Hook registration files present in this checkout that `baseRef` lacks or holds a different version of.
+ *
+ * A worktree is built from `baseRef` alone. Right after a transplant the registrations are uncommitted, and a
+ * worktree made then had no hooks at all — Claude Code wrote a hardcoded AWS key there unblocked (measured
+ * 2026-10-20). `.agents/hooks.json` counts only when `.agents` is a real directory; as the usual symlink to
+ * `.claude` it is `.claude/hooks.json` and git tracks the link, not a file behind it.
+ *
+ * `ignored` splits out the missing files a commit cannot fix until their .gitignore rule goes.
+ *
+ * Fail-open (R-CM-006 Rule 2): awareness, never a gate — a git failure reports no drift.
+ */
+export function detectHookRegistrationDrift(baseRef, cwd, gitFn = defaultGitFn, existsFn = defaultExistsFn) {
+  const none = { missing: [], changed: [], ignored: [] };
+  let agentsIsDir = false;
+  try {
+    agentsIsDir = lstatSync(join(cwd, '.agents')).isDirectory();
+  } catch {
+    // absent
+  }
+  const candidates = agentsIsDir ? [...HOOK_REGISTRATION_FILES, '.agents/hooks.json'] : HOOK_REGISTRATION_FILES;
+  const present = candidates.filter((rel) => existsFn(join(cwd, rel)));
+  if (!present.length) return none;
+  const lines = (out) => String(out || '').split('\n').map((l) => l.trim()).filter(Boolean);
+  let inBase;
+  let changed;
+  try {
+    // ls-tree prints cwd-relative paths; diff needs --relative for the same.
+    inBase = new Set(lines(gitFn(['ls-tree', '--name-only', baseRef, '--', ...present], { cwd })));
+    const tracked = present.filter((p) => inBase.has(p));
+    changed = tracked.length
+      ? lines(gitFn(['diff', '--name-only', '--relative', baseRef, '--', ...tracked], { cwd }))
+      : [];
+  } catch {
+    return none;
+  }
+  const notInBase = present.filter((p) => !inBase.has(p));
+  let ignored = new Set();
+  if (notInBase.length) {
+    try {
+      ignored = new Set(lines(gitFn(['check-ignore', '--', ...notInBase], { cwd })));
+    } catch {
+      // exit 1: none of them is ignored
+    }
+  }
+  return { missing: notInBase.filter((p) => !ignored.has(p)), changed, ignored: [...ignored] };
+}
+
+/**
+ * The warning (zero or one) for hook registrations the new worktree will not get.
+ * Only with the base checked out: on another branch the difference is that branch's work, and
+ * "commit them on the base" would be the wrong advice.
+ */
+function hookDriftWarnings({ dryRun, base, baseRef, cwd, gitFn, existsFn, wtPathRel }) {
+  if (dryRun) return [];
+  try {
+    if (gitFn(['rev-parse', '--abbrev-ref', 'HEAD'], { cwd }).trim() !== base) return [];
+  } catch {
+    return [];
+  }
+  const drift = detectHookRegistrationDrift(baseRef, cwd, gitFn, existsFn);
+  const parts = [
+    drift.missing.length ? `missing: ${drift.missing.join(', ')}` : null,
+    drift.changed.length ? `changed: ${drift.changed.join(', ')}` : null,
+    drift.ignored.length ? `git-ignored: ${drift.ignored.join(', ')}` : null,
+  ].filter(Boolean);
+  if (!parts.length) return [];
+  return [
+    `hook registrations in this checkout are not in ${baseRef} (${parts.join('; ')}) — ` +
+    `the new worktree gets ${baseRef}'s version, so these hooks will not run there. ` +
+    (drift.ignored.length ? 'Remove the .gitignore rule hiding the git-ignored ones, then commit' : 'Commit') +
+    ` them on ${base} first (AI commits on ${base} are blocked by commit-guard), ` +
+    `then bring them in: git -C ${wtPathRel} merge ${base}`,
+  ];
 }
 
 /**
@@ -505,6 +602,9 @@ export function runWorktreeNew(opts) {
     }
   }
 
+  // After any ff (step 2), so the comparison is against what the worktree will actually be built from.
+  result.warnings.push(...hookDriftWarnings({ dryRun, base, baseRef, cwd, gitFn, existsFn, wtPathRel }));
+
   // Step 3: git worktree add
   const existingWorktrees = listWorktrees(cwd, gitFn);
   const matchingWtForPath = existingWorktrees.find(
@@ -541,11 +641,12 @@ export function runWorktreeNew(opts) {
     result.actions.push(`git worktree add ${wtPathRel} (existing branch ${branch})`);
     if (!dryRun) {
       try {
-        gitFn(['worktree', 'add', wtPathAbs, branch], { cwd, timeout: 60_000 });
+        gitFn(['worktree', 'add', '--quiet', wtPathAbs, branch], {
+          cwd,
+          timeout: WORKTREE_ADD_TIMEOUT_MS,
+        });
       } catch (e) {
-        result.errors.push(
-          `git worktree add failed: ${(e.stderr || e.message || '').toString().trim()}`,
-        );
+        result.errors.push(describeWorktreeAddFailure(e, branch));
         return result;
       }
     }
@@ -555,14 +656,12 @@ export function runWorktreeNew(opts) {
     );
     if (!dryRun) {
       try {
-        gitFn(['worktree', 'add', wtPathAbs, '-b', branch, baseRef], {
+        gitFn(['worktree', 'add', '--quiet', wtPathAbs, '-b', branch, baseRef], {
           cwd,
-          timeout: 60_000,
+          timeout: WORKTREE_ADD_TIMEOUT_MS,
         });
       } catch (e) {
-        result.errors.push(
-          `git worktree add failed: ${(e.stderr || e.message || '').toString().trim()}`,
-        );
+        result.errors.push(describeWorktreeAddFailure(e, branch));
         return result;
       }
     }

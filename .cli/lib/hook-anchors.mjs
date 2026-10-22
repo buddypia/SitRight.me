@@ -263,6 +263,37 @@ export function anchoredPattern(patternSrc, flags = '') {
 }
 
 /**
+ * git global options whose value is the *next* word (`git -C <path>`, `--git-dir <path>`). Every
+ * other option is a single word (`-P`, `--no-advice`, `--git-dir=<path>`). Measured against git 2.56
+ * (`git <opt> <value> version` runs). The one table for every parser that walks from `git` to its
+ * subcommand — four private copies had drifted to 4 / 6 / 8 entries (adversarial review 2026-10-14);
+ * tests/unit/git-global-options-ssot.test.mjs fails if a copy reappears.
+ */
+export const GIT_GLOBAL_VALUE_OPTIONS = Object.freeze([
+  '-C',
+  '-c',
+  '--git-dir',
+  '--work-tree',
+  '--namespace',
+  '--config-env',
+  '--attr-source',
+]);
+
+// One shell word. An escape pair joins even a space to it (`-c a=\ b`, review round 8); a quoted
+// span or a `` `…` `` / `$(…)` substitution is part of the word too — without that, `-c a="b c"`,
+// `-c a="b\" c"` and ``-c a=`echo b c` `` split at the space and the leftover hid the subcommand
+// (empirical 2026-10-14). Alternatives stay disjoint on their first character, and each opener is
+// a span only when it closes (else a plain char): overlap made a failing match try every split
+// (22 pairs = 22s, review). Nested `$( $( ) )` is out of reach of a regex and stays unstripped.
+// An unquoted `; & | < > ( )` ends the word as in the shell: taking it in made `git --version; git
+// reset --hard` read as `git git reset --hard` (adversarial review 2026-10-14, round 2).
+const SHELL_WORD = String.raw`(?:\\[\s\S]|"(?:[^"\\]|\\[\s\S])*"|"(?!(?:[^"\\]|\\[\s\S])*")|'[^']*'|'(?![^']*')|\`[^\`]*\`|\`(?![^\`]*\`)|\$\([^()]*\)|\$(?!\([^()]*\))|[^\s\\"'\`$;&|<>()])+`;
+const GIT_GLOBAL_OPTION_STEP = new RegExp(
+  String.raw`\bgit\s+(?:(?:${GIT_GLOBAL_VALUE_OPTIONS.join('|')})\s+${SHELL_WORD}|-${SHELL_WORD})(\s+)`,
+  'gi', // case-insensitive like the anchored patterns: `GIT` runs git on a case-insensitive FS
+);
+
+/**
  * Strips git global options from `git <global-option...> <subcommand>` to normalize to `git <subcommand>`.
  *
  * Because anchored patterns require `git\s+<subcommand>` adjacency, global options like `-C <path>` / `-c k=v` /
@@ -276,23 +307,37 @@ export function anchoredPattern(patternSrc, flags = '') {
  * allowed both direct trunk commits and `--amend` to slip through unhindered. Moved to shared lib to resolve this gap.
  * (`git-commit-target.mjs` already parsed `-C` correctly, but upstream patterns dropped out before reaching it.)
  *
+ * **Every `-` word right after `git` is an option, not just the known ones (adversarial review
+ * 2026-10-14).** An allowlist of 8 options let `git -P push --force` / `git --no-advice reset --hard`
+ * through — git 2.56 has 20+ global options and each release may add more. Only *which options take
+ * the next word as their value* needs a table: GIT_GLOBAL_VALUE_OPTIONS.
+ *
  * @param {string} command
  * @returns {string}
  */
 export function stripGitGlobalOptions(command) {
   if (!command || typeof command !== 'string') return command;
-  // An option value is one shell word: an escape pair joins even a space to it (`-c a=\ b`), which
-  // a plain `\S+` split into `a=\` + a bogus subcommand `b` (review round 8, 2026-09-28).
-  const W = String.raw`(?:\\[\s\S]|[^\s\\])+`;
-  const STEP = new RegExp(
-    String.raw`\bgit\s+(?:-C\s+${W}|-C${W}|-c\s+${W}|--git-dir(?:=${W}|\s+${W})|--work-tree(?:=${W}|\s+${W})|--namespace(?:=${W}|\s+${W})|--no-pager|--paginate|--literal-pathspecs|--no-optional-locks|--bare)(\s+)`,
-    'gi',
-  );
   let prev;
   let out = command;
   do {
     prev = out;
-    out = out.replace(STEP, 'git$1');
+    out = out.replace(GIT_GLOBAL_OPTION_STEP, 'git$1');
   } while (out !== prev);
   return out;
+}
+
+/**
+ * The texts a `git <subcommand>` pattern must be tested against: the command as written, and the
+ * command with git global options stripped. Stripping exists to *add* matches (`git -C x push
+ * --force` → `git push --force`); testing the stripped text alone let it also *remove* them — an
+ * option value holding `$(git reset --hard)` went away with its option (adversarial review
+ * 2026-10-14, round 2). Testing both keeps the normalization monotonic: it can only add detections,
+ * so the next stripping defect costs a missed normalization, never a bypass.
+ *
+ * @param {string} command
+ * @returns {string[]}
+ */
+export function gitInspectionViews(command) {
+  const stripped = stripGitGlobalOptions(command);
+  return stripped === command ? [command] : [command, stripped];
 }

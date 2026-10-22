@@ -491,14 +491,14 @@ export const MANAGED_HOOK_REGISTRY = {
           "cliMatcherTools": ["Edit", "Write", "MultiEdit"]
         },
         {
-          "id": "skill-structure-check",
-          "module": "./skill-structure-check.mjs",
+          "id": "skill-structure-guard",
+          "module": "./skill-structure-guard.mjs",
           "priority": 90,
           "profile": "standard",
-          "description": "[R-CM-018] Validate SKILL.md structural validity",
+          "description": "[R-CM-018 / R-CM-040 Rule 10] Validate SKILL.md structure (notice) + block Harness² surface violations on SKILL.md / subagent / root AGENTS.md writes (missing description, name≠dir, untriggered skill, script a skill runs but the repo lacks, subagent without name/description, AGENTS.md over 8,000 chars, dangling pointer)",
           "orchestrated": true,
           "timeout": 5,
-          "statusMessage": "R-CM-018: validating SKILL.md structure",
+          "statusMessage": "R-CM-018 / Harness²: validating skill surface",
           "cliTargets": ["codex", "antigravity"],
           "cliMatcherTools": ["Edit", "Write", "MultiEdit"]
         },
@@ -521,16 +521,6 @@ export const MANAGED_HOOK_REGISTRY = {
           "orchestrated": false,
           "timeout": 5,
           "statusMessage": "P20: scaffold validation staleness check"
-        },
-        {
-          "id": "milestone-deck-warning-edit",
-          "module": ".cli/hooks/milestone-deck-warning.mjs",
-          "priority": 95,
-          "profile": "standard",
-          "description": "[R-CM-030 Rule 12 / DEBT-248] Remind CP-MILESTONE the moment the worktree's real diff (merge-base → working tree: committed + uncommitted + untracked, measured with git) reaches large threshold (advisory additionalContext, non-blocking; no git spawn once the one-shot marker exists). Shares module + one-shot marker with commit-time entry (milestone-deck-warning) — in single session straight-through implementations, commit happens only once at the very end, making commit-time trigger too late (#1050·#1054·#1056·#1057 4 consecutive empirical measurements)",
-          "orchestrated": true,
-          "timeout": 10,
-          "statusMessage": "Milestone Deck: measuring worktree diff scale against large threshold (R-CM-030 Rule 12)"
         }
       ]
     },
@@ -558,16 +548,6 @@ export const MANAGED_HOOK_REGISTRY = {
           "timeout": 5,
           "statusMessage": "Bash File Integrity: detecting 0-byte corruption from sed -i / awk -i inplace (R-CM-019)",
           "cliTargets": ["codex", "antigravity"]
-        },
-        {
-          "id": "milestone-deck-warning",
-          "module": ".cli/hooks/milestone-deck-warning.mjs",
-          "priority": 60,
-          "profile": "standard",
-          "description": "[R-CM-030 Rule 12] Measure diff scale immediately after worktree git commit — remind once if large threshold is reached and CP-MILESTONE deck evidence is 0 (advisory additionalContext, non-blocking. Proactive complement to the pre-ship milestone-deck step)",
-          "orchestrated": true,
-          "timeout": 10,
-          "statusMessage": "Milestone Deck: checking large-scale threshold after worktree commit (R-CM-030 Rule 12)"
         }
       ]
     }

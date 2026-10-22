@@ -132,7 +132,7 @@ export function atomicWriteJson(filePath, data, options = {}) {
  *
  * @returns {number} Floor in ms, or 0 when unset/invalid (no effect)
  */
-function execTimeoutFloorMs() {
+export function execTimeoutFloorMs() {
   const raw = Number(process.env.BRIEF2DEV_EXEC_TIMEOUT_FLOOR_MS);
   return Number.isFinite(raw) && raw > 0 ? raw : 0;
 }
