@@ -31,7 +31,7 @@ export const THIRD_PARTY_PACKAGES: LicenseEntry[] = [
   {
     id: 'mediapipe',
     name: '@mediapipe/tasks-vision',
-    version: '0.10.35',
+    version: '^1.1.1',
     license: 'Apache-2.0',
     copyright: 'Copyright Google LLC',
     url: 'https://github.com/google-ai-edge/mediapipe',
