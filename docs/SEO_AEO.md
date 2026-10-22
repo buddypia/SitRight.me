@@ -13,7 +13,7 @@
 | Claude の検索は Claude-SearchBot、ユーザーの依頼による取得は Claude-User、学習は ClaudeBot | [Anthropic: crawler の説明](https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler) |
 | Google-Extended は Gemini の学習と、Gemini アプリ・Vertex AI の grounding を止める token。Google 検索への掲載と順位には影響しない | [Google: common crawlers](https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers) |
 | Applebot-Extended は Apple の生成 AI の学習だけを止める。Applebot による検索（Spotlight・Siri・Safari）には影響しない | [Apple: About Applebot](https://support.apple.com/en-us/119829) |
-| Meta-ExternalAgent は学習用。Meta AI の検索は Meta-WebIndexer、リンクのプレビューは facebookexternalhit で別 | [Meta: Web Crawlers](https://developers.facebook.com/docs/sharing/webmasters/web-crawlers) |
+| Meta-ExternalAgent は学習用（Meta は「索引による製品改善」にも使うとしている）。Meta AI の検索は Meta-WebIndexer、リンクのプレビューは facebookexternalhit で別 | [Meta: Web Crawlers](https://developers.facebook.com/docs/sharing/webmasters/web-crawlers) |
 | llms.txt はサイトの要約とリンクを Markdown で置く提案。Google は不要としているが、置いても害はない | [llmstxt.org](https://llmstxt.org/) |
 | 生成エンジンの回答で引用されやすくなるのは、出典の明記・統計値・権威ある文献からの直接引用。キーワードの詰め込みは逆効果 | [Aggarwal et al. GEO: Generative Engine Optimization (KDD 2024)](https://arxiv.org/abs/2311.09735) |
 
@@ -33,7 +33,7 @@
 方針は「検索と AI の回答には載せ、学習には使わせない」。拒否するのは GPTBot・ClaudeBot・Google-Extended・Applebot-Extended・Meta-ExternalAgent・CCBot（Common Crawl。多くのモデルの学習データになる）。OAI-SearchBot・ChatGPT-User・Claude-SearchBot・Claude-User・PerplexityBot・Googlebot・Bingbot・Applebot・Meta-WebIndexer は名前を書かず `*` で許可する。
 
 - 学習用のクローラーを足すときは、運営元の一次資料で「学習用で、検索用とは別の User-Agent」と確かめてから `trainingCrawlers` に足す。検索と学習を 1 つの User-Agent で兼ねるクローラーは止めない（回答に載らなくなる）。
-- Google-Extended を止めると Gemini アプリの grounding にも使われない。Google 検索・AI Overviews・AI Mode は Googlebot で決まるので影響しない。
+- Google-Extended を止めると Gemini アプリの grounding にも使われない。Google 検索（AI Overviews・AI Mode は検索の機能で、索引は Googlebot が作る）への掲載には影響しない。
 - robots.txt は守らないクローラーを止められない。止めたい相手が守っていないと分かったら、Cloudflare の AI Crawl Control で遮断する。
 
 ## 解説ページの書き方

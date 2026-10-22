@@ -156,10 +156,12 @@ describe('SEO & OGP metadata, images, and static content', () => {
     const agentsOf = (r: (typeof rules)[number]) => [r.userAgent ?? []].flat();
     const blocked = rules.find((r) => agentsOf(r).includes('GPTBot'));
     expect(blocked?.disallow).toBe('/');
+    expect(agentsOf(blocked!)).not.toContain('*');
     for (const bot of ['ClaudeBot', 'Google-Extended', 'Applebot-Extended', 'Meta-ExternalAgent', 'CCBot']) {
       expect(agentsOf(blocked!)).toContain(bot);
     }
-    for (const bot of ['Googlebot', 'Bingbot', 'OAI-SearchBot', 'ChatGPT-User', 'Claude-SearchBot', 'Claude-User', 'PerplexityBot', 'Applebot']) {
+    for (const bot of ['Googlebot', 'Bingbot', 'OAI-SearchBot', 'ChatGPT-User', 'Claude-SearchBot', 'Claude-User', 'PerplexityBot',
+      'Meta-WebIndexer', 'Applebot']) {
       expect(rules.some((r) => agentsOf(r).includes(bot))).toBe(false);
     }
     expect(rules.find((r) => agentsOf(r).includes('*'))).toMatchObject({ allow: '/', disallow: '/lab' });
