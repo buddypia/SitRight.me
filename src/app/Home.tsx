@@ -8,6 +8,7 @@ import {
   LOCALE_REGISTRY,
   MESSAGES,
   SUPPORTED_LOCALES,
+  guidePath,
   localePath,
   type Locale,
 } from '@/i18n/messages';
@@ -118,7 +119,10 @@ function SeoWelcomeShell({ locale }: { locale: Locale }) {
               </div>
             </div>
             <p className="mt-4 text-[11px] leading-relaxed text-ink-3">
-              {t.disclaimer}
+              {t.disclaimer}{' '}
+              <a href={guidePath(locale)} className="text-good hover:underline">
+                {t.guideLink}
+              </a>
             </p>
           </section>
 

@@ -1,8 +1,16 @@
 import type { Metadata } from 'next';
 import {
+  GUIDE,
+  GUIDE_PUBLISHED,
+  GUIDE_UPDATED,
+  SOURCES,
+} from '@/components/Guide/content';
+import {
+  DEFAULT_LOCALE,
   LOCALE_REGISTRY,
   MESSAGES,
   SUPPORTED_LOCALES,
+  guidePath,
   localePath,
   type Locale,
 } from '@/i18n/messages';
@@ -70,10 +78,33 @@ export function pageTitle(locale: Locale): string {
   return COPY[locale].title;
 }
 
-/** 言語ごとのページの title・description・canonical・hreflang・OG・Twitter Card */
-export function pageMetadata(locale: Locale): Metadata {
-  const { title, description, ogImage, ogAlt, keywords } = COPY[locale];
-  const url = localePath(locale);
+const absoluteUrl = (path: string) => (path === '/' ? siteUrl : `${siteUrl}${path}`);
+const ogLocale = (locale: Locale) => LOCALE_REGISTRY[locale].bcp47.replace('-', '_');
+
+const ORGANIZATION_ID = `${siteUrl}/#organization`;
+const WEBSITE_ID = `${siteUrl}/#website`;
+const APP_ID = `${siteUrl}/#app`;
+
+interface MetadataInput {
+  locale: Locale;
+  title: string;
+  description: string;
+  keywords: string[];
+  pathOf: (locale: Locale) => string;
+  type: 'website' | 'article';
+}
+
+/** title・description・canonical・hreflang・OG・Twitter Card を言語ごとに組み立てる */
+function buildMetadata({
+  locale,
+  title,
+  description,
+  keywords,
+  pathOf,
+  type,
+}: MetadataInput): Metadata {
+  const { ogImage, ogAlt } = COPY[locale];
+  const url = pathOf(locale);
   const imageDescriptor = {
     url: ogImage,
     width: 1200,
@@ -96,13 +127,14 @@ export function pageMetadata(locale: Locale): Metadata {
         follow: true,
         'max-image-preview': 'large',
         'max-snippet': -1,
+        'max-video-preview': -1,
       },
     },
     alternates: {
       canonical: url,
       languages: {
-        ...Object.fromEntries(SUPPORTED_LOCALES.map((l) => [l, localePath(l)])),
-        'x-default': '/',
+        ...Object.fromEntries(SUPPORTED_LOCALES.map((l) => [l, pathOf(l)])),
+        'x-default': pathOf(DEFAULT_LOCALE),
       },
     },
     openGraph: {
@@ -110,11 +142,9 @@ export function pageMetadata(locale: Locale): Metadata {
       description,
       url,
       siteName: 'SitRight',
-      locale: LOCALE_REGISTRY[locale].bcp47.replace('-', '_'),
-      alternateLocale: SUPPORTED_LOCALES.filter((l) => l !== locale).map((l) =>
-        LOCALE_REGISTRY[l].bcp47.replace('-', '_')
-      ),
-      type: 'website',
+      locale: ogLocale(locale),
+      alternateLocale: SUPPORTED_LOCALES.filter((l) => l !== locale).map(ogLocale),
+      type,
       images: [imageDescriptor],
     },
     twitter: {
@@ -126,31 +156,155 @@ export function pageMetadata(locale: Locale): Metadata {
   };
 }
 
+/** 言語ごとのトップページ（/・/ja・/ko）のメタ情報 */
+export function pageMetadata(locale: Locale): Metadata {
+  const { title, description, keywords } = COPY[locale];
+  return buildMetadata({
+    locale,
+    title,
+    description,
+    keywords,
+    pathOf: localePath,
+    type: 'website',
+  });
+}
+
+/** 言語ごとの解説ページ（/guide・/ja/guide・/ko/guide）のメタ情報 */
+export function guideMetadata(locale: Locale): Metadata {
+  const { title, description } = GUIDE[locale];
+  return buildMetadata({
+    locale,
+    title,
+    description,
+    keywords: COPY[locale].keywords,
+    pathOf: guidePath,
+    type: 'article',
+  });
+}
+
+/** サイト運営者。検索エンジンや AI の回答エンジンが提供元を特定できるようにする */
+const organizationLd = {
+  '@type': 'Organization',
+  '@id': ORGANIZATION_ID,
+  name: 'SitRight',
+  url: siteUrl,
+  logo: `${siteUrl}/icon-512x512.png`,
+  email: 'contact@buddypia.com',
+  sameAs: ['https://github.com/buddypia/SitRight.me'],
+};
+
 /** Google 検索などのクローラー向け構造化データ（JSON-LD） */
 export function pageJsonLd(locale: Locale): Record<string, unknown> {
   const { title, description, ogImage } = COPY[locale];
   const t = MESSAGES[locale];
-  const path = localePath(locale);
-  const canonicalUrl = path === '/' ? siteUrl : `${siteUrl}${path}`;
+  const url = absoluteUrl(localePath(locale));
 
   return {
     '@context': 'https://schema.org',
-    '@type': 'WebApplication',
-    name: title,
-    alternateName: 'SitRight',
-    url: canonicalUrl,
-    image: `${siteUrl}${ogImage}`,
-    description,
-    inLanguage: locale,
-    applicationCategory: 'HealthApplication',
-    operatingSystem: 'Any',
-    browserRequirements: 'Requires a modern browser with webcam and WebGL support',
-    featureList: [t.featureMeasure, t.featureSide, t.featureQuiet],
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD',
-    },
+    '@graph': [
+      organizationLd,
+      {
+        '@type': 'WebSite',
+        '@id': WEBSITE_ID,
+        name: 'SitRight',
+        url: siteUrl,
+        inLanguage: SUPPORTED_LOCALES,
+        publisher: { '@id': ORGANIZATION_ID },
+      },
+      {
+        '@type': 'WebApplication',
+        '@id': APP_ID,
+        name: title,
+        alternateName: 'SitRight',
+        url,
+        image: `${siteUrl}${ogImage}`,
+        screenshot: `${siteUrl}${ogImage}`,
+        description,
+        inLanguage: locale,
+        applicationCategory: 'HealthApplication',
+        operatingSystem: 'Windows, macOS, Linux, ChromeOS',
+        browserRequirements:
+          'Requires a modern browser with webcam and WebGL support',
+        featureList: [t.featureMeasure, t.featureSide, t.featureQuiet],
+        isAccessibleForFree: true,
+        softwareHelp: {
+          '@type': 'CreativeWork',
+          url: absoluteUrl(guidePath(locale)),
+        },
+        publisher: { '@id': ORGANIZATION_ID },
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
+        },
+      },
+    ],
+  };
+}
+
+/** 解説ページの構造化データ。本文・よくある質問・出典を表示中の内容と同じにする */
+export function guideJsonLd(locale: Locale): Record<string, unknown> {
+  const g = GUIDE[locale];
+  const url = absoluteUrl(guidePath(locale));
+  const sourceIds = [...new Set(g.sections.flatMap((s) => s.sources))];
+
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      organizationLd,
+      {
+        '@type': 'Article',
+        '@id': `${url}#article`,
+        headline: g.heading,
+        description: g.description,
+        inLanguage: locale,
+        url,
+        mainEntityOfPage: url,
+        image: `${siteUrl}/guide/posture-side-view.webp`,
+        datePublished: GUIDE_PUBLISHED,
+        dateModified: GUIDE_UPDATED,
+        author: { '@id': ORGANIZATION_ID },
+        publisher: { '@id': ORGANIZATION_ID },
+        about: {
+          '@type': 'WebApplication',
+          '@id': APP_ID,
+          name: 'SitRight',
+          url: siteUrl,
+        },
+        citation: sourceIds.map((id) => ({
+          '@type': 'CreativeWork',
+          name: SOURCES[id].name,
+          url: SOURCES[id].url,
+        })),
+      },
+      {
+        '@type': 'FAQPage',
+        '@id': `${url}#faq`,
+        inLanguage: locale,
+        mainEntity: g.faq.map(({ q, a }) => ({
+          '@type': 'Question',
+          name: q,
+          acceptedAnswer: { '@type': 'Answer', text: a },
+        })),
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: g.homeLabel,
+            item: absoluteUrl(localePath(locale)),
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: MESSAGES[locale].guideLink,
+            item: url,
+          },
+        ],
+      },
+    ],
   };
 }
 
@@ -158,10 +312,8 @@ export function pageJsonLd(locale: Locale): Record<string, unknown> {
 export function syncDocumentSeo(locale: Locale): void {
   if (typeof document === 'undefined') return;
   const { title, description, ogImage, ogAlt } = COPY[locale];
-  const path = localePath(locale);
-  const canonicalUrl = path === '/' ? siteUrl : `${siteUrl}${path}`;
+  const canonicalUrl = absoluteUrl(localePath(locale));
   const imageUrl = `${siteUrl}${ogImage}`;
-  const ogLocale = LOCALE_REGISTRY[locale].bcp47.replace('-', '_');
 
   // 計測中のステータス接頭辞（例: "⚠ ... · SitRight"）が付いていないときだけタイトルを更新する
   if (!document.title.includes(' · SitRight')) {
@@ -177,7 +329,7 @@ export function syncDocumentSeo(locale: Locale): void {
   setMeta('meta[property="og:title"]', title);
   setMeta('meta[property="og:description"]', description);
   setMeta('meta[property="og:url"]', canonicalUrl);
-  setMeta('meta[property="og:locale"]', ogLocale);
+  setMeta('meta[property="og:locale"]', ogLocale(locale));
   setMeta('meta[property="og:image"]', imageUrl);
   setMeta('meta[property="og:image:alt"]', ogAlt);
   setMeta('meta[name="twitter:title"]', title);
