@@ -23,9 +23,11 @@
  *   npm run check:harness [-- --base origin/main]
  */
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import * as espree from 'espree';
 import { checkLibrary, EXPERIENCE_DIR, LIBRARY_DIR } from './harness-library.mjs';
 
 export const ALWAYS_ON_MAX = 8000;
@@ -269,20 +271,32 @@ function referencedHookModules(root) {
   return [...modules].sort();
 }
 
+const HOOK_SYNTAX_CACHE = new Map();
+
 /**
  * hook モジュールが構文として通るか（harness2/core/tree.py#_py_compiles に当たる）。構文エラーの hook は実行時に
- * 握りつぶされ、黙って発火しない。1 件ごとに node を起こすので、PostToolUse hook からは編集したものだけ渡す
+ * 握りつぶされ、黙って発火しない。小プロセスを毎回起動せず同一プロセス内で ES module として構文検査し、内容ハッシュでキャッシュする
  */
 export function checkHookModulesCompile(root, modules = referencedHookModules(root)) {
   const errs = [];
   for (const mod of modules) {
     const abs = path.join(root, mod);
     if (!existsSync(abs)) continue;
-    try {
-      execFileSync(process.execPath, ['--check', abs], { stdio: ['ignore', 'ignore', 'pipe'] });
-    } catch (err) {
-      const detail = String(err.stderr ?? '').split('\n').find((line) => /Error/.test(line)) ?? '';
-      errs.push(`\`${mod}\` が構文として通りません（${detail.trim()}）。hook は黙って発火しなくなります`);
+    const src = readFileSync(abs, 'utf8');
+    const hash = createHash('sha256').update(src).digest('hex');
+    let cachedErr = HOOK_SYNTAX_CACHE.get(hash);
+    if (cachedErr === undefined) {
+      try {
+        const cleaned = src.replace(/^#![^\r\n]*/, '');
+        espree.parse(cleaned, { ecmaVersion: 'latest', sourceType: 'module' });
+        cachedErr = '';
+      } catch (err) {
+        cachedErr = `SyntaxError: ${err.message}`;
+      }
+      HOOK_SYNTAX_CACHE.set(hash, cachedErr);
+    }
+    if (cachedErr) {
+      errs.push(`\`${mod}\` が構文として通りません（${cachedErr}）。hook は黙って発火しなくなります`);
     }
   }
   return errs;

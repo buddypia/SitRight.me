@@ -13,8 +13,27 @@
  * 3. The remote endpoint URL is removed.
  */
 import { execSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+
+function resolveTasksVisionDir(baseDir) {
+  const localDir = path.join(baseDir, 'node_modules', '@mediapipe/tasks-vision');
+  if (existsSync(localDir)) return localDir;
+  try {
+    const commonDir = execSync('git rev-parse --path-format=absolute --git-common-dir', {
+      cwd: baseDir,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    if (commonDir) {
+      const sharedDir = path.join(path.dirname(commonDir), 'node_modules', '@mediapipe/tasks-vision');
+      if (existsSync(sharedDir)) return sharedDir;
+    }
+  } catch {
+    // fallback
+  }
+  return localDir;
+}
 
 export function disableThirdPartyTelemetry(baseDir = process.cwd()) {
   const bundles = [
@@ -33,43 +52,56 @@ export function disableThirdPartyTelemetry(baseDir = process.cwd()) {
     ['(t=t.m).error||t.i.push(e)', '(t=t.m)'],
   ];
 
-  let projectRoot = baseDir;
+  const pkgDir = resolveTasksVisionDir(baseDir);
+  if (!existsSync(pkgDir)) return 0;
+
+  const stampPath = path.join(pkgDir, '.telemetry-disabled.json');
+  let cachedStamp = null;
   try {
-    const commonDir = execSync('git rev-parse --path-format=absolute --git-common-dir', {
-      cwd: baseDir,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim();
-    if (commonDir) projectRoot = path.dirname(commonDir);
+    cachedStamp = JSON.parse(readFileSync(stampPath, 'utf8'));
   } catch {
-    // fallback
+    cachedStamp = null;
   }
 
-  const candidateDirs = [
-    path.join(baseDir, 'node_modules'),
-    path.join(projectRoot, 'node_modules'),
-  ];
-  const nodeModulesDir =
-    candidateDirs.find((dir) =>
-      existsSync(path.join(dir, '@mediapipe/tasks-vision'))
-    ) ?? path.join(baseDir, 'node_modules');
+  const nextStamp = {};
+  let stampChanged = false;
 
   for (const bundle of bundles) {
-    const filePath = path.resolve(nodeModulesDir, '@mediapipe/tasks-vision', bundle);
-    let content;
+    const filePath = path.resolve(pkgDir, bundle);
+    let st;
     try {
-      content = readFileSync(filePath, 'utf8');
+      st = statSync(filePath);
     } catch (e) {
       if (e.code === 'ENOENT') continue;
       throw e;
     }
 
+    const sig = `${st.size}:${st.mtimeMs}`;
+    if (cachedStamp && cachedStamp[bundle] === sig) {
+      nextStamp[bundle] = sig;
+      continue;
+    }
+
+    const content = readFileSync(filePath, 'utf8');
     let patched = content;
     for (const [from, to] of patches) patched = patched.replaceAll(from, to);
 
     if (patched !== content) {
       writeFileSync(filePath, patched, 'utf8');
       patchedCount++;
+      const updatedStat = statSync(filePath);
+      nextStamp[bundle] = `${updatedStat.size}:${updatedStat.mtimeMs}`;
+    } else {
+      nextStamp[bundle] = sig;
+    }
+    stampChanged = true;
+  }
+
+  if (stampChanged && Object.keys(nextStamp).length > 0) {
+    try {
+      writeFileSync(stampPath, JSON.stringify(nextStamp), 'utf8');
+    } catch {
+      // non-fatal if read-only
     }
   }
 

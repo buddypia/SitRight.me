@@ -14,6 +14,22 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { safeGit } from './utils.mjs';
 import { extractApplyPatchFilePaths } from './apply-patch-paths.mjs';
 
+function findCheckoutRootFast(startDir) {
+  let cur = startDir;
+  while (true) {
+    if (existsSync(join(cur, '.git'))) {
+      try {
+        return realpathSync(cur);
+      } catch {
+        return cur;
+      }
+    }
+    const parent = dirname(cur);
+    if (parent === cur) return null;
+    cur = parent;
+  }
+}
+
 /**
  * @param {object} data - normalized hook payload (`tool_input.file_path` / `tool_input.command`)
  * @param {(args: string, cwd: string, opts?: object) => string|null} [gitFn]
@@ -33,7 +49,11 @@ export function editedFiles(data, gitFn = safeGit) {
     let dir = dirname(abs);
     while (!existsSync(dir) && dirname(dir) !== dir) dir = dirname(dir);
     if (!roots.has(dir)) {
-      roots.set(dir, String(gitFn('rev-parse --show-toplevel', dir, { timeout: 2000 }) || '').trim());
+      const fastRoot = gitFn === safeGit ? findCheckoutRootFast(dir) : null;
+      roots.set(
+        dir,
+        fastRoot || String(gitFn('rev-parse --show-toplevel', dir, { timeout: 2000 }) || '').trim(),
+      );
     }
     const root = roots.get(dir);
     if (!root) continue;
