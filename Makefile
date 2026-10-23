@@ -1,7 +1,7 @@
 
 
 # --- brief2dev transplant-bundle (auto-managed targets) ---
-.PHONY: wt.new wt.run q.check q.check.full q.scratchpad q.fix
+.PHONY: wt.new wt.run q.check
 
 wt.new:
 	@if [ -z "$(BR)" ]; then \
@@ -23,14 +23,5 @@ q.check:
 	@node scripts/verify-gate.mjs $(if $(FULL),--full) $(if $(BASE),--base $(BASE))
 	@touch .tmp/quality-gate-passed
 	@echo "✅ Quality Gate PASSED"
-
-q.check.full:
-	@$(MAKE) q.check FULL=1
-
-q.scratchpad:
-	@node scripts/agent-scratchpad.mjs $(or $(ACT),status)
-
-q.fix:
-	@npx eslint --fix .
 
 # --- end brief2dev transplant-bundle ---

@@ -1,545 +1,147 @@
 #!/usr/bin/env node
-/**
- * verify-gate.mjs — Diff-aware, importance-tiered, cross-worktree cached verification gate.
- *
- * Optimizes `make q.check` for parallel AI CLI sessions working in isolated `.worktrees/<branch>`:
- *   1. Shares verification verdicts (`lint`, `harness`, `test`, `build`) across all worktrees via
- *      `<mainRepoRoot>/.tmp/agent-scratchpad/verify-cache.json` keyed by content SHA-256 fingerprints.
- *   2. Skips heavy production `next build` (~23s, 14 workers) in feature worktrees when zero
- *      application/build-affecting files changed relative to base (`origin/main`), deferring full
- *      bundle verification to `main` / CI or when app files actually change.
- *   3. Scopes ESLint to changed lintable files with a shared `--cache-location` when eslint config
- *      itself is untouched, and skips `tests/unit/agent-harness.test.ts` when no harness files
- *      changed and the harness input hash is already verified in the shared scratchpad.
- *   4. Serializes concurrent `next build` executions across parallel worktrees via `withScratchpadLock`
- *      so multiple 14-worker builds never thrash CPU or starve PreToolUse hooks.
- *
- * Usage:
- *   node scripts/verify-gate.mjs [--full] [--base <ref>] [--json] [--ci-diff-check]
- */
-
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { appendFileSync, existsSync, lstatSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isHarnessPath } from './check-agent-harness.mjs';
-import {
-  computeFilesFingerprint,
-  ensureAgentScratchpad,
-  getStageVerdict,
-  recordStageVerdict,
-  resolveCheckoutRoot,
-  withScratchpadLock,
-} from './lib/agent-scratchpad.mjs';
 
-const APP_BUILD_EXACT = new Set([
-  'next.config.js',
-  'package.json',
-  'package-lock.json',
-  'tsconfig.json',
-  'postcss.config.js',
-  'postcss.config.mjs',
-  'tailwind.config.js',
-  'tailwind.config.ts',
-  'scripts/copy-mediapipe-wasm.mjs',
-  'scripts/disable-third-party-telemetry.mjs',
-  'scripts/postbuild.mjs',
-]);
-
-const LINT_CONFIG_EXACT = new Set([
-  'eslint.config.mjs',
-  'package.json',
-  'package-lock.json',
-  'tsconfig.json',
-  'scripts/lib/scene-backdrop.mjs',
-]);
-
-const HARNESS_EXTRA_EXACT = new Set([
-  'scripts/check-agent-harness.mjs',
-  'scripts/harness-library.mjs',
-  'scripts/index-harness-experience.mjs',
-  'scripts/lib/scene-backdrop.mjs',
-  'tests/unit/agent-harness.test.ts',
-  'eslint.config.mjs',
-]);
-
-const LINT_IGNORED_PREFIXES = [
-  '.next/',
-  'out/',
-  'node_modules/',
-  'public/mediapipe/',
-  'playwright-report/',
-  'test-results/',
-  '.worktrees/',
-  '.tmp/',
-  '.cache/',
-  '.wrangler/',
-  'tmp/',
-  '.claude/',
-  '.cli/',
-  '.codex/',
-  'data/',
-];
-
-export function isAppBuildAffecting(relPath) {
-  const rel = relPath.replace(/\\/g, '/');
-  if (APP_BUILD_EXACT.has(rel)) return true;
-  return rel.startsWith('src/') || rel.startsWith('public/') || rel.startsWith('functions/');
+export function resolveCheckoutRoot(startDir = process.cwd()) {
+  for (let cur = path.resolve(startDir); ; ) {
+    if (existsSync(path.join(cur, '.git'))) return cur;
+    const parent = path.dirname(cur);
+    if (parent === cur) return path.resolve(startDir);
+    cur = parent;
+  }
 }
-
-export function isE2eAffecting(relPath) {
-  const rel = relPath.replace(/\\/g, '/');
-  if (isAppBuildAffecting(rel)) return true;
-  if (rel === 'playwright.config.ts' || rel === '.github/workflows/ci.yml') return true;
-  return rel.startsWith('tests/e2e/');
-}
-
-export function isLintConfigAffecting(relPath) {
-  return LINT_CONFIG_EXACT.has(relPath.replace(/\\/g, '/'));
-}
-
-export function isLintTargetFile(relPath) {
-  const rel = relPath.replace(/\\/g, '/');
-  if (rel === 'next-env.d.ts') return false;
-  if (LINT_IGNORED_PREFIXES.some((prefix) => rel.startsWith(prefix))) return false;
-  return /\.(?:[cm]?[jt]sx?)$/.test(rel);
-}
-
-export function isLintAffecting(relPath) {
-  return isLintConfigAffecting(relPath) || isLintTargetFile(relPath);
-}
-
-export function isHarnessAffecting(relPath) {
-  const rel = relPath.replace(/\\/g, '/');
-  return isHarnessPath(rel) || HARNESS_EXTRA_EXACT.has(rel);
-}
-
-export function isUnitTestAffecting(relPath) {
-  const rel = relPath.replace(/\\/g, '/');
-  if (isAppBuildAffecting(rel) || isHarnessAffecting(rel) || isLintAffecting(rel)) return true;
-  if (rel === 'vitest.config.mts' || rel === 'docs/THIRD_PARTY_NOTICES.md') return true;
-  return rel.startsWith('tests/unit/') || rel.startsWith('scripts/');
-}
-
-export function isTypecheckAffecting(relPath) {
-  const rel = relPath.replace(/\\/g, '/');
-  if (rel === 'tsconfig.json' || rel === 'package.json' || rel === 'package-lock.json') return true;
-  if (LINT_IGNORED_PREFIXES.some((prefix) => rel.startsWith(prefix))) return false;
-  return /\.(?:[cm]?ts|tsx)$/.test(rel);
-}
-
-export function classifyChanges(changedFiles) {
-  const normalized = [...new Set(changedFiles.map((f) => f.replace(/\\/g, '/')).filter(Boolean))].sort();
-  const changedLintTargetFiles = normalized.filter(isLintTargetFile);
-  return {
-    changedFiles: normalized,
-    affectsAppBuild: normalized.some(isAppBuildAffecting),
-    affectsTypecheck: normalized.some(isTypecheckAffecting),
-    affectsE2e: normalized.some(isE2eAffecting),
-    affectsLint: normalized.some(isLintAffecting),
-    affectsLintConfig: normalized.some(isLintConfigAffecting),
-    changedLintTargetFiles,
-    affectsHarness: normalized.some(isHarnessAffecting),
-    affectsUnitTests: normalized.some(isUnitTestAffecting),
-  };
-}
-
-function gitOut(rootDir, args) {
+export function resolveMainRepoRoot(startDir = process.cwd()) {
+  const root = resolveCheckoutRoot(startDir);
   try {
-    return execFileSync('git', ['-C', rootDir, ...args], {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim();
-  } catch {
-    return '';
-  }
-}
-
-function readBranchFast(rootDir) {
-  try {
-    const dotGit = path.join(rootDir, '.git');
-    const st = statSync(dotGit);
-    let gitDir = dotGit;
-    if (st.isFile()) {
-      const m = /^gitdir:\s*(.+)$/i.exec(readFileSync(dotGit, 'utf8').trim());
-      if (m) gitDir = path.resolve(rootDir, m[1].trim());
+    const dotGit = path.join(root, '.git');
+    if (statSync(dotGit).isDirectory()) return root;
+    const m = /^gitdir:\s*(.+)$/i.exec(readFileSync(dotGit, 'utf8').trim());
+    if (m) {
+      const gitDir = path.resolve(root, m[1].trim()), cFile = path.join(gitDir, 'commondir');
+      if (existsSync(cFile)) return path.dirname(path.resolve(gitDir, readFileSync(cFile, 'utf8').trim()));
+      if (gitDir.includes(`${path.sep}.git${path.sep}worktrees${path.sep}`)) return path.resolve(gitDir, '../../..');
     }
-    const headRaw = readFileSync(path.join(gitDir, 'HEAD'), 'utf8').trim();
-    if (headRaw.startsWith('ref: refs/heads/')) {
-      return headRaw.slice('ref: refs/heads/'.length);
+  } catch { /* fallback */ }
+  return root;
+}
+export function ensureAgentScratchpad(startDir = process.cwd()) {
+  if (process.env.SITRIGHT_AGENT_SCRATCHPAD_DIR) {
+    const dir = path.resolve(process.env.SITRIGHT_AGENT_SCRATCHPAD_DIR);
+    mkdirSync(dir, { recursive: true });
+    return dir;
+  }
+  const mainRoot = resolveMainRepoRoot(startDir), wtRoot = resolveCheckoutRoot(startDir), shared = path.join(mainRoot, '.tmp/agent-scratchpad');
+  mkdirSync(shared, { recursive: true });
+  if (wtRoot !== mainRoot) {
+    const link = path.join(wtRoot, '.tmp/agent-scratchpad');
+    mkdirSync(path.dirname(link), { recursive: true });
+    try { if (!existsSync(link) && !lstatSync(link, { throwIfNoEntry: false })) symlinkSync(shared, link, 'dir'); } catch { /* ignore */ }
+  }
+  return shared;
+}
+const readJson = (p, fb) => { try { return existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : fb; } catch { return fb; } };
+const writeJson = (p, data) => {
+  mkdirSync(path.dirname(p), { recursive: true });
+  const tmp = `${p}.${process.pid}.${Date.now()}.tmp`;
+  writeFileSync(tmp, JSON.stringify(data) + '\n', 'utf8');
+  renameSync(tmp, p);
+};
+export function computeFilesFingerprint(rootDir, relPaths, { scratchpadDir = ensureAgentScratchpad(rootDir) } = {}) {
+  const cachePath = path.join(scratchpadDir, 'file-hash-cache.json'), files = readJson(cachePath, { files: {} }).files || {};
+  let dirty = false;
+  const h = createHash('sha256');
+  for (const rel of [...new Set(relPaths.map((p) => p.replace(/\\/g, '/')))].sort()) {
+    const abs = path.join(rootDir, rel);
+    try {
+      const st = statSync(abs);
+      if (!st.isFile()) continue;
+      const sig = `${st.size}:${st.mtimeMs}`;
+      if (files[abs]?.sig !== sig) { files[abs] = { sig, sha256: createHash('sha256').update(readFileSync(abs)).digest('hex') }; dirty = true; }
+      h.update(`${rel}:${files[abs].sha256}\n`);
+    } catch { h.update(`${rel}:missing\n`); }
+  }
+  if (dirty) writeJson(cachePath, { files });
+  return h.digest('hex');
+}
+export const getStageVerdict = (stage, hash, { scratchpadDir = ensureAgentScratchpad() } = {}) => {
+  const hit = readJson(path.join(scratchpadDir, 'verify-cache.json'), { stages: {} })?.stages?.[stage]?.[hash];
+  return hit?.status === 'pass' ? hit : null;
+};
+export function recordStageVerdict(stage, hash, info = {}, { scratchpadDir = ensureAgentScratchpad() } = {}) {
+  const p = path.join(scratchpadDir, 'verify-cache.json'), cache = readJson(p, { stages: {} });
+  cache.stages = { ...(cache.stages || {}), [stage]: { ...(cache.stages?.[stage] || {}), [hash]: { status: 'pass', ...info, at: Date.now() } } };
+  writeJson(p, cache);
+}
+export function withScratchpadLock(name, fn, { scratchpadDir = ensureAgentScratchpad(), timeoutMs = 180_000 } = {}) {
+  const lockDir = path.join(scratchpadDir, 'locks', `${name}.lock`), ownerFile = path.join(lockDir, 'owner.json');
+  mkdirSync(path.dirname(lockDir), { recursive: true });
+  let acquired = false;
+  for (const t0 = Date.now(); Date.now() - t0 < timeoutMs; ) {
+    try {
+      mkdirSync(lockDir);
+      writeFileSync(ownerFile, JSON.stringify({ pid: process.pid, acquiredAt: Date.now() }), 'utf8');
+      acquired = true;
+      break;
+    } catch {
+      const owner = readJson(ownerFile, null);
+      let alive = false;
+      try { if (owner?.pid) { process.kill(owner.pid, 0); alive = true; } } catch (e) { alive = e.code === 'EPERM'; }
+      if (owner && !alive) { try { rmSync(lockDir, { recursive: true, force: true }); continue; } catch { /* ignore */ } }
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100);
     }
-  } catch {
-    // fallback below
   }
-  return gitOut(rootDir, ['rev-parse', '--abbrev-ref', 'HEAD']) || 'HEAD';
+  try { return fn({ acquired }); } finally { if (acquired) rmSync(lockDir, { recursive: true, force: true }); }
 }
-
-export function resolveBaseCommit(rootDir, explicitBase = '') {
-  if (explicitBase === 'HEAD') return 'HEAD';
-  const candidates = explicitBase ? [explicitBase] : ['origin/main', 'main', 'HEAD^1', 'HEAD'];
-  for (const ref of candidates) {
-    if (ref === 'HEAD') return 'HEAD';
-    const mb = gitOut(rootDir, ['merge-base', 'HEAD', ref]);
-    if (mb) return mb;
-    const rev = gitOut(rootDir, ['rev-parse', '--verify', '--quiet', ref]);
-    if (rev) return rev;
-  }
-  return 'HEAD';
+const APP_EXACT = new Set(['next.config.js', 'package.json', 'package-lock.json', 'tsconfig.json', 'postcss.config.mjs', 'scripts/copy-mediapipe-wasm.mjs', 'scripts/disable-third-party-telemetry.mjs', 'scripts/postbuild.mjs']);
+const LINT_IGNORE = ['.next/', 'out/', 'node_modules/', 'public/mediapipe/', 'playwright-report/', 'test-results/', '.worktrees/', '.tmp/', '.cache/', '.wrangler/', 'tmp/', '.claude/', '.cli/', '.codex/', 'data/'];
+export const isAppBuildAffecting = (p) => APP_EXACT.has(p) || /^(src|public|functions)\//.test(p);
+export const isE2eAffecting = (p) => isAppBuildAffecting(p) || p === 'playwright.config.ts' || p === '.github/workflows/ci.yml' || p.startsWith('tests/e2e/');
+export const isLintAffecting = (p) => p === 'eslint.config.mjs' || p === 'package.json' || (p !== 'next-env.d.ts' && !LINT_IGNORE.some((x) => p.startsWith(x)) && /\.(?:[cm]?[jt]sx?)$/.test(p));
+export const isHarnessAffecting = (p) => isHarnessPath(p) || p === 'scripts/check-agent-harness.mjs' || p === 'scripts/harness-library.mjs' || p === 'tests/unit/agent-harness.test.ts';
+export const isUnitTestAffecting = (p) => isAppBuildAffecting(p) || isHarnessAffecting(p) || isLintAffecting(p) || p === 'vitest.config.mts' || p === 'docs/THIRD_PARTY_NOTICES.md' || /^(tests\/unit|scripts)\//.test(p);
+export function classifyChanges(files) {
+  const list = [...new Set(files.map((f) => f.replace(/\\/g, '/')).filter(Boolean))].sort();
+  return { changedFiles: list, affectsAppBuild: list.some(isAppBuildAffecting), affectsE2e: list.some(isE2eAffecting), affectsLint: list.some(isLintAffecting), affectsHarness: list.some(isHarnessAffecting), affectsUnitTests: list.some(isUnitTestAffecting) };
 }
-
-function isIgnoredVerifyRel(rel) {
-  return (
-    !rel ||
-    rel.startsWith('.tmp/') ||
-    rel.startsWith('.worktrees/') ||
-    rel.startsWith('.cache/') ||
-    rel.startsWith('out/') ||
-    rel.startsWith('.next/')
-  );
-}
-
-export function scanRepoAndChangedFiles(rootDir, explicitBase = '') {
-  const baseCommit = resolveBaseCommit(rootDir, explicitBase);
-  const changed = new Set();
+const gitOut = (cwd, args) => { try { return execFileSync('git', ['-C', cwd, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return ''; } };
+export function runVerifyGate({ rootDir = resolveCheckoutRoot(), full = process.env.CI === 'true', base = '', scratchpadDir = ensureAgentScratchpad(rootDir), runner = (c, a, d) => { const r = spawnSync(c, a, { cwd: d, stdio: 'inherit' }); if (r.status !== 0) throw new Error(`${c} failed`); return 0; } } = {}) {
+  const baseRef = base || (gitOut(rootDir, ['merge-base', 'HEAD', 'origin/main']) ? 'origin/main' : 'HEAD');
+  const isIgnored = (p) => !p || /^(\.tmp|\.worktrees|\.cache|out|\.next)\//.test(p);
+  const changed = new Set(gitOut(rootDir, ['diff', '--name-only', '--no-renames', baseRef]).split('\n').map((s) => s.trim()).filter((p) => !isIgnored(p)));
   const allFiles = [];
-
-  const diffOut = gitOut(rootDir, ['diff', '--name-only', '--no-renames', baseCommit]);
-  for (const line of diffOut.split('\n')) {
-    const rel = line.trim();
-    if (!isIgnoredVerifyRel(rel)) changed.add(rel);
-  }
-
-  const lsOut = gitOut(rootDir, ['ls-files', '-t', '--cached', '--others', '--exclude-standard']);
-  for (const line of lsOut.split('\n')) {
-    if (!line) continue;
-    const tag = line[0];
+  for (const line of gitOut(rootDir, ['ls-files', '-t', '--cached', '--others', '--exclude-standard']).split('\n')) {
     const rel = line.slice(2).trim();
-    if (isIgnoredVerifyRel(rel)) continue;
-    allFiles.push(rel);
-    if (tag === '?') changed.add(rel);
+    if (!isIgnored(rel)) { allFiles.push(rel); if (line[0] === '?') changed.add(rel); }
   }
-
-  return { changedFiles: [...changed], allFiles };
-}
-
-export function collectChangedFiles(rootDir, explicitBase = '') {
-  return scanRepoAndChangedFiles(rootDir, explicitBase).changedFiles;
-}
-
-export function listRepoFiles(rootDir) {
-  return scanRepoAndChangedFiles(rootDir, 'HEAD').allFiles;
-}
-
-function runCommand(cmd, args, cwd) {
-  const start = Date.now();
-  const res = spawnSync(cmd, args, {
-    cwd,
-    stdio: 'inherit',
-    env: process.env,
-  });
-  const durationMs = Date.now() - start;
-  if (res.status !== 0) {
-    const err = new Error(`Command failed (${res.status ?? 'signal'}): ${cmd} ${args.join(' ')}`);
-    err.exitCode = res.status || 1;
-    throw err;
-  }
-  return durationMs;
-}
-
-export function parseVerifyArgs(argv = process.argv.slice(2)) {
-  let full = process.env.VERIFY_GATE_FULL === '1' || process.env.CI === 'true';
-  let base = '';
-  let json = false;
-  let ciDiffCheck = false;
-
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i];
-    if (arg === '--full') full = true;
-    else if (arg === '--json') json = true;
-    else if (arg === '--ci-diff-check') ciDiffCheck = true;
-    else if (arg === '--base' && argv[i + 1]) base = argv[++i];
-    else if (arg.startsWith('--base=')) base = arg.slice('--base='.length);
-  }
-
-  return { full, base, json, ciDiffCheck };
-}
-
-export function runVerifyGate({
-  rootDir = resolveCheckoutRoot(process.cwd()),
-  full = false,
-  base = '',
-  scratchpadDir = ensureAgentScratchpad(rootDir),
-  runner = runCommand,
-} = {}) {
-  const totalStart = Date.now();
-  const branch = readBranchFast(rootDir);
-  const { changedFiles, allFiles } = scanRepoAndChangedFiles(rootDir, base);
-  const classification = classifyChanges(changedFiles);
-
-  const lintInputHash = computeFilesFingerprint(rootDir, allFiles.filter(isLintAffecting), { scratchpadDir });
-  const harnessInputHash = computeFilesFingerprint(rootDir, allFiles.filter(isHarnessAffecting), { scratchpadDir });
-  const testInputHash = computeFilesFingerprint(rootDir, allFiles.filter(isUnitTestAffecting), { scratchpadDir });
-  const typecheckInputHash = computeFilesFingerprint(rootDir, allFiles.filter(isTypecheckAffecting), {
-    scratchpadDir,
-  });
-  const buildInputHash = computeFilesFingerprint(rootDir, allFiles.filter(isAppBuildAffecting), { scratchpadDir });
-
-  const results = [];
-
-  // --- Stage 1: Lint ---
-  const cachedLint = !full ? getStageVerdict('lint', lintInputHash, { scratchpadDir }) : null;
-  if (cachedLint) {
-    results.push({
-      stage: 'lint',
-      status: 'pass',
-      mode: 'cached',
-      durationMs: 0,
-      detail: `cache hit (${lintInputHash.slice(0, 12)})`,
-    });
-  } else if (!full && changedFiles.length > 0 && !classification.affectsLint) {
-    recordStageVerdict(
-      'lint',
-      lintInputHash,
-      { status: 'pass', worktree: rootDir, durationMs: 0, detail: 'no lintable files changed' },
-      { scratchpadDir },
-    );
-    results.push({
-      stage: 'lint',
-      status: 'pass',
-      mode: 'skipped-diff',
-      durationMs: 0,
-      detail: 'no lintable files changed',
-    });
-  } else {
-    const eslintCacheDir = path.join(scratchpadDir, 'eslint');
-    mkdirSync(eslintCacheDir, { recursive: true });
-    const eslintCacheFile = path.join(eslintCacheDir, '.eslintcache');
-    const existingTargets = classification.changedLintTargetFiles.filter((rel) =>
-      existsSync(path.join(rootDir, rel)),
-    );
-    const useScopedTargets =
-      !full &&
-      !classification.affectsLintConfig &&
-      changedFiles.length > 0 &&
-      existingTargets.length > 0 &&
-      existingTargets.length <= 25;
-
-    if (!full && !classification.affectsLintConfig && changedFiles.length > 0 && existingTargets.length === 0) {
-      recordStageVerdict(
-        'lint',
-        lintInputHash,
-        { status: 'pass', worktree: rootDir, durationMs: 0, detail: 'only deleted lintable files' },
-        { scratchpadDir },
-      );
-      results.push({
-        stage: 'lint',
-        status: 'pass',
-        mode: 'skipped-diff',
-        durationMs: 0,
-        detail: 'only deleted lintable files',
-      });
-    } else {
-      const lintArgs = useScopedTargets
-        ? ['eslint', '--cache', '--cache-location', eslintCacheFile, ...existingTargets]
-        : ['eslint', '--cache', '--cache-location', eslintCacheFile, '.'];
-      console.log(`>> npx ${lintArgs.join(' ')}`);
-      const durationMs = runner('npx', lintArgs, rootDir);
-      const mode = useScopedTargets ? `scoped (${existingTargets.length} files)` : 'full';
-      recordStageVerdict(
-        'lint',
-        lintInputHash,
-        { status: 'pass', worktree: rootDir, durationMs, detail: mode },
-        { scratchpadDir },
-      );
-      results.push({ stage: 'lint', status: 'pass', mode, durationMs, detail: mode });
-    }
-  }
-
-  // --- Stage 2: Unit Tests & Harness ---
-  const cachedTest = !full ? getStageVerdict('test', testInputHash, { scratchpadDir }) : null;
-  if (cachedTest) {
-    results.push({
-      stage: 'test',
-      status: 'pass',
-      mode: 'cached',
-      durationMs: 0,
-      detail: `cache hit (${testInputHash.slice(0, 12)})`,
-    });
-  } else if (!full && changedFiles.length > 0 && !classification.affectsUnitTests) {
-    recordStageVerdict(
-      'test',
-      testInputHash,
-      { status: 'pass', worktree: rootDir, durationMs: 0, detail: 'no test-affecting files changed' },
-      { scratchpadDir },
-    );
-    results.push({
-      stage: 'test',
-      status: 'pass',
-      mode: 'skipped-diff',
-      durationMs: 0,
-      detail: 'no test-affecting files changed',
-    });
-  } else {
-    const cachedHarness = !full ? getStageVerdict('harness', harnessInputHash, { scratchpadDir }) : null;
-    const skipHarnessSuite = !full && !classification.affectsHarness && Boolean(cachedHarness);
-    const vitestArgs = skipHarnessSuite
-      ? ['vitest', 'run', '--exclude', 'tests/unit/agent-harness.test.ts']
-      : ['vitest', 'run'];
-    console.log(`>> npx ${vitestArgs.join(' ')}`);
-    const durationMs = runner('npx', vitestArgs, rootDir);
-    const mode = skipHarnessSuite ? 'fast (harness cached)' : 'full';
-    if (!skipHarnessSuite) {
-      recordStageVerdict(
-        'harness',
-        harnessInputHash,
-        { status: 'pass', worktree: rootDir, durationMs, detail: 'agent-harness suite passed' },
-        { scratchpadDir },
-      );
-    }
-    recordStageVerdict(
-      'test',
-      testInputHash,
-      { status: 'pass', worktree: rootDir, durationMs, detail: mode },
-      { scratchpadDir },
-    );
-    results.push({ stage: 'test', status: 'pass', mode, durationMs, detail: mode });
-  }
-
-  // --- Stage 3: Build ---
-  const cachedBuild = !full ? getStageVerdict('build', buildInputHash, { scratchpadDir }) : null;
-  const cachedTypecheck = !full ? getStageVerdict('typecheck', typecheckInputHash, { scratchpadDir }) : null;
-  if (cachedBuild) {
-    if (classification.affectsTypecheck && !cachedTypecheck) {
-      console.log('>> npm run type-check');
-      const tcMs = runner('npm', ['run', 'type-check'], rootDir);
-      recordStageVerdict(
-        'typecheck',
-        typecheckInputHash,
-        { status: 'pass', worktree: rootDir, durationMs: tcMs, detail: 'tsc --noEmit' },
-        { scratchpadDir },
-      );
-    }
-    results.push({
-      stage: 'build',
-      status: 'pass',
-      mode: 'cached',
-      durationMs: 0,
-      detail: `cache hit (${buildInputHash.slice(0, 12)})`,
-    });
-  } else if (!full && changedFiles.length > 0 && !classification.affectsAppBuild) {
-    let tcMs = 0;
-    if (classification.affectsTypecheck && !cachedTypecheck) {
-      console.log('>> npm run type-check');
-      tcMs = runner('npm', ['run', 'type-check'], rootDir);
-      recordStageVerdict(
-        'typecheck',
-        typecheckInputHash,
-        { status: 'pass', worktree: rootDir, durationMs: tcMs, detail: 'tsc --noEmit' },
-        { scratchpadDir },
-      );
-    }
-    recordStageVerdict(
-      'build',
-      buildInputHash,
-      { status: 'pass', worktree: rootDir, durationMs: tcMs, detail: 'no app/build files changed' },
-      { scratchpadDir },
-    );
-    results.push({
-      stage: 'build',
-      status: 'pass',
-      mode: 'skipped-diff',
-      durationMs: tcMs,
-      detail: 'no app/build files changed',
-    });
-  } else {
-    withScratchpadLock(
-      'next-build',
-      () => {
-        const hitAfterLock = !full ? getStageVerdict('build', buildInputHash, { scratchpadDir }) : null;
-        if (hitAfterLock) {
-          results.push({
-            stage: 'build',
-            status: 'pass',
-            mode: 'cached-after-lock',
-            durationMs: 0,
-            detail: `cache hit after lock (${buildInputHash.slice(0, 12)})`,
-          });
-          return;
-        }
-        console.log('>> npm run build');
-        const durationMs = runner('npm', ['run', 'build'], rootDir);
-        recordStageVerdict(
-          'typecheck',
-          typecheckInputHash,
-          { status: 'pass', worktree: rootDir, durationMs, detail: 'next build' },
-          { scratchpadDir },
-        );
-        recordStageVerdict(
-          'build',
-          buildInputHash,
-          { status: 'pass', worktree: rootDir, durationMs, detail: 'next build' },
-          { scratchpadDir },
-        );
-        results.push({ stage: 'build', status: 'pass', mode: 'full', durationMs, detail: 'next build' });
-      },
-      { scratchpadDir },
-    );
-  }
-
-  const stampDir = path.join(rootDir, '.tmp');
-  mkdirSync(stampDir, { recursive: true });
-  writeFileSync(path.join(stampDir, 'quality-gate-passed'), new Date().toISOString() + '\n', 'utf8');
-
-  const totalDurationMs = Date.now() - totalStart;
-  return {
-    ok: true,
-    branch,
-    full,
-    scratchpadDir,
-    changedFilesCount: classification.changedFiles.length,
-    classification,
-    hashes: {
-      lint: lintInputHash.slice(0, 12),
-      harness: harnessInputHash.slice(0, 12),
-      test: testInputHash.slice(0, 12),
-      build: buildInputHash.slice(0, 12),
-    },
-    results,
-    totalDurationMs,
+  const info = classifyChanges([...changed]), results = [];
+  const hashes = { lint: computeFilesFingerprint(rootDir, allFiles.filter(isLintAffecting), { scratchpadDir }), test: computeFilesFingerprint(rootDir, allFiles.filter(isUnitTestAffecting), { scratchpadDir }), build: computeFilesFingerprint(rootDir, allFiles.filter(isAppBuildAffecting), { scratchpadDir }) };
+  const runStage = (stage, affects, fn) => {
+    if (!full && getStageVerdict(stage, hashes[stage], { scratchpadDir })) return results.push({ stage, mode: 'cached' });
+    if (!full && info.changedFiles.length > 0 && !affects) { recordStageVerdict(stage, hashes[stage], { worktree: rootDir }, { scratchpadDir }); return results.push({ stage, mode: 'skipped-diff' }); }
+    fn();
+    recordStageVerdict(stage, hashes[stage], { worktree: rootDir }, { scratchpadDir });
+    results.push({ stage, mode: 'full' });
   };
+  runStage('lint', info.affectsLint, () => runner('npx', ['eslint', '--cache', '--cache-location', path.join(scratchpadDir, 'eslint/.eslintcache'), '.'], rootDir));
+  runStage('test', info.affectsUnitTests, () => runner('npx', ['vitest', 'run'], rootDir));
+  runStage('build', info.affectsAppBuild, () => withScratchpadLock('next-build', () => { if (full || !getStageVerdict('build', hashes.build, { scratchpadDir })) runner('npm', ['run', 'build'], rootDir); }, { scratchpadDir }));
+  mkdirSync(path.join(rootDir, '.tmp'), { recursive: true });
+  writeFileSync(path.join(rootDir, '.tmp/quality-gate-passed'), new Date().toISOString() + '\n');
+  return { ok: true, results, classification: info };
 }
-
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const opts = parseVerifyArgs();
-  const rootDir = resolveCheckoutRoot(process.cwd());
-
-  if (opts.ciDiffCheck) {
-    const changed = collectChangedFiles(rootDir, opts.base);
-    const info = classifyChanges(changed);
-    const out = {
-      changed_count: info.changedFiles.length,
-      affects_app_build: info.affectsAppBuild || info.changedFiles.length === 0,
-      affects_e2e: info.affectsE2e || info.changedFiles.length === 0,
-      changed_files: info.changedFiles,
-    };
-    console.log(JSON.stringify(out));
+  const args = process.argv.slice(2), baseIdx = args.indexOf('--base'), base = baseIdx >= 0 ? args[baseIdx + 1] : '';
+  if (args.includes('--ci-diff-check')) {
+    const isPr = process.env.GITHUB_EVENT_NAME === 'pull_request', diff = isPr ? gitOut(resolveCheckoutRoot(), ['diff', '--name-only', '--no-renames', base || 'HEAD^1']).split('\n').filter(Boolean) : [], c = classifyChanges(diff);
+    const runBuild = !isPr || diff.length === 0 || c.affectsAppBuild, runE2e = !isPr || diff.length === 0 || c.affectsE2e;
+    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `run_build=${runBuild}\nrun_e2e=${runE2e}\n`);
+    console.log(JSON.stringify({ affects_app_build: runBuild, affects_e2e: runE2e }));
     process.exit(0);
   }
-
-  try {
-    const summary = runVerifyGate({ rootDir, full: opts.full, base: opts.base });
-    if (opts.json) {
-      console.log(JSON.stringify(summary, null, 2));
-    } else {
-      for (const r of summary.results) {
-        console.log(`  [${r.stage}] ${r.status.toUpperCase()} (${r.mode}, ${r.durationMs}ms) — ${r.detail}`);
-      }
-      console.log(
-        `[verify-gate] Completed in ${summary.totalDurationMs}ms (scratchpad: ${summary.scratchpadDir})`,
-      );
-    }
-  } catch (err) {
-    console.error(`[verify-gate] FAILED: ${err.message}`);
-    process.exit(err.exitCode || 1);
-  }
+  const out = runVerifyGate({ full: args.includes('--full'), base });
+  for (const r of out.results) console.log(`  [${r.stage}] PASS (${r.mode})`);
 }

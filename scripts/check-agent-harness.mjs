@@ -275,7 +275,7 @@ const HOOK_SYNTAX_CACHE = new Map();
 
 /**
  * hook モジュールが構文として通るか（harness2/core/tree.py#_py_compiles に当たる）。構文エラーの hook は実行時に
- * 握りつぶされ、黙って発火しない。小プロセスを毎回起動せず同一プロセス内で ES module として構文検査し、内容ハッシュでキャッシュする
+ * 握りつぶされ、黙って発火しない。1 件ごとに node を起こすので、PostToolUse hook からは編集したものだけ渡す
  */
 export function checkHookModulesCompile(root, modules = referencedHookModules(root)) {
   const errs = [];
@@ -284,20 +284,16 @@ export function checkHookModulesCompile(root, modules = referencedHookModules(ro
     if (!existsSync(abs)) continue;
     const src = readFileSync(abs, 'utf8');
     const hash = createHash('sha256').update(src).digest('hex');
-    let cachedErr = HOOK_SYNTAX_CACHE.get(hash);
-    if (cachedErr === undefined) {
+    if (!HOOK_SYNTAX_CACHE.has(hash)) {
       try {
-        const cleaned = src.replace(/^#![^\r\n]*/, '');
-        espree.parse(cleaned, { ecmaVersion: 'latest', sourceType: 'module' });
-        cachedErr = '';
+        espree.parse(src.replace(/^#![^\r\n]*/, ''), { ecmaVersion: 'latest', sourceType: 'module' });
+        HOOK_SYNTAX_CACHE.set(hash, '');
       } catch (err) {
-        cachedErr = `SyntaxError: ${err.message}`;
+        HOOK_SYNTAX_CACHE.set(hash, `SyntaxError: ${err.message}`);
       }
-      HOOK_SYNTAX_CACHE.set(hash, cachedErr);
     }
-    if (cachedErr) {
-      errs.push(`\`${mod}\` が構文として通りません（${cachedErr}）。hook は黙って発火しなくなります`);
-    }
+    const detail = HOOK_SYNTAX_CACHE.get(hash);
+    if (detail) errs.push(`\`${mod}\` が構文として通りません（${detail}）。hook は黙って発火しなくなります`);
   }
   return errs;
 }

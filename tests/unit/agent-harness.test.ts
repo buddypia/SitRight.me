@@ -321,7 +321,7 @@ describe('scene-backdrop', SLOW, () => {
 
 describe('PostToolUse hooks', SLOW, () => {
   function gitInit() {
-    mkdirSync(path.join(root, '.git'), { recursive: true });
+    spawnSync('git', ['init', '-q'], { cwd: root });
   }
 
   function runHook(args: string[], payload: object) {

@@ -35,15 +35,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules",
-    ".worktrees",
-    ".next",
-    "out",
-    ".tmp",
-    ".cache",
-    "coverage",
-    "playwright-report",
-    "test-results"
-  ]
+  "exclude": ["node_modules", ".worktrees", ".next", "out", ".tmp", ".cache", "playwright-report", "test-results"]
 }

@@ -23,10 +23,18 @@ function resolveMainRepoRoot(startDir) {
 }
 
 const root = path.resolve(import.meta.dirname, '..');
-const localNodeModules = path.join(root, 'node_modules');
-const nodeModulesDir = existsSync(path.join(localNodeModules, '@mediapipe/tasks-vision/wasm'))
-  ? localNodeModules
-  : path.join(resolveMainRepoRoot(root), 'node_modules');
+const projectRoot = existsSync(path.join(root, 'node_modules/@mediapipe/tasks-vision/wasm'))
+  ? root
+  : resolveMainRepoRoot(root);
+
+const candidateDirs = [
+  path.join(root, 'node_modules'),
+  path.join(projectRoot, 'node_modules'),
+];
+const nodeModulesDir =
+  candidateDirs.find((dir) =>
+    existsSync(path.join(dir, '@mediapipe/tasks-vision/wasm'))
+  ) ?? path.join(root, 'node_modules');
 
 const src = path.join(nodeModulesDir, '@mediapipe/tasks-vision/wasm');
 const dest = path.join(root, 'public/mediapipe/wasm');
@@ -35,18 +43,9 @@ mkdirSync(dest, { recursive: true });
 for (const file of readdirSync(src)) {
   // ES module 版（*_module_internal）は使わない
   if (file.includes('_module_')) continue;
-  const srcPath = path.join(src, file);
-  const destPath = path.join(dest, file);
-  try {
-    const srcStat = statSync(srcPath);
-    const destStat = statSync(destPath);
-    if (destStat.size === srcStat.size && destStat.mtimeMs >= srcStat.mtimeMs) {
-      continue;
-    }
-  } catch {
-    // dest does not exist yet -> copy
-  }
-  cpSync(srcPath, destPath);
+  const s = path.join(src, file), d = path.join(dest, file);
+  if (existsSync(d) && statSync(d).size === statSync(s).size) continue;
+  cpSync(s, d);
 }
 
 // Third-party telemetry must be eliminated completely per TELEMETRY_CONTRACT.md

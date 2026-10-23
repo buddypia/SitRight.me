@@ -13,8 +13,3 @@ harness（AGENTS.md・skill・スクリプト・hook）を変える前に、同�
 
 - [3D シーンを覆う backdrop-filter の禁止を、常駐の文章から hook と ESLint に移す](experience/2026-10-18-scene-backdrop-hook.md) — 2026-10-18 · 確度 中 · 部品: `src/components/PostureScene`, `CLAUDE.md`（常駐）, `scene-backdrop-guard` hook と ESLint
   - きっかけ: 1 ファイルの中だけで機械的に見分けられる禁止事項（クラスの組み合わせ、使ってはいけない API）が、常駐の文章として書かれている
-
-## worktree
-
-- [並列 worktree の検証ゲートを差分判定と共有 scratchpad キャッシュで短縮する](experience/2026-10-24-worktree-verify-gate-scratchpad.md) — 2026-10-24 · 確度 高 · 部品: `scripts/check-agent-harness.mjs` と `.cli/lib/edited-files.mjs`, `scripts/lib/agent-scratchpad.mjs` と `scripts/verify-gate.mjs`, `eslint.config.mjs`・`tsconfig.json`・`vitest.config.mts`
-  - きっかけ: 複数の AI CLI が `.worktrees/<branch>` を並列に所有してコミット・`make q.check`・PR マージを回すとき、毎回フルビルドや子プロセス起動が重なって検証ゲートで詰まる

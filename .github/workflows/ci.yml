@@ -27,15 +27,7 @@ jobs:
           cache: npm
       - run: npm ci
       - id: scope
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            OUT=$(node scripts/verify-gate.mjs --ci-diff-check --base HEAD^1)
-            echo "$OUT"
-            BUILD=$(node -e 'console.log(JSON.parse(process.argv[1]).affects_app_build)' "$OUT")
-            echo "run_build=$BUILD" >> "$GITHUB_OUTPUT"
-          else
-            echo "run_build=true" >> "$GITHUB_OUTPUT"
-          fi
+        run: node scripts/verify-gate.mjs --ci-diff-check
       - run: npm run lint
       - run: npm run check:harness -- ${{ github.event_name == 'pull_request' && '--base HEAD^1' || '' }}
       - run: npm run type-check
@@ -45,7 +37,6 @@ jobs:
 
   # 実ブラウザ（headless Chromium + SwiftShader）で 3D 描画とカメラ判定を確かめる。
   # ローカルでは新しいブラウザを起動しない方針のため、CI で回す。
-  # PR でアプリ本体・ビルド・e2e に関わらない変更（docs / harness / unit test のみ）のときは省略し、main では必ず回す。
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -55,15 +46,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 2
       - id: scope
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            OUT=$(node scripts/verify-gate.mjs --ci-diff-check --base HEAD^1)
-            echo "$OUT"
-            E2E=$(node -e 'console.log(JSON.parse(process.argv[1]).affects_e2e)' "$OUT")
-            echo "run_e2e=$E2E" >> "$GITHUB_OUTPUT"
-          else
-            echo "run_e2e=true" >> "$GITHUB_OUTPUT"
-          fi
+        run: node scripts/verify-gate.mjs --ci-diff-check
       - if: steps.scope.outputs.run_e2e == 'true'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:

@@ -7,14 +7,7 @@ export default defineConfig({
     fsModuleCache: true,
     isolate: false,
     include: ['tests/unit/**/*.test.ts'],
-    exclude: [
-      '**/node_modules/**',
-      '**/.worktrees/**',
-      '**/.tmp/**',
-      '**/.cache/**',
-      '**/out/**',
-      '**/.next/**',
-    ],
+    exclude: ['**/node_modules/**', '**/.worktrees/**', '**/.tmp/**', '**/.cache/**', '**/out/**', '**/.next/**'],
     environment: 'node',
   },
 });
