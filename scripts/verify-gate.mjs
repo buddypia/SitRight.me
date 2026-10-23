@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { appendFileSync, existsSync, lstatSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { appendFileSync, closeSync, existsSync, fstatSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isHarnessPath } from './check-agent-harness.mjs';
 
 export function resolveCheckoutRoot(startDir = process.cwd()) {
   for (let cur = path.resolve(startDir); ; ) {
@@ -17,15 +16,13 @@ export function resolveCheckoutRoot(startDir = process.cwd()) {
 export function resolveMainRepoRoot(startDir = process.cwd()) {
   const root = resolveCheckoutRoot(startDir);
   try {
-    const dotGit = path.join(root, '.git');
-    if (statSync(dotGit).isDirectory()) return root;
-    const m = /^gitdir:\s*(.+)$/i.exec(readFileSync(dotGit, 'utf8').trim());
+    const m = /^gitdir:\s*(.+)$/i.exec(readFileSync(path.join(root, '.git'), 'utf8').trim());
     if (m) {
-      const gitDir = path.resolve(root, m[1].trim()), cFile = path.join(gitDir, 'commondir');
-      if (existsSync(cFile)) return path.dirname(path.resolve(gitDir, readFileSync(cFile, 'utf8').trim()));
+      const gitDir = path.resolve(root, m[1].trim());
+      try { return path.dirname(path.resolve(gitDir, readFileSync(path.join(gitDir, 'commondir'), 'utf8').trim())); } catch { /* fallback */ }
       if (gitDir.includes(`${path.sep}.git${path.sep}worktrees${path.sep}`)) return path.resolve(gitDir, '../../..');
     }
-  } catch { /* fallback */ }
+  } catch { /* .git is a directory or unreadable */ }
   return root;
 }
 export function ensureAgentScratchpad(startDir = process.cwd()) {
@@ -39,11 +36,11 @@ export function ensureAgentScratchpad(startDir = process.cwd()) {
   if (wtRoot !== mainRoot) {
     const link = path.join(wtRoot, '.tmp/agent-scratchpad');
     mkdirSync(path.dirname(link), { recursive: true });
-    try { if (!existsSync(link) && !lstatSync(link, { throwIfNoEntry: false })) symlinkSync(shared, link, 'dir'); } catch { /* ignore */ }
+    try { symlinkSync(shared, link, 'dir'); } catch { /* ignore existing */ }
   }
   return shared;
 }
-const readJson = (p, fb) => { try { return existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : fb; } catch { return fb; } };
+const readJson = (p, fb) => { try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return fb; } };
 const writeJson = (p, data) => {
   mkdirSync(path.dirname(p), { recursive: true });
   const tmp = `${p}.${process.pid}.${Date.now()}.tmp`;
@@ -56,13 +53,15 @@ export function computeFilesFingerprint(rootDir, relPaths, { scratchpadDir = ens
   const h = createHash('sha256');
   for (const rel of [...new Set(relPaths.map((p) => p.replace(/\\/g, '/')))].sort()) {
     const abs = path.join(rootDir, rel);
+    let fd = -1;
     try {
-      const st = statSync(abs);
+      fd = openSync(abs, 'r');
+      const st = fstatSync(fd);
       if (!st.isFile()) continue;
       const sig = `${st.size}:${st.mtimeMs}`;
-      if (files[abs]?.sig !== sig) { files[abs] = { sig, sha256: createHash('sha256').update(readFileSync(abs)).digest('hex') }; dirty = true; }
+      if (files[abs]?.sig !== sig) { files[abs] = { sig, sha256: createHash('sha256').update(readFileSync(fd)).digest('hex') }; dirty = true; }
       h.update(`${rel}:${files[abs].sha256}\n`);
-    } catch { h.update(`${rel}:missing\n`); }
+    } catch { h.update(`${rel}:missing\n`); } finally { if (fd >= 0) try { closeSync(fd); } catch { /* ignore */ } }
   }
   if (dirty) writeJson(cachePath, { files });
   return h.digest('hex');
@@ -98,17 +97,18 @@ export function withScratchpadLock(name, fn, { scratchpadDir = ensureAgentScratc
 }
 const APP_EXACT = new Set(['next.config.js', 'package.json', 'package-lock.json', 'tsconfig.json', 'postcss.config.mjs', 'scripts/copy-mediapipe-wasm.mjs', 'scripts/disable-third-party-telemetry.mjs', 'scripts/postbuild.mjs']);
 const LINT_IGNORE = ['.next/', 'out/', 'node_modules/', 'public/mediapipe/', 'playwright-report/', 'test-results/', '.worktrees/', '.tmp/', '.cache/', '.wrangler/', 'tmp/', '.claude/', '.cli/', '.codex/', 'data/'];
+const isHarness = (p) => /^(?:AGENTS\.md|CLAUDE\.md|(?:docs\/harness|\.claude|\.agents|\.cli|\.codex)\/)/.test(p);
 export const isAppBuildAffecting = (p) => APP_EXACT.has(p) || /^(src|public|functions)\//.test(p);
 export const isE2eAffecting = (p) => isAppBuildAffecting(p) || p === 'playwright.config.ts' || p === '.github/workflows/ci.yml' || p.startsWith('tests/e2e/');
 export const isLintAffecting = (p) => p === 'eslint.config.mjs' || p === 'package.json' || (p !== 'next-env.d.ts' && !LINT_IGNORE.some((x) => p.startsWith(x)) && /\.(?:[cm]?[jt]sx?)$/.test(p));
-export const isHarnessAffecting = (p) => isHarnessPath(p) || p === 'scripts/check-agent-harness.mjs' || p === 'scripts/harness-library.mjs' || p === 'tests/unit/agent-harness.test.ts';
+export const isHarnessAffecting = (p) => isHarness(p) || p === 'scripts/check-agent-harness.mjs' || p === 'scripts/harness-library.mjs' || p === 'tests/unit/agent-harness.test.ts';
 export const isUnitTestAffecting = (p) => isAppBuildAffecting(p) || isHarnessAffecting(p) || isLintAffecting(p) || p === 'vitest.config.mts' || p === 'docs/THIRD_PARTY_NOTICES.md' || /^(tests\/unit|scripts)\//.test(p);
 export function classifyChanges(files) {
   const list = [...new Set(files.map((f) => f.replace(/\\/g, '/')).filter(Boolean))].sort();
   return { changedFiles: list, affectsAppBuild: list.some(isAppBuildAffecting), affectsE2e: list.some(isE2eAffecting), affectsLint: list.some(isLintAffecting), affectsHarness: list.some(isHarnessAffecting), affectsUnitTests: list.some(isUnitTestAffecting) };
 }
 const gitOut = (cwd, args) => { try { return execFileSync('git', ['-C', cwd, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return ''; } };
-export function runVerifyGate({ rootDir = resolveCheckoutRoot(), full = process.env.CI === 'true', base = '', scratchpadDir = ensureAgentScratchpad(rootDir), runner = (c, a, d) => { const r = spawnSync(c, a, { cwd: d, stdio: 'inherit' }); if (r.status !== 0) throw new Error(`${c} failed`); } } = {}) {
+export function runVerifyGate({ rootDir = resolveCheckoutRoot(), full = false, base = '', scratchpadDir = ensureAgentScratchpad(rootDir), runner = (c, a, d) => { const r = spawnSync(c, a, { cwd: d, stdio: 'inherit' }); if (r.status !== 0) throw new Error(`${c} failed`); } } = {}) {
   const baseRef = base || (gitOut(rootDir, ['merge-base', 'HEAD', 'origin/main']) ? 'origin/main' : 'HEAD');
   const isIgnored = (p) => !p || /^(\.tmp|\.worktrees|\.cache|out|\.next)\//.test(p);
   const changed = new Set(gitOut(rootDir, ['diff', '--name-only', '--no-renames', baseRef]).split('\n').map((s) => s.trim()).filter((p) => !isIgnored(p)));
@@ -142,6 +142,6 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     console.log(JSON.stringify({ affects_app_build: runBuild, affects_e2e: runE2e }));
     process.exit(0);
   }
-  const out = runVerifyGate({ full: args.includes('--full'), base });
+  const out = runVerifyGate({ full: args.includes('--full') || process.env.CI === 'true', base });
   for (const r of out.results) console.log(`  [${r.stage}] PASS (${r.mode})`);
 }

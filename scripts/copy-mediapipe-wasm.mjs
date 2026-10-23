@@ -44,7 +44,7 @@ for (const file of readdirSync(src)) {
   // ES module 版（*_module_internal）は使わない
   if (file.includes('_module_')) continue;
   const s = path.join(src, file), d = path.join(dest, file);
-  if (existsSync(d) && statSync(d).size === statSync(s).size) continue;
+  try { if (statSync(d).size === statSync(s).size) continue; } catch { /* copy */ }
   cpSync(s, d);
 }
 
