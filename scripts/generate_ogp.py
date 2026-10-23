@@ -274,6 +274,10 @@ def generate_social_ogp_for_locale(squircle, locale, spec):
     final_rgb = img.convert("RGB")
     final_rgb.save(spec['out'], "PNG", optimize=True)
     print(f"Saved OGP card ({locale}): {spec['out']} ({W}x{H})")
+    if locale == 'en':
+        for alias in ('public/twitter-image.png', 'public/opengraph-image.png'):
+            final_rgb.save(alias, "PNG", optimize=True)
+            print(f"Saved legacy OGP alias: {alias} ({W}x{H})")
 
 
 if __name__ == "__main__":
