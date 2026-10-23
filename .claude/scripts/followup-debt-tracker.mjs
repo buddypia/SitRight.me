@@ -133,19 +133,48 @@ export function selectLapsableDebt(items, now, { days = LAPSE_OPEN_LOW_DAYS } = 
 // its own. `deferred` stays unpaired: of those 400 PRs one heads a section 이월 (#1169), and it
 // holds a line of prose, no bullet.
 //
+// The third gap was `남은`/`남는` ("remaining"): #1463, #1464 and #1465 put their remaining work under
+// `## 남은 항목` and ship registered none of the 9 lines. Over merged #613–#1465 the word heads 25
+// heading variants in about 40 PRs, every one meaning "left undone" (measured 2026-10-23). Each gap
+// was found months later by reading, so the list is no longer the only net: a scale-marked line
+// outside every section is reported (reason `outside`), and the next missing word shows up in the
+// first ship report that uses it. A bare limitation heading (`한계`, `Known gaps`, `미검증`) stays out
+// on purpose: it mixes accepted design limits with open work. `남은 한계` is read, since `남은` says
+// the limit is still open; about 7 of the 64 lines the word added are notes, not debts, and file as
+// LOW that lapses (Rule 6.2), while narrowing it to `항목`/`일`/`작업` would drop the real `남은 한계`
+// lines of #1338 and #1340. Korean has no `\b`, so the word may not follow another syllable:
+// `베트남은` is a country, not "remaining".
+//
+// The bundle also ships to a target that writes its PR bodies in Japanese: 27 of the 74 merged
+// SitRight.me PRs (`gh pr list --state merged`, 2026-10-23). #77 put three lines under `## 残したもの`
+// and register read none of them — the lines carry no scale, so the `outside` report stayed silent
+// too. So each Korean form has its Japanese pair. `deferred` has none: no Japanese body used `先送り`
+// or `延期` as a heading, so there is nothing to pair it with. `残` reads as "left undone" only when
+// a verb ending or a work noun follows it: `残高` (balance) and `残念` (pity) are other words.
+// Like `남은`, `後続` and `範囲外` also open ordinary headings (`残り時間`, `後続処理`, `配列範囲外アクセス`); those
+// lines file as LOW that lapses. `既知の課題` is the bare limitation heading and stays out
+// (SitRight.me #16 under it lists notes left after the fix).
+//
 // PR #1213 is NOT evidence for the `범위 밖` gap: its `count: 0` came from `ops.mjs` discarding
 // `--body-file`, so the body never reached GitHub and there was nothing to parse (measured
 // 2026-08-25, corrected in the PR that added this paragraph). That gap is real but was found by
 // reading, not by that incident.
 const KEYWORDS = [
   /후속/,
+  /後続/,
   /follow[-\s]?up/i,
+  /フォロー\s*アップ/,
   /별도\s*PR/i,
+  /別\s*PR/i,
   /separate\s*PR/i,
   /범위\s*밖/i,
+  /範囲\s*外/,
   /scope\s*외/i,
+  /(?:scope|スコープ)\s*外/i,
   /out\s*of\s*scope/i,
   /deferred/i,
+  /(?<![가-힣])남[은는]/,
+  /残(?:され|[しすりるっ]|課題|タスク|作業)/,
 ];
 
 function getSsotPath() {
@@ -359,8 +388,12 @@ const ACTION_SCALE = new Set(['P0', 'P1', 'P2']);
  * leave-it-alone branch: filed LOW, marker still embedded, and no warning on either channel. That
  * is the very defect this parser exists to end, reached by a different door. Anchoring is what
  * keeps mid-sentence brackets safe; the space never contributed to that.
+ *
+ * The bracket also takes the separator `BARE_MARKER` takes (`[MEDIUM]: …`, `[LOW] — …`): without it
+ * `P1 [MEDIUM]: x` stored `(P1) : x`, the shape of all 7 such lines in #1463 and #1464. An unread
+ * bracket (`[DEBT-42]: …`) keeps its text verbatim either way, so the wider match cannot touch it.
  */
-const LEADING_MARKER = /^\[([A-Za-z0-9-]+)\]\s*/;
+const LEADING_MARKER = /^\[([A-Za-z0-9-]+)\]\s*(?:[:—]\s*)?/;
 
 /**
  * The same tokens written without brackets: `HIGH: …`, `P2 — …`.
@@ -485,22 +518,26 @@ function unreadLeadingGrade(text) {
  * Section-state transition for one line. Returns the state unchanged for non-headings.
  *
  * A heading matching a deferral keyword opens the section and records its depth; a later heading at
- * that depth or shallower closes it, while deeper ones are subsections and stay inside.
+ * that depth or shallower closes it, while deeper ones are subsections and stay inside. Every
+ * heading becomes `heading`, so a line reported from outside a section can name where it sat.
  *
  * @param {string} line
- * @param {{inSection: boolean, depth: number}} state
- * @returns {{inSection: boolean, depth: number}}
+ * @param {{inSection: boolean, depth: number, heading: string|null}} state
+ * @returns {{inSection: boolean, depth: number, heading: string|null}}
  */
 function advanceSection(line, state) {
   if (!/^#+\s/.test(line)) return state;
   const depth = (line.match(/^#+/) || [''])[0].length;
+  const heading = line.trim();
   const matchesKeyword = KEYWORDS.some((rx) => {
     rx.lastIndex = 0;
     return rx.test(line);
   });
-  if (matchesKeyword) return { inSection: true, depth };
-  if (state.inSection && depth <= state.depth) return { inSection: false, depth: state.depth };
-  return state;
+  if (matchesKeyword) return { inSection: true, depth, heading };
+  if (state.inSection && depth <= state.depth) {
+    return { inSection: false, depth: state.depth, heading };
+  }
+  return { ...state, heading };
 }
 
 /** The item text of a `-`/`*` or `1.`/`1)` list line, or null when the line is not one. */
@@ -514,36 +551,112 @@ function listItemText(line) {
 // wrong row stays in `list`, so only a clear separator ends the word: an em or en dash, a hyphen,
 // colon or period before a space or the line end, or a parenthetical that closes the line, a
 // period after it allowed. A debt that merely opens with the word stays an item:
-// `없음 상태에서 …`, `none-check …`, `없음(null) …`.
-const NONE_MARKER = /^(?:없음|해당\s*없음|none|n\/a)\s*(?:$|[—–]|[-:.](?:\s|$)|\([^)]*\)[.\s]*$)/i;
+// `없음 상태에서 …`, `none-check …`, `없음(null) …`. Japanese pairs the word with `なし` and puts no
+// space after punctuation, so after `なし` alone a colon of either width, `、`, `。` or `．` ends it;
+// a hyphen or period still needs the space, and `なしの場合に …` stays an item. The other words keep
+// the space after a colon: there it is part of a name (`none:latest`, `None::new()`, `n/a:…`).
+const NONE_MARKER =
+  /^(?:(?:없음|해당\s*없음|none|n\/a)\s*(?:$|[—–]|[-:.](?:\s|$)|\([^)]*\)[.\s]*$)|(?:特に|該当)?なし\s*(?:$|[—–:：、。．]|[-.](?:\s|$)|\([^)]*\)[.\s]*$|（[^）]*）[。.\s]*$))/i;
+
+/**
+ * A list line under no follow-up heading is reported when it carries an Actions-scale token, never
+ * recorded: the same token is Perspective 1/2 shorthand in this repo (`P1: 두 guard 가 …` #1360),
+ * so only a heading can say a line is left undone. Only the spellings
+ * `extractInlineSeverity` reads as carrying a scale count — scale alone (`P1:`, `[P2]`), or a grade
+ * on either side of it (`P2 [LOW]: …`, and the stored form `MEDIUM: (P1) …`; none of the 801 bodies
+ * measured used the second outside a section) — so `P2 template …` prose, which has no separator,
+ * stays quiet.
+ */
+function reportOutside(line, { body, severity, misusedScale }, heading, onDropped) {
+  const scale = misusedScale ?? (severity ? body.match(/^\((P[0-2])\) /)?.[1] : null);
+  if (scale && body.length >= 10) onDropped({ line, body, reason: 'outside', heading, scale });
+}
+
+const FENCE = /^(\s*)(`{3,}|~{3,})(.*)$/;
+
+/**
+ * The fence a line opens, or null. A backtick run followed by another backtick is inline code.
+ * @returns {{indent: number, run: string}|null}
+ */
+function fenceOpener(line) {
+  const m = line.match(FENCE);
+  if (!m || (m[2][0] === '`' && m[3].includes('`'))) return null;
+  return { indent: m[1].length, run: m[2] };
+}
+
+function closesFence(line, { indent, run }) {
+  const m = line.match(FENCE);
+  if (!m || m[2][0] !== run[0] || m[2].length < run.length || m[3].trim()) return false;
+  return Math.abs(m[1].length - indent) <= 3;
+}
+
+/**
+ * The lines of `text` outside fenced code blocks: a run of 3+ backticks or tildes opens one, and a
+ * run of the same character at least as long with nothing after it closes it. A PR body quotes
+ * shell sessions and example bodies: a `#` comment line in one read as a heading and closed the
+ * section around it, and a quoted `- P1: …` became a debt or, outside a section, an `outside`
+ * warning (measured 2026-10-23: 1 heading and 5 bullets across the 801 bodies).
+ *
+ * CommonMark scopes a fence to its list item or HTML block; this scan models neither, so it departs:
+ * - A fence that never closes is not a fence. Skipping to the end dropped every follow-up after it
+ *   with no warning, while GitHub ends such a fence with its list item and ignores one inside an
+ *   HTML comment. Where GitHub does run it to the end (a top-level fence) the rest is read as text:
+ *   a quoted bullet becomes a row, and a quoted `#` line closes the section, dropping lines GitHub
+ *   shows as code anyway.
+ * - Any indent opens one, since a fence nested in a list item sits at the item's content indent,
+ *   past CommonMark's 3 spaces. CommonMark lets both lines sit 0–3 spaces past that container
+ *   column, which this scan does not know, so it pairs them when they are at most 3 apart: a closer
+ *   shallower than its opener still closes, and a stray indented fence line cannot pair with a
+ *   column-0 fence and hide the lines between. A stray line 4+ spaces in can still pair with a
+ *   closer 1–3 spaces in.
+ * None of these shapes occurs in the 801 bodies (no unclosed fence, no fence line indented 4+ spaces).
+ */
+function linesOutsideFences(text) {
+  const lines = text.split(/\r?\n/);
+  const out = [];
+  for (let i = 0; i < lines.length; i++) {
+    const fence = fenceOpener(lines[i]);
+    const close = fence ? lines.findIndex((l, j) => j > i && closesFence(l, fence)) : -1;
+    if (close === -1) out.push(lines[i]);
+    else i = close;
+  }
+  return out;
+}
 
 /**
  * Extracts follow-up debt items from PR description text.
  *
  * @param {string} text PR description body
- * @param {{onDropped?: (info: {line: string, body: string, reason: string}) => void}} [opts]
+ * @param {{onDropped?: (info: {line: string, body: string, reason: string, heading?: string|null, scale?: string}) => void}} [opts]
  *   `onDropped` fires for a substantive bullet that still yields no item: reason `floor` when it
  *   only fell under the length floor **because** the markers were stripped off it, `none` when it
- *   reads as saying the section is empty. Passed as a callback rather than a second return value
- *   so the array contract every existing caller relies on stays exactly as it was.
+ *   reads as saying the section is empty, `outside` when it carries an Actions-scale token (alone,
+ *   or on either side of a grade) but sits under no follow-up heading (`heading` is the nearest one
+ *   above it, null before any).
+ *   Passed as a callback rather than a second return value so the array contract every existing
+ *   caller relies on stays exactly as it was.
  * @returns {Array<{description: string, files: string[], severity: string|null, misusedScale: string|null}>}
  */
 export function parsePrDescription(text, { onDropped = () => {} } = {}) {
   if (!text || typeof text !== 'string') return [];
 
   const items = [];
-  let section = { inSection: false, depth: 0 };
+  let section = { inSection: false, depth: 0, heading: null };
 
-  for (const line of text.split(/\r?\n/)) {
+  for (const line of linesOutsideFences(text)) {
     section = advanceSection(line, section);
-    if (!section.inSection) continue;
 
     const raw = listItemText(line);
     if (!raw) continue;
 
     // The marker is stripped first so the length floor below measures the actual description, not
     // the marker. `body` comes back trimmed on every branch of `extractInlineSeverity`.
-    const { body: trimmed, severity, misusedScale } = extractInlineSeverity(raw.trim());
+    const parsed = extractInlineSeverity(raw.trim());
+    if (!section.inSection) {
+      reportOutside(raw.trim(), parsed, section.heading, onDropped);
+      continue;
+    }
+    const { body: trimmed, severity, misusedScale } = parsed;
     if (NONE_MARKER.test(trimmed)) {
       // The marker reads only the opening, so `없음 — 다만 X 는 남았다` is skipped along with the
       // debt it names. A line long enough to have been a row is reported, not skipped in silence.
@@ -652,6 +765,32 @@ function resolveRepoUrl() {
   }
 }
 
+/** The warning for one `parsePrDescription` drop; every reason names the way to record the line. */
+function droppedWarning({ line, body, reason, heading, scale }, prNumber) {
+  switch (reason) {
+    case 'none':
+      return (
+        `skipped: "${line}" — read as saying the section is empty, so nothing was recorded. ` +
+        `If it names a debt too, register it as its own bullet under a follow-up heading: ` +
+        `\`register --pr ${prNumber} --from-text $'## 후속 작업\\n- <debt>'\`.`
+      );
+    case 'outside':
+      return (
+        `not recorded: "${line}" carries ${scale} but sits ` +
+        (heading ? `under "${heading}"` : 'before any heading') +
+        `, which is not a follow-up heading (followup-debt-tracker.mjs#KEYWORDS). If it is ` +
+        `follow-up work: \`register --pr ${prNumber} --from-text $'## 후속 작업\\n- <line>'\`. ` +
+        `If ${scale} names a Perspective, write the word out.`
+      );
+    default:
+      return (
+        `dropped: "${line}" — after removing its markers only "${body}" was left, under the ` +
+        `10-character floor \`followup-debt.schema.json\` requires. Nothing was recorded. ` +
+        `Write the item out in full, or keep the grade and say more.`
+      );
+  }
+}
+
 function cmdRegister(args) {
   const prIdx = args.indexOf('--pr');
   if (prIdx < 0 || !args[prIdx + 1]) {
@@ -681,15 +820,7 @@ function cmdRegister(args) {
   // Trimmed whatever the source: `fetchPrBody` always trimmed, and a leading BOM or space would
   // otherwise hide a deferral heading on the first line.
   const parsed = parsePrDescription(body.trim(), { onDropped: (d) => dropped.push(d) });
-  const droppedWarnings = dropped.map(({ line, body: rest, reason }) =>
-    reason === 'none'
-      ? `skipped: "${line}" — read as saying the section is empty, so nothing was recorded. ` +
-        `If it names a debt too, register it as its own bullet under a follow-up heading: ` +
-        `\`register --pr ${prNumber} --from-text $'## 후속 작업\\n- <debt>'\`.`
-      : `dropped: "${line}" — after removing its markers only "${rest}" was left, under the ` +
-        `10-character floor \`followup-debt.schema.json\` requires. Nothing was recorded. ` +
-        `Write the item out in full, or keep the grade and say more.`,
-  );
+  const droppedWarnings = dropped.map((d) => droppedWarning(d, prNumber));
   // Emitted here too: a body whose only bullet was dropped never reaches the tail of this function,
   // and reporting `registered: 0, warnings: []` for it would be the same silent loss twice over.
   for (const w of droppedWarnings) console.error(`[followup-debt] ${w}`);
