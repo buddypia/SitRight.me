@@ -78,32 +78,40 @@ def generate_app_and_pwa_icons(squircle):
 OGP_SPECS = {
     'en': {
         'out': 'public/og-image.png',
-        'font_bold': '/System/Library/Fonts/Supplemental/Arial Bold.ttf',
-        'font_reg': '/System/Library/Fonts/Supplemental/Arial.ttf',
-        'badge': 'WEBCAM POSTURE MONITOR',
-        'sub1': 'Check forward head posture, text neck, and slouching',
-        'sub2': 'in a 3D side view. Alerts only when it persists.',
+        'font_bold': '/System/Library/Fonts/HelveticaNeue.ttc',
+        'font_reg': '/System/Library/Fonts/HelveticaNeue.ttc',
+        'font_bold_index': 1,
+        'font_reg_index': 0,
+        'badge': 'Prevent forward head posture, text neck, and slouching',
+        'title': ['This is what your neck', 'looks like from the side.'],
+        'sub1': 'Using only your laptop camera, SitRight measures how far your head',
+        'sub2': 'juts forward, how much you look down, and how much your back rounds.',
+        'sub3': 'Shows your side view in 3D and nudges only when bad posture persists.',
         'tags': [
-            ('100% IN-BROWSER', (56, 189, 248)),
-            ('NO SIGN-UP', (255, 149, 0)),
-            ('3D SIDE VIEW', (74, 222, 128)),
+            ('Measured in cm & °', 'Forward offset & tilt angle'),
+            ('Your side view in 3D', 'Compare with ideal posture'),
+            ('Alerts when it matters', 'Only when slouching persists'),
         ],
-        'footer_note': 'Runs entirely in your browser',
+        'demo': ('Demo', 'Text neck', 'Ideal posture', 'Load on neck', '4.5× head weight'),
+        'footer_note': 'Video never leaves this device · 100% in-browser',
         'footer_url': 'sitright.pages.dev',
     },
     'ja': {
         'out': 'public/og-image-ja.png',
         'font_bold': '/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc',
         'font_reg': '/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc',
-        'badge': 'Webカメラだけで姿勢チェック',
-        'sub1': 'ストレートネック・スマホ首・猫背を計測し、',
-        'sub2': '横からの3D表示と通知で知らせます。',
+        'badge': 'ストレートネック・スマホ首・猫背の予防に',
+        'title': ['あなたの首、', '横から見ると', 'こうなっています。'],
+        'sub1': 'ノートPCのカメラだけで、頭の前への突き出し・うつむき・背中の丸まりを計測。',
+        'sub2': '正面のカメラでは見えない「横からの姿勢」を3Dで映し、',
+        'sub3': '悪い姿勢が続いたときだけそっと知らせます。',
         'tags': [
-            ('ブラウザ内で完結', (56, 189, 248)),
-            ('登録・インストール不要', (255, 149, 0)),
-            ('横からの3D表示', (74, 222, 128)),
+            ('cmと角度で計測', '前方突出・うつむきを数値化'),
+            ('横からの姿勢を3Dで', '理想の姿勢とのずれを比較'),
+            ('必要なときだけ通知', '一瞬の前かがみでは鳴らない'),
         ],
-        'footer_note': 'カメラ映像は端末の外に出ません',
+        'demo': ('デモ表示', 'スマホ首', '理想の姿勢', '首への負担', '頭の重さの 4.5 倍'),
+        'footer_note': '映像はこの端末から出ません（ブラウザ内で完結）',
         'footer_url': 'sitright.pages.dev/ja',
     },
     'ko': {
@@ -112,14 +120,17 @@ OGP_SPECS = {
         'font_reg': '/System/Library/Fonts/AppleSDGothicNeo.ttc',
         'font_bold_index': 6,
         'font_reg_index': 2,
-        'badge': '웹캠만으로 앉은 자세 체크',
-        'sub1': '일자목·거북목·굽은 등을 측정하고,',
-        'sub2': '옆에서 본 3D 화면과 알림으로 알려 드려요.',
+        'badge': '거북목·일자목·굽은 등 예방에',
+        'title': ['내 목과 등,', '옆에서 보면 이래요.'],
+        'sub1': '노트북 카메라만으로 고개가 앞으로 나온 정도, 숙인 각도,',
+        'sub2': '등이 굽은 정도를 측정해 정면 카메라로는 볼 수 없는 옆모습을',
+        'sub3': '3D로 보여 주고, 나쁜 자세가 계속될 때만 살짝 알려 드려요.',
         'tags': [
-            ('브라우저 안에서만 처리', (56, 189, 248)),
-            ('설치·가입 불필요', (255, 149, 0)),
-            ('옆모습 3D 표시', (74, 222, 128)),
+            ('cm와 각도로 측정', '앞으로 나옴·숙임 수치화'),
+            ('옆에서 본 자세를 3D로', '바른 자세와 차이를 비교'),
+            ('필요할 때만 알림', '잠깐 숙인 정도론 울리지 않음'),
         ],
+        'demo': ('데모 표시', '거북목', '바른 자세', '목 부담', '머리 무게의 4.5배'),
         'footer_note': '카메라 영상은 기기 밖으로 나가지 않아요',
         'footer_url': 'sitright.pages.dev/ko',
     },
@@ -137,147 +148,90 @@ def load_font(path, size, index=0):
 
 def generate_social_ogp_for_locale(squircle, locale, spec):
     """Generate 1200x630 OGP card for SNS (X/Twitter, Facebook, Slack, LINE, KakaoTalk, Discord)."""
-    W, H = 1200, 630
+    S = 2
+    W, H = 1200 * S, 630 * S
     img = Image.new("RGBA", (W, H), (11, 13, 16, 255))
-
-    glow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    glow_draw = ImageDraw.Draw(glow)
-
-    center_x, center_y = 300, 315
-    for r in range(340, 0, -4):
-        alpha = int(55 * (1 - r / 340) ** 1.6)
-        glow_draw.ellipse(
-            (center_x - r, center_y - r, center_x + r, center_y + r),
-            fill=(255, 95, 0, alpha),
-        )
-
-    for r in range(450, 0, -10):
-        alpha = int(20 * (1 - r / 450) ** 2)
-        glow_draw.ellipse(
-            (1020 - r, 100 - r, 1020 + r, 100 + r),
-            fill=(30, 80, 160, alpha),
-        )
-
-    img = Image.alpha_composite(img, glow)
-
-    grid = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    grid_draw = ImageDraw.Draw(grid)
-    for x in range(0, W, 40):
-        grid_draw.line((x, 0, x, H), fill=(255, 255, 255, 4))
-    for y in range(0, H, 40):
-        grid_draw.line((0, y, W, y), fill=(255, 255, 255, 4))
-    img = Image.alpha_composite(img, grid)
-
-    icon_size = 410
-    icon_resized = squircle.resize((icon_size, icon_size), Image.Resampling.LANCZOS)
-    icon_x = 85
-    icon_y = 110
-
-    shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    shadow_draw = ImageDraw.Draw(shadow)
-    shadow_offset = 16
-    corner_radius = int(icon_size * 0.236)
-    shadow_draw.rounded_rectangle(
-        (icon_x, icon_y + shadow_offset, icon_x + icon_size, icon_y + icon_size + shadow_offset),
-        radius=corner_radius,
-        fill=(0, 0, 0, 180),
-    )
-    shadow = shadow.filter(ImageFilter.GaussianBlur(radius=26))
-    img = Image.alpha_composite(img, shadow)
-    img.paste(icon_resized, (icon_x, icon_y), icon_resized)
-
     draw = ImageDraw.Draw(img)
 
-    latin_bold = '/System/Library/Fonts/Supplemental/Arial Bold.ttf'
+    latin_bold = '/System/Library/Fonts/HelveticaNeue.ttc'
     bold_idx = spec.get('font_bold_index', 0)
     reg_idx = spec.get('font_reg_index', 0)
 
-    font_title = load_font(latin_bold, 82)
-    font_badge = load_font(spec['font_bold'], 16, bold_idx)
-    font_sub = load_font(spec['font_reg'], 24 if locale == 'en' else 25, reg_idx)
-    font_tag = load_font(spec['font_bold'], 14, bold_idx)
-    font_footer_note = load_font(spec['font_reg'], 17, reg_idx)
-    font_footer_url = load_font(latin_bold, 18)
+    tsize = 42 if len(spec['title']) == 3 else 50
+    tlh = 54 if len(spec['title']) == 3 else 62
+    font_brand = load_font(latin_bold, 20 * S, 1)
+    font_title = load_font(spec['font_bold'], tsize * S, bold_idx)
+    font_badge = load_font(spec['font_bold'], 14 * S, bold_idx)
+    font_sub = load_font(spec['font_reg'], 15 * S, reg_idx)
+    font_tag_b = load_font(spec['font_bold'], 13 * S, bold_idx)
+    font_tag_r = load_font(spec['font_reg'], 12 * S, reg_idx)
+    font_footer_note = load_font(spec['font_reg'], 13 * S, reg_idx)
+    font_footer_url = load_font(latin_bold, 13 * S, 10)
 
-    text_x = 545
+    lx = 62 * S
+    icon_s = 30 * S
+    img.paste(squircle.resize((icon_s, icon_s), Image.Resampling.LANCZOS), (lx, 48 * S))
+    draw.text((lx + 42 * S, 51 * S), "SitRight", fill=(238, 240, 242, 255), font=font_brand)
+    draw.text((lx, 108 * S), spec['badge'], fill=(77, 234, 196, 255), font=font_badge)
 
-    # 1. Pill Badge
-    badge_y = 114
-    badge_bbox = draw.textbbox((0, 0), spec['badge'], font=font_badge)
-    badge_w = (badge_bbox[2] - badge_bbox[0]) + 52
-    badge_h = 34
-    pill = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    pill_draw = ImageDraw.Draw(pill)
-    pill_draw.rounded_rectangle(
-        (text_x, badge_y, text_x + badge_w, badge_y + badge_h),
-        radius=17,
-        fill=(22, 28, 40, 220),
-        outline=(48, 64, 94, 255),
-        width=1,
-    )
-    img = Image.alpha_composite(img, pill)
-    draw = ImageDraw.Draw(img)
-    draw.ellipse((text_x + 14, badge_y + 12, text_x + 24, badge_y + 22), fill=(255, 149, 0, 255))
-    text_offset_y = (badge_h - (badge_bbox[3] - badge_bbox[1])) // 2 - badge_bbox[1]
-    draw.text((text_x + 32, badge_y + text_offset_y), spec['badge'], fill=(226, 232, 240, 255), font=font_badge)
+    for i, line in enumerate(spec['title']):
+        draw.text((lx, (142 + i * tlh) * S), line, fill=(238, 240, 242, 255), font=font_title)
 
-    # 2. Brand Name: "SitRight"
-    title_y = 168
-    draw.text((text_x, title_y), "SitRight", fill=(255, 255, 255, 255), font=font_title)
+    by = (318 if len(spec['title']) == 3 else 292) * S
+    for i, k in enumerate(('sub1', 'sub2', 'sub3')):
+        draw.text((lx, by + i * 26 * S), spec[k], fill=(179, 185, 194, 255), font=font_sub)
 
-    # 3. Subtitle Copy
-    sub_y = 282
-    draw.text((text_x, sub_y), spec['sub1'], fill=(226, 232, 240, 255), font=font_sub)
-    draw.text((text_x, sub_y + 38), spec['sub2'], fill=(148, 163, 184, 255), font=font_sub)
+    fy = 428 * S
+    for idx, (ft, fs) in enumerate(spec['tags']):
+        cx = lx + idx * 186 * S
+        draw.line((cx, fy + 2 * S, cx, fy + 48 * S), fill=(255, 255, 255, 32), width=2 * S)
+        draw.text((cx + 12 * S, fy), ft, fill=(238, 240, 242, 255), font=font_tag_b)
+        draw.text((cx + 12 * S, fy + 24 * S), fs, fill=(123, 131, 142, 255), font=font_tag_r)
 
-    # 4. Feature Pills
-    tags_y = 392
-    tag_h = 36
-    cur_tag_x = text_x
-    for label, dot_color in spec['tags']:
-        bbox = draw.textbbox((0, 0), label, font=font_tag)
-        text_w = bbox[2] - bbox[0]
-        text_h = bbox[3] - bbox[1]
-        tag_w = text_w + 42
+    rx = lx + 556 * S
+    draw.line((lx, 524 * S, rx, 524 * S), fill=(255, 255, 255, 20), width=S)
+    draw.rounded_rectangle((lx + 3 * S, 556 * S, lx + 16 * S, 566 * S), radius=2 * S, outline=(77, 234, 196, 255), width=2 * S)
+    draw.arc((lx + 6 * S, 550 * S, lx + 13 * S, 558 * S), 180, 360, fill=(77, 234, 196, 255), width=2 * S)
+    draw.text((lx + 24 * S, 550 * S), spec['footer_note'], fill=(179, 185, 194, 255), font=font_footer_note)
+    ub = draw.textbbox((0, 0), spec['footer_url'], font=font_footer_url)
+    draw.text((rx - (ub[2] - ub[0]), 550 * S), spec['footer_url'], fill=(77, 234, 196, 255), font=font_footer_url)
 
-        tag_pill = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        tag_pill_draw = ImageDraw.Draw(tag_pill)
-        tag_pill_draw.rounded_rectangle(
-            (cur_tag_x, tags_y, cur_tag_x + tag_w, tags_y + tag_h),
-            radius=18,
-            fill=(18, 22, 30, 220),
-            outline=(40, 48, 64, 255),
-            width=1,
-        )
-        img = Image.alpha_composite(img, tag_pill)
-        draw = ImageDraw.Draw(img)
-        draw.ellipse((cur_tag_x + 13, tags_y + 14, cur_tag_x + 21, tags_y + 22), fill=dot_color + (255,))
-        ty = tags_y + (tag_h - text_h) // 2 - bbox[1]
-        draw.text((cur_tag_x + 27, ty), label, fill=(226, 232, 240, 255), font=font_tag)
-        cur_tag_x += tag_w + 10
+    # Right 3D PostureScene Panel
+    pw, ph, px, py = 488 * S, 546 * S, 656 * S, 42 * S
+    scene_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', 'posture-scene-base.png')
+    cropped = Image.open(scene_path).convert('RGBA').crop((28, 18, 595, 610)).resize((pw, ph), Image.Resampling.LANCZOS)
+    mask = Image.new('L', (pw, ph), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, pw - 1, ph - 1), radius=24 * S, fill=255)
+    img.paste(cropped, (px, py), mask)
 
-    # 5. Bottom Callout / URL
-    bottom_y = 472
-    draw.line((text_x, bottom_y, W - 75, bottom_y), fill=(30, 38, 52, 255), width=1)
+    d_pre, d_st, d_ideal, l_title, l_ratio = spec['demo']
+    pb, sb = draw.textbbox((0, 0), d_pre, font=font_tag_r), draw.textbbox((0, 0), d_st, font=font_tag_b)
+    draw.rounded_rectangle((px + 18 * S, py + 18 * S, px + 52 * S + (pb[2] - pb[0]) + (sb[2] - sb[0]), py + 48 * S), radius=15 * S, fill=(11, 13, 16, 210), outline=(255, 255, 255, 28), width=S)
+    draw.text((px + 31 * S, py + 26 * S), d_pre, fill=(123, 131, 142, 255), font=font_tag_r)
+    draw.text((px + 39 * S + (pb[2] - pb[0]), py + 25 * S), d_st, fill=(255, 190, 92, 255), font=font_tag_b)
 
-    note_bbox = draw.textbbox((0, 0), spec['footer_note'], font=font_footer_note)
-    note_y = bottom_y + 20 - note_bbox[1]
-    draw.text((text_x, note_y), spec['footer_note'], fill=(148, 163, 184, 255), font=font_footer_note)
+    ib = draw.textbbox((0, 0), d_ideal, font=font_tag_r)
+    draw.text((px + 191 * S - (ib[2] - ib[0]), py + 68 * S), d_ideal, fill=(77, 234, 196, 255), font=font_tag_r)
+    draw.rounded_rectangle((px + 212 * S, py + 108 * S, px + 263 * S, py + 128 * S), radius=6 * S, fill=(255, 190, 92, 255))
+    draw.text((px + 218 * S, py + 112 * S), "+3.2 cm", fill=(26, 19, 6, 255), font=load_font(latin_bold, 10 * S, 1))
 
-    note_w = note_bbox[2] - note_bbox[0]
-    sep_x = text_x + note_w + 14
-    url_bbox = draw.textbbox((0, 0), spec['footer_url'], font=font_footer_url)
-    url_y = bottom_y + 20 - url_bbox[1]
-    draw.text((sep_x, url_y), "—", fill=(71, 85, 105, 255), font=font_footer_url)
-    draw.text((sep_x + 26, url_y), spec['footer_url'], fill=(255, 149, 0, 255), font=font_footer_url)
+    f_lt, f_lk = load_font(spec['font_reg'], 11 * S, reg_idx), load_font(latin_bold, 19 * S, 1)
+    bt, br = draw.textbbox((0, 0), l_title, font=f_lt), draw.textbbox((0, 0), l_ratio, font=f_lt)
+    cw = max(bt[2] - bt[0], br[2] - br[0], 54 * S) + 24 * S
+    cx, cy = px + 281 * S, py + 39 * S
+    draw.rounded_rectangle((cx, cy, cx + cw, cy + 66 * S), radius=10 * S, fill=(11, 13, 16, 230), outline=(255, 255, 255, 32), width=S)
+    draw.text((cx + 12 * S, cy + 8 * S), l_title, fill=(179, 185, 194, 220), font=f_lt)
+    draw.text((cx + 12 * S, cy + 23 * S), "22 kg", fill=(255, 107, 91, 255), font=f_lk)
+    draw.text((cx + 12 * S, cy + 47 * S), l_ratio, fill=(179, 185, 194, 200), font=f_lt)
+    draw.rounded_rectangle((px, py, px + pw - 1, py + ph - 1), radius=24 * S, outline=(255, 255, 255, 24), width=S)
 
-    final_rgb = img.convert("RGB")
+    final_rgb = img.resize((1200, 630), Image.Resampling.LANCZOS).convert("RGB")
     final_rgb.save(spec['out'], "PNG", optimize=True)
-    print(f"Saved OGP card ({locale}): {spec['out']} ({W}x{H})")
+    print(f"Saved OGP card ({locale}): {spec['out']} (1200x630)")
     if locale == 'en':
         for alias in ('public/twitter-image.png', 'public/opengraph-image.png'):
             final_rgb.save(alias, "PNG", optimize=True)
-            print(f"Saved legacy OGP alias: {alias} ({W}x{H})")
+            print(f"Saved legacy OGP alias: {alias} (1200x630)")
 
 
 if __name__ == "__main__":
