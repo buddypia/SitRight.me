@@ -1,4 +1,3 @@
-import { execFileSync } from 'node:child_process';
 import { existsSync, lstatSync, mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -51,21 +50,16 @@ describe('verify-gate and shared agent-scratchpad', () => {
     mkdirSync(path.join(repoDir, 'src'), { recursive: true });
     mkdirSync(scratchpadDir, { recursive: true });
     writeFileSync(path.join(repoDir, 'src/index.ts'), 'export const v = 1;\n');
-    writeFileSync(path.join(repoDir, 'AGENTS.md'), '# Rules\n');
-    const git = (...a: string[]) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@e.co', ...a], { cwd: repoDir, stdio: 'ignore' });
-    git('init', '-q', '-b', 'main');
-    git('add', '-A');
-    git('commit', '-qm', 'init');
     writeFileSync(path.join(repoDir, 'AGENTS.md'), '# Rules\n- updated\n');
 
     const calls: string[] = [];
     const runner = (c: string, a: string[]) => { calls.push(`${c} ${a[0]}`); return 0; };
-    const r1 = runVerifyGate({ rootDir: repoDir, base: 'HEAD', scratchpadDir, runner });
+    const r1 = runVerifyGate({ rootDir: repoDir, changedFiles: ['AGENTS.md'], allFiles: ['src/index.ts', 'AGENTS.md'], scratchpadDir, runner });
     expect(r1.results.map((r: { stage: string; mode: string }) => [r.stage, r.mode])).toEqual([['lint', 'skipped-diff'], ['test', 'full'], ['build', 'skipped-diff']]);
     expect(calls).toEqual(['npx vitest']);
 
     calls.length = 0;
-    const r2 = runVerifyGate({ rootDir: repoDir, base: 'HEAD', scratchpadDir, runner });
+    const r2 = runVerifyGate({ rootDir: repoDir, changedFiles: ['AGENTS.md'], allFiles: ['src/index.ts', 'AGENTS.md'], scratchpadDir, runner });
     expect(r2.results.map((r: { stage: string; mode: string }) => r.mode)).toEqual(['cached', 'cached', 'cached']);
     expect(calls).toEqual([]);
   });

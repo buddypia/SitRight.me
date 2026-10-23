@@ -108,12 +108,12 @@ export function classifyChanges(files) {
   return { changedFiles: list, affectsAppBuild: list.some(isAppBuildAffecting), affectsE2e: list.some(isE2eAffecting), affectsLint: list.some(isLintAffecting), affectsHarness: list.some(isHarnessAffecting), affectsUnitTests: list.some(isUnitTestAffecting) };
 }
 const gitOut = (cwd, args) => { try { return execFileSync('git', ['-C', cwd, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return ''; } };
-export function runVerifyGate({ rootDir = resolveCheckoutRoot(), full = false, base = '', scratchpadDir = ensureAgentScratchpad(rootDir), runner = (c, a, d) => { const r = spawnSync(c, a, { cwd: d, stdio: 'inherit' }); if (r.status !== 0) throw new Error(`${c} failed`); } } = {}) {
-  const baseRef = base || (gitOut(rootDir, ['merge-base', 'HEAD', 'origin/main']) ? 'origin/main' : 'HEAD');
+export function runVerifyGate({ rootDir = resolveCheckoutRoot(), full = false, base = '', changedFiles, allFiles: inputFiles, scratchpadDir = ensureAgentScratchpad(rootDir), runner = (c, a, d) => { const r = spawnSync(c, a, { cwd: d, stdio: 'inherit' }); if (r.status !== 0) throw new Error(`${c} failed`); } } = {}) {
   const isIgnored = (p) => !p || /^(\.tmp|\.worktrees|\.cache|out|\.next)\//.test(p);
-  const changed = new Set(gitOut(rootDir, ['diff', '--name-only', '--no-renames', baseRef]).split('\n').map((s) => s.trim()).filter((p) => !isIgnored(p)));
-  const allFiles = [];
-  for (const line of gitOut(rootDir, ['ls-files', '-t', '--cached', '--others', '--exclude-standard']).split('\n')) {
+  const baseRef = base || (changedFiles ? 'HEAD' : gitOut(rootDir, ['merge-base', 'HEAD', 'origin/main']) ? 'origin/main' : 'HEAD');
+  const changed = new Set((changedFiles ?? gitOut(rootDir, ['diff', '--name-only', '--no-renames', baseRef]).split('\n')).map((s) => s.trim()).filter((p) => !isIgnored(p)));
+  const allFiles = inputFiles ? inputFiles.filter((p) => !isIgnored(p)) : [];
+  for (const line of inputFiles ? [] : gitOut(rootDir, ['ls-files', '-t', '--cached', '--others', '--exclude-standard']).split('\n')) {
     const rel = line.slice(2).trim();
     if (!isIgnored(rel)) { allFiles.push(rel); if (line[0] === '?') changed.add(rel); }
   }
