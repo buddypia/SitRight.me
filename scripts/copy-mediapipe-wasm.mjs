@@ -4,7 +4,7 @@
  * wasm はコミットせず、dev / build の前に毎回パッケージからコピーする。
  */
 import { execSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { disableThirdPartyTelemetry } from './disable-third-party-telemetry.mjs';
 
@@ -23,7 +23,9 @@ function resolveMainRepoRoot(startDir) {
 }
 
 const root = path.resolve(import.meta.dirname, '..');
-const projectRoot = resolveMainRepoRoot(root);
+const projectRoot = existsSync(path.join(root, 'node_modules/@mediapipe/tasks-vision/wasm'))
+  ? root
+  : resolveMainRepoRoot(root);
 
 const candidateDirs = [
   path.join(root, 'node_modules'),
@@ -41,7 +43,9 @@ mkdirSync(dest, { recursive: true });
 for (const file of readdirSync(src)) {
   // ES module 版（*_module_internal）は使わない
   if (file.includes('_module_')) continue;
-  cpSync(path.join(src, file), path.join(dest, file));
+  const s = path.join(src, file), d = path.join(dest, file);
+  try { if (statSync(d).size === statSync(s).size) continue; } catch { /* copy */ }
+  cpSync(s, d);
 }
 
 // Third-party telemetry must be eliminated completely per TELEMETRY_CONTRACT.md

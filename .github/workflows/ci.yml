@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -22,11 +26,14 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - id: scope
+        run: node scripts/verify-gate.mjs --ci-diff-check
       - run: npm run lint
       - run: npm run check:harness -- ${{ github.event_name == 'pull_request' && '--base HEAD^1' || '' }}
       - run: npm run type-check
       - run: npm test
-      - run: npm run build
+      - if: steps.scope.outputs.run_build == 'true'
+        run: npm run build
 
   # 実ブラウザ（headless Chromium + SwiftShader）で 3D 描画とカメラ判定を確かめる。
   # ローカルでは新しいブラウザを起動しない方針のため、CI で回す。
@@ -37,25 +44,33 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+          fetch-depth: 2
+      - id: scope
+        run: node scripts/verify-gate.mjs --ci-diff-check
+      - if: steps.scope.outputs.run_e2e == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - name: 偽カメラ映像を生成する
+      - if: steps.scope.outputs.run_e2e == 'true'
+        run: npm ci
+      - if: steps.scope.outputs.run_e2e == 'true'
+        run: npx playwright install --with-deps chromium
+      - if: steps.scope.outputs.run_e2e == 'true'
+        name: 偽カメラ映像を生成する
         run: |
           sudo apt-get install -y --no-install-recommends ffmpeg
           python3 -m pip install --user pillow
           tests/e2e/fixtures/generate.sh
-      - run: npm run test:e2e
-      - if: failure()
+      - if: steps.scope.outputs.run_e2e == 'true'
+        run: npm run test:e2e
+      - if: failure() && steps.scope.outputs.run_e2e == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-results
           path: test-results/
           retention-days: 7
-      - if: always()
+      - if: always() && steps.scope.outputs.run_e2e == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ui-screenshots

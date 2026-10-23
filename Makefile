@@ -20,9 +20,7 @@ wt.run:
 q.check:
 	@rm -f .tmp/quality-gate-passed
 	@mkdir -p .tmp
-	@echo ">> npm run lint" && npm run lint
-	@echo ">> npm run test" && npm run test
-	@echo ">> npm run build" && npm run build
+	@node scripts/verify-gate.mjs $(if $(FULL),--full) $(if $(BASE),--base $(BASE))
 	@touch .tmp/quality-gate-passed
 	@echo "✅ Quality Gate PASSED"
 
