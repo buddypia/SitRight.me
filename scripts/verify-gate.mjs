@@ -108,7 +108,7 @@ export function classifyChanges(files) {
   return { changedFiles: list, affectsAppBuild: list.some(isAppBuildAffecting), affectsE2e: list.some(isE2eAffecting), affectsLint: list.some(isLintAffecting), affectsHarness: list.some(isHarnessAffecting), affectsUnitTests: list.some(isUnitTestAffecting) };
 }
 const gitOut = (cwd, args) => { try { return execFileSync('git', ['-C', cwd, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return ''; } };
-export function runVerifyGate({ rootDir = resolveCheckoutRoot(), full = false, base = '', changedFiles, allFiles: inputFiles, scratchpadDir = ensureAgentScratchpad(rootDir), runner = (c, a, d) => { const r = spawnSync(c, a, { cwd: d, stdio: 'inherit' }); if (r.status !== 0) throw new Error(`${c} failed`); } } = {}) {
+export function runVerifyGate({ rootDir = resolveCheckoutRoot(), full = false, base = '', changedFiles = /** @type {string[] | null} */ (null), allFiles: inputFiles = /** @type {string[] | null} */ (null), scratchpadDir = ensureAgentScratchpad(rootDir), runner = (c, a, d) => { const r = spawnSync(c, a, { cwd: d, stdio: 'inherit' }); if (r.status !== 0) throw new Error(`${c} failed`); } } = {}) {
   const isIgnored = (p) => !p || /^(\.tmp|\.worktrees|\.cache|out|\.next)\//.test(p);
   const baseRef = base || (changedFiles ? 'HEAD' : gitOut(rootDir, ['merge-base', 'HEAD', 'origin/main']) ? 'origin/main' : 'HEAD');
   const changed = new Set((changedFiles ?? gitOut(rootDir, ['diff', '--name-only', '--no-renames', baseRef]).split('\n')).map((s) => s.trim()).filter((p) => !isIgnored(p)));
