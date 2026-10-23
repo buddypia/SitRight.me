@@ -75,11 +75,34 @@ describe('SEO & OGP metadata, images, and static content', () => {
           ? [meta.twitter.images]
           : [];
       expect(twitterImages.length).toBeGreaterThan(0);
+      const firstTwitter = twitterImages[0] as {
+        url: string;
+        alt?: string;
+        type?: string;
+        width?: number;
+        height?: number;
+      };
+      expect(firstTwitter.url).toBe(firstOg.url);
+      expect(firstTwitter.alt).toBe(firstOg.alt);
+      expect(firstTwitter).not.toHaveProperty('type');
+      expect(firstTwitter).not.toHaveProperty('width');
+      expect(firstTwitter).not.toHaveProperty('height');
     }
 
     // en, ja, ko each have their own localized OG image and alt text
     expect(seenUrls.size).toBe(SUPPORTED_LOCALES.length);
     expect(seenAlts.size).toBe(SUPPORTED_LOCALES.length);
+
+    // Legacy Next.js file-convention URLs (/twitter-image.png, /opengraph-image.png)
+    // must exist in public/ so cached X/OGP cards do not 404, while remaining absent
+    // from src/app/ so they do not override localized metadata.
+    for (const legacyFile of ['twitter-image.png', 'opengraph-image.png']) {
+      const publicLegacy = path.resolve(process.cwd(), 'public', legacyFile);
+      const appLegacy = path.resolve(process.cwd(), 'src/app', legacyFile);
+      expect(existsSync(publicLegacy)).toBe(true);
+      expect(readPngDimensions(publicLegacy)).toEqual({ width: 1200, height: 630 });
+      expect(existsSync(appLegacy)).toBe(false);
+    }
   });
 
   it('generates localized WebApplication JSON-LD with its publisher and help page', () => {
