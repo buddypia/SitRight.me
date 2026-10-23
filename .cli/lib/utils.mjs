@@ -9,7 +9,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync, rename
 import { join, dirname, basename, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { homedir } from 'os';
-import { execSync } from 'child_process';
+import { execSync, spawnSync } from 'child_process';
 import { randomBytes } from 'crypto';
 import { isHookEnabled } from './hook-flags.mjs';
 
@@ -263,6 +263,35 @@ export function shellQuote(value) {
  */
 export function isGitRepo(cwd, options = {}) {
   return safeExec('git rev-parse --is-inside-work-tree', cwd, options) === 'true';
+}
+
+/**
+ * Median wall-clock ms to start and reap a no-op process, or null when it cannot be measured.
+ *
+ * The probe the measurability classifier reads (`self-improving-loop.mjs#SPAWN_SATURATION_MS` says
+ * why load average alone missed a starved box). It lives here, not beside the classifier, because
+ * that module is pure by contract. The median of a few samples, so one stall does not decide.
+ * Null — a spawn error (no `true` on Windows), a throw, a non-zero exit — means "not measured", and
+ * the classifier keeps its load-only verdict.
+ *
+ * @param {{samples?: number, spawn?: typeof spawnSync, now?: () => number}} [options]
+ * @returns {number|null}
+ */
+export function measureSpawnLatencyMs({ samples = 5, spawn = spawnSync, now = () => performance.now() } = {}) {
+  const count = Number.isInteger(samples) && samples > 0 ? samples : 5;
+  const times = [];
+  try {
+    for (let i = 0; i < count; i++) {
+      const start = now();
+      const result = spawn('true', [], { stdio: 'ignore' });
+      if (!result || result.error || result.status !== 0) return null;
+      times.push(now() - start);
+    }
+  } catch {
+    return null;
+  }
+  times.sort((a, b) => a - b);
+  return times[Math.floor(count / 2)];
 }
 
 /**

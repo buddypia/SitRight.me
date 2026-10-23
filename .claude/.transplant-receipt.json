@@ -8,9 +8,9 @@
       "bundle_version": "1.4",
       "source": {
         "repo": "brief2dev",
-        "commit": "061f861a0431e679c1864a9983a216a815b2a752"
+        "commit": "c8141e8d85ef846dff8a6a31cdc010acb8d6c99c"
       },
-      "transplanted_at": "2026-10-22T12:29:21.687Z",
+      "transplanted_at": "2026-10-23T15:41:43.504Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle git-worktree-isolation --target <this-project-root> --json",
       "files": [
         {
@@ -40,14 +40,19 @@
           "sha256": "d9c07679b33b90dab40f919d0f1516a0b6a242b4b57e1fa745b86bdaf5a9cf9f"
         },
         {
+          "path": ".claude/scripts/audit-self-improving-loop.mjs",
+          "role": "managed",
+          "sha256": "21bc4277783079a131bcf55f2cfa66e42fd6fc15ab3b40bf60f213bab975d4a6"
+        },
+        {
           "path": ".claude/scripts/create-pr/ops.mjs",
           "role": "managed",
-          "sha256": "4c76100711fcb5df19d0679992ddb15cc80802591e9a632e9dba3d6da79f770b"
+          "sha256": "cdb860bafb1ea5c6a26ce691df86658cd59e4ea30a758f090b4caa14e84e27c6"
         },
         {
           "path": ".claude/scripts/followup-debt-tracker.mjs",
           "role": "managed",
-          "sha256": "2af16e4a8eeee701354af52875077b57d55ecb7d842a35017c1777e67168ad25"
+          "sha256": "b637c118eea357c3259f933db4cfbaee61cc2d1b7a87b84fa64eeba192536ebb"
         },
         {
           "path": ".claude/scripts/lib/approval-policy.mjs",
@@ -180,6 +185,11 @@
           "sha256": "8530d5f415444acb8e88d23d056d29f15a8c4a5c1c5e5aa6952699f02dd26a24"
         },
         {
+          "path": ".claude/scripts/lib/vitest-spawn-latency-reporter.mjs",
+          "role": "managed",
+          "sha256": "73d1870e1a8ca87ae6e3e1fea8937692bb51caeb3c4452a41e8824c5cd900911"
+        },
+        {
           "path": ".claude/scripts/lib/worktree-plan-template.mjs",
           "role": "managed",
           "sha256": "b332f2a83a9a31ef5b32da4d137121c7d05da57eec259f3bd6da25b515f2d637"
@@ -252,7 +262,7 @@
         {
           "path": ".claude/scripts/wt-run.mjs",
           "role": "managed",
-          "sha256": "236d584a043da9a07decb73c3ccb1e4b4e605b070b881ac7374f41b74e1f1075"
+          "sha256": "52b9c4484debca2090266f5a75760b076fd18ea4e5a94742d7cb53afd4752edd"
         },
         {
           "path": ".claude/skills/create-pr/config.json",
@@ -401,7 +411,7 @@
         {
           "path": ".cli/lib/self-improving-loop.mjs",
           "role": "managed",
-          "sha256": "8a4d23394dc323253215bb72ca630012ddbe6c4c17469faedfd33131b608a236"
+          "sha256": "1d10c6781c0461eeedafe38378d6d2f52e46af486aa161405cbc9d701202105e"
         },
         {
           "path": ".cli/lib/ship-base-branch.mjs",
@@ -436,7 +446,7 @@
         {
           "path": ".cli/lib/utils.mjs",
           "role": "managed",
-          "sha256": "f5312cf2ba2126ccfc83ba7925ca5fe6eda4fa6c2361e3cb9623654bee43eb7a"
+          "sha256": "e00c1f00c3437db0f41df278476cde95fc0c09c22afad6509627d23dfe9983cb"
         },
         {
           "path": ".cli/lib/worktree-owner-lease.mjs",
@@ -467,6 +477,16 @@
           "path": ".codex/hooks.json",
           "role": "managed",
           "sha256": "e7acbd71407f7cfdfc2e9e9557779093b9ec699bb34b9c368cf07e6fdf8c755e"
+        }
+      ],
+      "makefile_targets": [
+        {
+          "name": "wt.new",
+          "sha256": "9decfb02aa7b767f606493d78374583d4d11247d0320b952fc65a3edc9ae02d5"
+        },
+        {
+          "name": "wt.run",
+          "sha256": "f48f7287540e0efcade47318d7f9f5348d0516c61f9e9887e35531aaed7836a4"
         }
       ],
       "target_notes": [

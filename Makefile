@@ -11,11 +11,11 @@ wt.new:
 	@node .claude/scripts/worktree-new.mjs --branch $(BR) $(if $(BASE),--base $(BASE)) $(if $(DRY),--dry-run)
 
 wt.run:
-	@if [ -z "$(CMD)" ]; then \
-		echo "❌ wt.run: CMD=\"<command>\" required. Example: make wt.run CMD=\"npm run test\""; \
+	@if [ "$(origin CMD)" != "command line" ] || [ -z "$$CMD" ]; then \
+		echo "❌ wt.run: CMD=\"<command>\" required. Example: make wt.run CMD=\"npm run test\" [WT=.worktrees/<branch>]"; \
 		exit 2; \
 	fi
-	@node .claude/scripts/wt-run.mjs $(CMD)
+	@node .claude/scripts/wt-run.mjs $(if $(filter command line,$(origin WT)),--worktree "$$WT") "$$CMD"
 
 q.check:
 	@rm -f .tmp/quality-gate-passed

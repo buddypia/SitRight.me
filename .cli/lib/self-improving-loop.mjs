@@ -45,7 +45,12 @@ export const BAR_MOVE = Object.freeze({
   // Kept as a distinct, non-blocking *info* signal (never folded into TEST_FILE_DELETED) so callers
   // can still see the deletion happened without it inflating the "goalposts moved" count.
   TEST_RETIRED_WITH_SUBJECT: 'test_retired_with_subject',
+  // Same, for a surviving test file whose assertions shrank because the code they checked is gone.
+  ASSERTION_RETIRED_WITH_SUBJECT: 'assertion_retired_with_subject',
 });
+
+/** Info-only signals — reported by detectBarMove() but never counted as relaxation. */
+const RETIREMENT_SIGNALS = new Set([BAR_MOVE.TEST_RETIRED_WITH_SUBJECT, BAR_MOVE.ASSERTION_RETIRED_WITH_SUBJECT]);
 
 /**
  * Vocabulary of keys indicating thresholds. Why whitelisted: numeric decreases signify relaxing criteria
@@ -114,23 +119,33 @@ function countMatches(lines, pattern) {
   return count;
 }
 
-/** Applies diff line to current block. Ignores file header lines (not content). */
+/**
+ * Applies diff line to current block. Ignores file header lines (not content).
+ * `removedRuns` groups consecutive removed lines — a run is the smallest span a retirement can be
+ * attributed to, since anything between two runs (context, additions) survived the change.
+ */
 function applyDiffLine(block, line) {
   if (line.startsWith('deleted file mode')) {
     block.deleted = true;
     return;
   }
   // `+++ b/x` / `--- a/x` are file headers, not content (distinguished by 3-char prefix).
-  if (line.startsWith('+++') || line.startsWith('---')) return;
-  if (line.startsWith('+')) block.added.push(line.slice(1));
-  else if (line.startsWith('-')) block.removed.push(line.slice(1));
+  const isRemoval = line.startsWith('-') && !line.startsWith('---');
+  if (isRemoval) {
+    if (!block.inRemovedRun) block.removedRuns.push([]);
+    block.removedRuns.at(-1).push(line.slice(1));
+    block.removed.push(line.slice(1));
+  } else if (line.startsWith('+') && !line.startsWith('+++')) {
+    block.added.push(line.slice(1));
+  }
+  block.inRemovedRun = isRemoval;
 }
 
 /**
  * Splits unified diff into file blocks. Headers follow `diff --git a/<old> b/<new>` format.
  * Renames/mode-only changes have empty bodies and pass through with 0 signals naturally.
  * @param {string} diffText
- * @returns {Array<{path: string, deleted: boolean, added: string[], removed: string[]}>}
+ * @returns {Array<{path: string, deleted: boolean, added: string[], removed: string[], removedRuns: string[][]}>}
  */
 export function parseUnifiedDiff(diffText) {
   if (typeof diffText !== 'string' || !diffText.trim()) return [];
@@ -142,7 +157,7 @@ export function parseUnifiedDiff(diffText) {
     if (header) {
       if (current) blocks.push(current);
       // Uses b-side path — name after rename represents current reality. In deletions, a==b.
-      current = { path: header[2], deleted: false, added: [], removed: [] };
+      current = { path: header[2], deleted: false, added: [], removed: [], removedRuns: [], inRemovedRun: false };
     } else if (current) {
       applyDiffLine(current, line);
     }
@@ -180,20 +195,39 @@ function patternDelta(block, pattern, { countRemovals = false } = {}) {
   return countRemovals ? minus - plus : plus - minus;
 }
 
-/** Three signals relevant only to test files (deleted files are filtered first by caller). */
-function testFileSignals(block) {
-  const candidates = [
+/**
+ * Three signals relevant only to test files (deleted files are filtered first by caller).
+ * Only the removed assertions inside units that exercised a dead subject count as retired; the
+ * rest of the decrease stays relaxation. Added assertions offset the unattributed removals first,
+ * so a retirement never absorbs an unrelated weakening in the same file.
+ */
+function testFileSignals(block, retirement) {
+  const findings = [
     [BAR_MOVE.SKIP_ADDED, patternDelta(block, SKIP_PATTERN),
       (n) => `Unconditional skip/todo net increase +${n} (skipIf conditional excluded)`],
     [BAR_MOVE.ONLY_ADDED, patternDelta(block, ONLY_PATTERN),
       (n) => `.only() net increase +${n} — remaining test cases in same file are silently excluded from execution`],
-    // For assertions, *disappearance* is the signal, so count direction is inverted.
-    [BAR_MOVE.ASSERTION_REMOVED, patternDelta(block, ASSERT_PATTERN, { countRemovals: true }),
-      (n) => `Assertion (expect/assert) net decrease -${n}`],
-  ];
-  return candidates
+  ]
     .filter(([, n]) => n > 0)
     .map(([signal, n, toDetail]) => ({ signal, path: block.path, detail: toDetail(n) }));
+
+  // For assertions, *disappearance* is the signal, so count direction is inverted.
+  const net = patternDelta(block, ASSERT_PATTERN, { countRemovals: true });
+  if (net <= 0) return findings;
+  const unattributed = Math.max(0, retirement.otherAssertions - countMatches(block.added, ASSERT_PATTERN));
+  const residual = Math.min(net, unattributed);
+  if (residual > 0) {
+    const where = retirement.undeadHeads.length > 0 ? ` (not tied to removed code: ${previewTokens(retirement.undeadHeads)})` : '';
+    findings.push({ signal: BAR_MOVE.ASSERTION_REMOVED, path: block.path, detail: `Assertion (expect/assert) net decrease -${residual}${where}` });
+  }
+  if (net > residual) {
+    findings.push({
+      signal: BAR_MOVE.ASSERTION_RETIRED_WITH_SUBJECT,
+      path: block.path,
+      detail: `Assertion (expect/assert) net decrease -${net - residual}; the removed assertions exercised code gone from the tree (${previewTokens(retirement.subjects)}) — retirement, not relaxation`,
+    });
+  }
+  return findings;
 }
 
 /**
@@ -245,6 +279,278 @@ function retiredSubjectOf(testBlock, deletedSubjects) {
   );
 }
 
+/**
+ * Subjects are not always files. A test often exercises a function, a check name or a generated
+ * path that lives *inside* a surviving module (empirical PR #1461: tests of the generated Next.js
+ * landing imported `scaffold-deploy.mjs`, which still ships, while `writeValidationTrackRuntime`,
+ * `'src/app/page.tsx'` and `'stack_dependency_alignment'` were removed from it). These are the
+ * names such a subject can be recognised by: declarations and quoted strings on removed lines.
+ */
+// Top-level only: an indented `const items` is a local whose name can vanish from a small tree
+// (a generated project) without any subject having gone with it.
+const TOP_LEVEL_DECLARATION_RE = /^(?:export\s+)?(?:default\s+)?(?:async\s+)?(?:function\*?|class|const|let|var)\s+([A-Za-z_$][\w$]*)/g;
+const STRING_LITERAL_RE = /(['"`])((?:(?!\1)[^\\\s])+)\1/g;
+const MIN_SUBJECT_TOKEN_LENGTH = 6;
+// Prose mentions code without being it: "the class handles…" would yield `handles`.
+const PROSE_PATH_RE = /\.(?:md|mdx|txt|rst)$/i;
+
+function addTokens(out, line, re, group) {
+  for (const match of line.matchAll(re)) {
+    const token = match[group];
+    if (token.length >= MIN_SUBJECT_TOKEN_LENGTH && !token.includes('${')) out.add(token);
+  }
+}
+
+/**
+ * Names that left the code in this diff and that a test's removed lines exercised (pure function).
+ * Only non-test, non-prose files contribute: a helper declared in a test is evidence of nothing
+ * about a production subject (it is always absent from non-test files, so it would always read as
+ * dead and let a deleted test retire itself), and a literal shared by two tests proves nothing.
+ * Names no test exercised are dropped here — they cannot retire anything, and every extra name
+ * is one more search over the whole tree.
+ *
+ * A candidate is only a candidate: a name removed here may still be defined elsewhere. The caller
+ * proves which ones survive with `liveTokensIn` over the post-change tree and passes them back as
+ * `detectBarMove(diff, { liveTokens })`.
+ *
+ * @param {string} diffText
+ * @returns {string[]}
+ */
+export function retirementCandidates(diffText) {
+  const blocks = parseUnifiedDiff(diffText);
+  const removed = new Set();
+  for (const block of blocks) {
+    if (isTestPath(block.path) || PROSE_PATH_RE.test(block.path)) continue;
+    for (const line of block.removed) {
+      addTokens(removed, line, TOP_LEVEL_DECLARATION_RE, 1);
+      addTokens(removed, line, STRING_LITERAL_RE, 2);
+    }
+  }
+  const testBlocks = blocks.filter((b) => isTestPath(b.path));
+  return [...removed].filter((t) => testBlocks.some((b) => referencesToken(b.removed, t))).sort();
+}
+
+/**
+ * Tokens still present in a non-test, non-prose file of `files` (pure). Tests are excluded because a
+ * test asserting a path is *gone* must not keep that path alive; prose because an ADR or analysis
+ * note recounting a removed function does not bring it back (PR #1461: an ADR line kept
+ * `writeValidationTrackRuntime` "alive" after the code was gone).
+ *
+ * @param {Iterable<{path: string, text: string}>} files The post-change tree
+ * @param {string[]} tokens
+ * @returns {Set<string>}
+ */
+export function liveTokensIn(files, tokens) {
+  const live = new Set();
+  let pending = [...tokens];
+  for (const { path, text } of files) {
+    if (pending.length === 0) break;
+    if (isTestPath(path) || PROSE_PATH_RE.test(path) || typeof text !== 'string') continue;
+    for (const token of tokensFoundIn(text, pending)) live.add(token);
+    pending = pending.filter((t) => !live.has(t));
+  }
+  return live;
+}
+
+/**
+ * One alternation pass per file instead of one scan per token (a ~25MB tree × hundreds of tokens
+ * took seconds). A match consumes its span, so a token occurring only inside another token's match
+ * is missed — rescan with the remainder until a pass finds nothing new.
+ */
+function tokensFoundIn(text, tokens) {
+  const found = new Set();
+  let pending = tokens;
+  while (pending.length > 0) {
+    const re = new RegExp(pending.map(escapeRegExp).join('|'), 'g');
+    const pass = new Set(Array.from(text.matchAll(re), (m) => m[0]));
+    if (pass.size === 0) break;
+    for (const token of pass) found.add(token);
+    pending = pending.filter((t) => !pass.has(t));
+  }
+  return found;
+}
+
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+const tokenPatterns = new Map();
+
+function tokenPattern(token) {
+  if (!tokenPatterns.has(token)) {
+    tokenPatterns.set(token, new RegExp(`(^|[^\\w$])${escapeRegExp(token)}(?=$|[^\\w$])`, 'g'));
+  }
+  const re = tokenPatterns.get(token);
+  re.lastIndex = 0;
+  return re;
+}
+
+function referencesToken(lines, token) {
+  // A regex literal names the same thing with escapes: `/body\.elapsedMs/` checks `body.elapsedMs`.
+  return lines.some((line) => tokenPattern(token).test(line) || tokenPattern(token).test(line.replace(/\\(.)/g, '$1')));
+}
+
+/** True when the match sits in code — not in a string, a test title or a trailing `//` comment. */
+function inCode(line, index) {
+  if (insideStringLiteral(line, index)) return false;
+  let comment = line.indexOf('//');
+  while (comment >= 0 && insideStringLiteral(line, comment)) comment = line.indexOf('//', comment + 2);
+  return comment < 0 || comment > index;
+}
+
+// A name learned from a binding is a local identifier, so only its use as code counts.
+function usesNameInCode(line, name) {
+  return Array.from(line.matchAll(tokenPattern(name)), (m) => m.index + m[1].length).some((i) => inCode(line, i));
+}
+
+const TEST_CASE_RE = /^\s*(?:it|test)(?:\.\w+)*\s*\(/;
+const UNIT_START_RE = /^\s*(?:(?:it|test|describe)(?:\.\w+)*\s*\(|(?:export\s+)?(?:async\s+)?(?:function|class|const|let|var|import)\b)/;
+
+function indentOf(line) {
+  return line.match(/^\s*/)[0].length;
+}
+
+/**
+ * Splits a test block's removed runs into units — test cases, `describe` blocks and declarations.
+ * A unit owns the lines indented deeper than its head; a unit head at the same or a shallower
+ * indent starts the next unit, so a helper declared beside an `it(` inside a `describe` is its own unit.
+ */
+function unitsOf(block) {
+  const units = [];
+  for (const run of block.removedRuns) {
+    let unit = null;
+    for (const line of run) {
+      const isHead = UNIT_START_RE.test(line) && (!unit || TEST_CASE_RE.test(line) || indentOf(line) <= indentOf(unit[0]));
+      if (!unit || isHead) units.push((unit = []));
+      unit.push(line);
+    }
+  }
+  return units;
+}
+
+/**
+ * Names a test imported from another test file deleted in the same diff (`HEAVY_STEP_TIMEOUT_MS`
+ * from a retired e2e harness). Scoped to the importer: the import line is the proof, and a helper
+ * of the same name declared elsewhere proves nothing.
+ */
+function importedRetiredNames(testBlock, deletedTests) {
+  const names = [];
+  for (const line of testBlock.removed) {
+    for (const source of importedDeletedTests(testBlock, line, deletedTests)) {
+      const declared = source.removed.flatMap((decl) => Array.from(decl.matchAll(TOP_LEVEL_DECLARATION_RE), (m) => m[1]));
+      names.push(...declared.filter((name) => referencesToken([line], name)));
+    }
+  }
+  return names;
+}
+
+function importedDeletedTests(testBlock, line, deletedTests) {
+  return Array.from(line.matchAll(IMPORT_SPECIFIER_RE), (m) => m[1])
+    .filter((spec) => spec.startsWith('.'))
+    .map((spec) => deletedTests.find((b) => b !== testBlock && b.path === resolveRelative(testBlock.path, spec)))
+    .filter(Boolean);
+}
+
+// `const x = …` / `x = …` at a statement start — the name that carries a value derived from the rest of the line.
+const BINDING_RE = /(?:\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)|(?:^|[{;]|=>)\s*([A-Za-z_$][\w$]*)\s*=(?![=>]))/g;
+const UNIT_HEAD_DECLARATION_RE = /^(?:export\s+)?(?:async\s+)?(?:function\*?|class|const|let|var)\s+([A-Za-z_$][\w$]*)/;
+
+/**
+ * Which removed units of a test exercised a dead subject (pure). Attribution is per unit, not per
+ * file: one retired test case must not excuse unrelated removals beside it. A local name inherits
+ * deadness only from what it was built from — the binding on a line that touched a dead name
+ * (`koLayout = read('src/app/layout.tsx')`), or a helper whose own unit did (`checkLanding()` that
+ * fetched `/api/waitlist`) — and only within this file.
+ *
+ * @returns {{subjects: string[], deadAssertions: number, otherAssertions: number, undeadAssertionUnits: number, undeadHeads: string[]}}
+ */
+function retirementOf(testBlock, deadTokens, deletedTests) {
+  const units = unitsOf(testBlock);
+  const roots = [
+    ...deadTokens.filter((token) => referencesToken(testBlock.removed, token)),
+    ...importedRetiredNames(testBlock, deletedTests),
+  ];
+  const { dead, subjects } = deadUnitsOf(units, roots);
+  const tally = {
+    subjects, deadAssertions: 0, otherAssertions: 0, undeadAssertionUnits: 0, undeadHeads: [],
+  };
+  units.forEach((unit, index) => {
+    const n = countMatches(unit, ASSERT_PATTERN);
+    if (dead.has(index)) tally.deadAssertions += n;
+    else if (n > 0) {
+      tally.otherAssertions += n;
+      tally.undeadAssertionUnits += 1;
+      tally.undeadHeads.push(unit[0].trim().slice(0, 80));
+    }
+  });
+  return tally;
+}
+
+/**
+ * Fixed point: units touching a dead name, growing the name set by the bindings they make. Only
+ * shared units — declarations and `describe` bodies — teach names: a test case's locals (`res`,
+ * `page`) are its own, and reusing the same local in another case proves nothing about that case.
+ */
+function deadUnitsOf(units, roots) {
+  const state = { roots, names: new Set(roots), dead: new Set(), subjects: new Set() };
+  for (let grew = state.names.size > 0; grew; ) {
+    grew = false;
+    units.forEach((unit, index) => {
+      grew = visitUnit(state, unit, index) || grew;
+    });
+  }
+  return { dead: state.dead, subjects: [...state.subjects].sort() };
+}
+
+/** Marks one unit dead if it touches a known name; returns whether the name set grew. */
+function visitUnit(state, unit, index) {
+  const { names, dead, subjects } = state;
+  const learned = [];
+  const scope = scopeIndentOf(unit);
+  let touched = false;
+  for (const line of unit) {
+    const hits = [...names].filter((name) => touchesName(state, line, name));
+    if (hits.length === 0) continue;
+    touched = true;
+    for (const hit of hits) if (state.roots.includes(hit)) subjects.add(hit);
+    learned.push(...bindingsAtScope(line, scope));
+  }
+  if (!touched) return false;
+  if (!dead.has(index)) learned.push(unit[0].trim().match(UNIT_HEAD_DECLARATION_RE)?.[1]);
+  dead.add(index);
+  if (TEST_CASE_RE.test(unit[0])) return false;
+  const before = names.size;
+  for (const name of learned) if (name) names.add(name);
+  return names.size > before;
+}
+
+/**
+ * The indent where a shared unit's own names live: a `describe` body's first level, otherwise the
+ * head itself. A `const` deeper than that is local to a helper or a `beforeEach` body.
+ */
+function scopeIndentOf(unit) {
+  const head = indentOf(unit[0]);
+  if (!/^\s*describe\b/.test(unit[0])) return head;
+  const body = unit.slice(1).map(indentOf).filter((n) => n > head);
+  return body.length > 0 ? Math.min(...body) : head;
+}
+
+// A declaration names something only at the unit's scope; a bare `x = …` always writes an outer variable.
+function bindingsAtScope(line, scope) {
+  const atScope = indentOf(line) === scope;
+  return Array.from(line.matchAll(BINDING_RE), (m) => m[2] || (atScope ? m[1] : null));
+}
+
+// Roots may be paths or strings, so any mention counts; learned names are identifiers, so only code does.
+function touchesName(state, line, name) {
+  return state.roots.includes(name) ? referencesToken([line], name) : usesNameInCode(line, name);
+}
+
+function previewTokens(tokens) {
+  const shown = tokens.slice(0, 4).join(', ');
+  return tokens.length > 4 ? `${shown}, +${tokens.length - 4} more` : shown;
+}
+
 /** Signal relevant across any file — decrease in ratchet vocabulary key values. */
 function thresholdSignals(block) {
   const before = collectRatchetValues(block.removed);
@@ -262,16 +568,54 @@ function thresholdSignals(block) {
   return out;
 }
 
+/** The single finding for a deleted test file: retired with a subject module or name, or deleted. */
+function deletedTestFinding(block, retirement, deletedSubjects) {
+  const subject = retiredSubjectOf(block, deletedSubjects);
+  if (subject) {
+    return {
+      signal: BAR_MOVE.TEST_RETIRED_WITH_SUBJECT,
+      path: block.path,
+      detail: `Test file deleted alongside its subject module (${subject}) — retirement, not relaxation`,
+    };
+  }
+  if (retirement.deadAssertions > 0 && retirement.undeadAssertionUnits === 0) {
+    return {
+      signal: BAR_MOVE.TEST_RETIRED_WITH_SUBJECT,
+      path: block.path,
+      detail: `Test file deleted; every assertion in it exercised code gone from the tree (${previewTokens(retirement.subjects)}) — retirement, not relaxation`,
+    };
+  }
+  const partial = retirement.undeadAssertionUnits > 0
+    ? `; not tied to removed code: ${previewTokens(retirement.undeadHeads)}`
+    : '';
+  return {
+    signal: BAR_MOVE.TEST_FILE_DELETED,
+    path: block.path,
+    detail: `Test file deleted (removed lines ${block.removed.length})${partial}`,
+  };
+}
+
 /**
  * Evaluates five signals of "proposer lowering criteria" from diff (pure function).
  *
  * Each finding is `{signal, path, detail}` — `detail` contains facts for human evaluation.
  * Returns empty array on unevaluable/missing input (fail-open, R-CM-006 Rule 2).
  *
+ * `liveTokens` is the subset of `retirementCandidates(diffText)` still present in non-test files
+ * after the change. Without it no name can be proven dead, so only whole-file retirements count —
+ * an unproven retirement is reported as relaxation, never the other way round.
+ *
+ * Attribution is per unit (a test case or top-level declaration inside one run of removed lines). A
+ * deleted test retires only when every unit that asserted something exercised a dead subject; a
+ * shrunk test retires only the assertions inside such units. Known limit: a unit is the finest
+ * grain — a test case that checked a dead subject and, in the same body, something still alive is
+ * retired whole.
+ *
  * @param {string} diffText Output of `git diff <base>..HEAD`
+ * @param {{liveTokens?: Iterable<string>}} [options]
  * @returns {Array<{signal: string, path: string, detail: string}>}
  */
-export function detectBarMove(diffText) {
+export function detectBarMove(diffText, { liveTokens } = {}) {
   const findings = [];
   const blocks = parseUnifiedDiff(diffText);
 
@@ -279,30 +623,22 @@ export function detectBarMove(diffText) {
   // *and* referenced it was retired alongside its subject (e.g. a hook removed together with its
   // test), not relaxed — see TEST_RETIRED_WITH_SUBJECT below.
   const deletedSubjects = blocks.filter((b) => b.deleted && !isTestPath(b.path));
+  const live = liveTokens ? new Set(liveTokens) : null;
+  // Without liveness evidence nothing is proven dead — not even names imported from a deleted test.
+  const deletedTests = live ? blocks.filter((b) => b.deleted && isTestPath(b.path)) : [];
+  const deadTokens = live ? retirementCandidates(diffText).filter((t) => !live.has(t)) : [];
 
   for (const block of blocks) {
     const isTest = isTestPath(block.path);
+    const retirement = isTest ? retirementOf(block, deadTokens, deletedTests) : null;
 
     // Report only 1 deletion for deleted files — total removal causes all other signals to trail.
     if (isTest && block.deleted) {
-      const subject = retiredSubjectOf(block, deletedSubjects);
-      if (subject) {
-        findings.push({
-          signal: BAR_MOVE.TEST_RETIRED_WITH_SUBJECT,
-          path: block.path,
-          detail: `Test file deleted alongside its subject module (${subject}) — retirement, not relaxation`,
-        });
-      } else {
-        findings.push({
-          signal: BAR_MOVE.TEST_FILE_DELETED,
-          path: block.path,
-          detail: `Test file deleted (removed lines ${block.removed.length})`,
-        });
-      }
+      findings.push(deletedTestFinding(block, retirement, deletedSubjects));
       continue;
     }
 
-    if (isTest) findings.push(...testFileSignals(block));
+    if (isTest) findings.push(...testFileSignals(block, retirement));
     findings.push(...thresholdSignals(block));
   }
 
@@ -364,6 +700,36 @@ export function detectFlakyTests(report) {
 export const LOAD_SATURATION_MULTIPLE = 2;
 
 /**
+ * Median ms to start a no-op process above which an exec-heavy test cannot get a fair shot.
+ *
+ * Load average counts runnable threads. A process waiting on page-ins, or on an exec authorization
+ * (endpoint security checks every exec on a managed Mac), is not runnable, so a box can starve `exec`
+ * while its load looks normal. Measured on a 16-CPU box (2026-10-22/23): four re-verifications of one
+ * branch failed on 30–39 vitest timeouts at load 15–24, under the load cut, every one in an exec-heavy
+ * file (the ship tests call git ~68 times) that passed alone. `spawnSync('true')` took a median of 70 ms
+ * at load 15 and 104 ms at load 12–18 (swap full) for 1.5 ms of CPU; no failing observation was under
+ * 38 ms. 30 sits below all of them. Known limit: no idle baseline was measured on that box, so 30 is a
+ * cut under the failures, not a measured gap. A cut too low costs a 180 s re-measurement that must still
+ * pass, or a retry-pass printed as a notice — never a dropped observation.
+ */
+export const SPAWN_SATURATION_MS = 30;
+
+/** One decimal at most, no padding: 6 → "6", 11.96 → "12", 30.4 → "30.4". */
+const shortNumber = (n) => String(Number(n.toFixed(1)));
+const isPositiveNumber = (n) => typeof n === 'number' && Number.isFinite(n) && n > 0;
+const side = (over) => (over ? 'over' : 'within');
+
+function describeLoad({ load, cpuCount, ratio, threshold }, over) {
+  if (cpuCount === 0) return `load ${shortNumber(load)} cannot be judged without a CPU count`;
+  return `load ${shortNumber(load)} on ${cpuCount} CPUs is ${ratio.toFixed(1)}x, ${side(over)} the limit of ${shortNumber(threshold)}`;
+}
+
+function describeSpawn({ spawnMs, spawnThreshold }, over) {
+  if (spawnMs === null) return 'process start latency was not measured';
+  return `a no-op process took ${shortNumber(spawnMs)}ms to start, ${side(over)} the limit of ${spawnThreshold}ms`;
+}
+
+/**
  * Decides whether a retry-pass verdict can be trusted, given how loaded the machine was (pure function).
  *
  * Why this exists: "this test passed only on retry, therefore it is defective" is a valid inference
@@ -382,20 +748,42 @@ export const LOAD_SATURATION_MULTIPLE = 2;
  * zeros) yield `saturated: false`, i.e. exactly today's behaviour — silent, but honest, since we then
  * have no evidence of contention to report.
  *
- * @param {{loadAvg?: number[], cpuCount?: number, multiple?: number}} [env]
- * @returns {{saturated: boolean, load: number, cpuCount: number, ratio: number, threshold: number}}
+ * `spawnMs` is a second, independent axis (`SPAWN_SATURATION_MS` says why load alone missed a starved
+ * box): either axis over its limit is enough. A missing or invalid `spawnMs` — the probe could not run —
+ * leaves the load-only verdict. `evidence` states both axes with their numbers, so a reason built from
+ * it names the one that decided.
+ *
+ * @param {{loadAvg?: number[], cpuCount?: number, multiple?: number, spawnMs?: number|null, spawnThreshold?: number}} [env]
+ * @returns {{saturated: boolean, load: number, cpuCount: number, ratio: number, threshold: number,
+ *   spawnMs: number|null, spawnThreshold: number, evidence: string}}
  */
 export function classifyLoadMeasurability({
   loadAvg = [],
   cpuCount = 0,
   multiple = LOAD_SATURATION_MULTIPLE,
+  spawnMs = null,
+  spawnThreshold = SPAWN_SATURATION_MS,
 } = {}) {
-  const windows = asArray(loadAvg).filter((n) => typeof n === 'number' && Number.isFinite(n) && n > 0);
+  const windows = asArray(loadAvg).filter(isPositiveNumber);
   const load = windows.length > 0 ? Math.max(...windows) : 0;
   const cpus = Number.isFinite(cpuCount) && cpuCount > 0 ? cpuCount : 0;
   const threshold = cpus * multiple;
   const ratio = cpus > 0 ? load / cpus : 0;
-  return { saturated: cpus > 0 && load > threshold, load, cpuCount: cpus, ratio, threshold };
+  const measured = {
+    load,
+    cpuCount: cpus,
+    ratio,
+    threshold,
+    spawnMs: isPositiveNumber(spawnMs) ? spawnMs : null,
+    spawnThreshold,
+  };
+  const loadOver = cpus > 0 && load > threshold;
+  const spawnOver = measured.spawnMs !== null && measured.spawnMs > spawnThreshold;
+  return {
+    saturated: loadOver || spawnOver,
+    ...measured,
+    evidence: `${describeLoad(measured, loadOver)}; ${describeSpawn(measured, spawnOver)}`,
+  };
 }
 
 /**
@@ -407,10 +795,10 @@ export function classifyLoadMeasurability({
  */
 export function formatBarMoveWarning(findings) {
   if (!Array.isArray(findings) || findings.length === 0) return null;
-  // TEST_RETIRED_WITH_SUBJECT is informational (retirement, not relaxation) — surfaced via
+  // Retirement signals are informational (retirement, not relaxation) — surfaced via
   // detectBarMove()'s return value for callers that want it, but never counted toward the
   // "baseline relaxation" warning below (that would misrepresent legitimate cleanup as goalpost-moving).
-  const relaxations = findings.filter((f) => f.signal !== BAR_MOVE.TEST_RETIRED_WITH_SUBJECT);
+  const relaxations = findings.filter((f) => !RETIREMENT_SIGNALS.has(f.signal));
   if (relaxations.length === 0) return null;
   const lines = relaxations.map((f) => `  - [${f.signal}] ${f.path}: ${f.detail}`);
   return (

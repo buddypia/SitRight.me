@@ -44,9 +44,11 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 /.playwright-cli/
-# .agents/ はエージェントのローカル作業場所。skill（.claude/skills への symlink）だけコミットする
+# .agents/ はエージェントのローカル作業場所。skill（.claude/skills への symlink）と Antigravity の hook 登録（hooks.json）だけコミットする。
+# hooks.json を無視すると worktree に届かず、そこでは hook が動かない
 /.agents/*
 !/.agents/skills/
+!/.agents/hooks.json
 /tests/e2e/fixtures/*.mjpeg
 /tests/e2e/fixtures/portrait.jpg
 

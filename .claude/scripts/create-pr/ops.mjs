@@ -70,6 +70,7 @@ import {
 } from '../../../.cli/lib/utils.mjs';
 import { resolveShipBaseBranchStrict } from '../../../.cli/lib/ship-base-branch.mjs';
 import { detectBarMove, formatBarMoveWarning } from '../../../.cli/lib/self-improving-loop.mjs';
+import { liveRetirementTokens } from '../audit-self-improving-loop.mjs';
 import {
   buildFileTree,
   buildPostApprovalCompletionReport,
@@ -472,20 +473,27 @@ function followupDebtRegisterArgs(prNumber, { body, prUrl } = {}) {
 /**
  * Runs the tracker with `args` and returns its raw stdout, or `null` when the tracker is not
  * installed. Split out as the injection seam for `registerFollowupDebtFromPr` — the script must
- * exist under `PROJECT_DIR`, which a unit test's sandbox does not have, so tests inject a runner
+ * exist under `treeDir`, which a unit test's sandbox does not have, so tests inject a runner
  * that runs the real tracker with the argv ship built. Locating the script belongs here rather
  * than in the caller: it is this runner's own precondition, and keeping it here leaves the caller
  * with one sentinel (`null`) and one failure path — anything else that prevents stdout arrives as
  * a thrown error.
+ *
+ * `treeDir` picks the tracker, and only the tracker: the child keeps ship's env and the cwd
+ * `PROJECT_DIR`, and the ledger resolves from those alone (`layout-resolver.mjs#resolveSystemFile`
+ * never reads the script's own location), so choosing another tracker never moves the ledger.
  *
  * Not installed is not a failure: R-CM-033 is Perspective 1 only
  * (`deployed-assets.json#rules.never_deploy`) while this script ships to scaffolds, so a scaffold
  * never has the tracker, and a warning for that would reach every ship's completion report, which
  * floors warnings at MEDIUM (R-CM-030 Rule 14). Perspective 1 losing it is caught at pre-push —
  * `tests/unit/followup-debt-tracker.test.mjs` imports it.
+ *
+ * @param {string[]} args
+ * @param {string | null} [treeDir] — the checkout whose tracker runs; `PROJECT_DIR` when absent
  */
-function runFollowupDebtRegister(args) {
-  const scriptPath = join(PROJECT_DIR, '.claude', 'scripts', 'followup-debt-tracker.mjs');
+function runFollowupDebtRegister(args, treeDir) {
+  const scriptPath = join(treeDir ?? PROJECT_DIR, '.claude', 'scripts', 'followup-debt-tracker.mjs');
   if (!existsSync(scriptPath)) return null;
   return execFileSync(process.execPath, [scriptPath, ...args], {
     cwd: PROJECT_DIR,
@@ -527,10 +535,21 @@ function childFailure(e) {
  * A runner that returns `null` means the tracker is not installed — a scaffold, which never gets
  * it (`runFollowupDebtRegister`). Nothing was skipped there, so it yields no warning.
  *
+ * The tracker that parses the body is the one in `source.landedTree`, the tree that just merged.
+ * Main's checkout fast-forwards only after the cleanup (`syncMainAfterCleanup`), so its tracker is
+ * still the one from before the PR, and a PR that changed the parser had its own follow-ups parsed
+ * by the parser it replaced: #1466's three were stored as "(P2) : …", and #1265's three kept their
+ * `[MEDIUM]`/`[LOW]` in the description and lost the grade — one MEDIUM became LOW. A merged tree
+ * without the tracker does not fall back to main's: once the PR lands, main has none either.
+ * Limit: the squash merges onto the base as it stands at merge time, so a tracker change another
+ * PR landed after this branch last synced is in the merge but not in this tree.
+ *
  * @param {number} prNumber
- * @param {{ body?: string, prUrl?: string }} [source] — the body ship sent, the PR URL it got back
- * @param {(args: string[]) => string | null} [runFn] — Test-injectable child runner for the
- *   tracker argv; returns its stdout, or `null` when the tracker is not installed
+ * @param {{ body?: string, prUrl?: string, landedTree?: string | null }} [source] — the body ship
+ *   sent, the PR URL it got back, and the checkout of the commit that merged
+ * @param {(args: string[], treeDir?: string | null) => string | null} [runFn] — Test-injectable
+ *   child runner for the tracker argv; returns its stdout, or `null` when the tracker is not
+ *   installed
  * @returns {{ warnings: string[], count: number, items: object[] }}
  */
 export function registerFollowupDebtFromPr(prNumber, source = {}, runFn = runFollowupDebtRegister) {
@@ -541,7 +560,7 @@ export function registerFollowupDebtFromPr(prNumber, source = {}, runFn = runFol
 
   let stdout;
   try {
-    stdout = runFn(followupDebtRegisterArgs(prNumber, source));
+    stdout = runFn(followupDebtRegisterArgs(prNumber, source), source.landedTree);
   } catch (e) {
     return skipped(`followup-debt registration skipped: ${childFailure(e)}`);
   }
@@ -1023,7 +1042,8 @@ function createAndMergePr({
   });
   const changed_files_tree = buildFileTree(changed_files);
   const warnings = [];
-  const followupDebt = registerFollowupDebtFromPr(prNumber, { body, prUrl });
+  // The worktree still holds what merged: cleanup runs after this returns.
+  const followupDebt = registerFollowupDebtFromPr(prNumber, { body, prUrl, landedTree: worktreeDir });
   warnings.push(...followupDebt.warnings);
 
   return {
@@ -1554,7 +1574,7 @@ export function measureWorktreeDiffScale({ absWtPath, baseBranch, gitFn = git })
 export function detectBarMoveWarning({ absWtPath, baseBranch, gitFn = git }) {
   try {
     const diff = gitFn(['diff', `origin/${baseBranch}...HEAD`], { cwd: absWtPath });
-    return formatBarMoveWarning(detectBarMove(diff));
+    return formatBarMoveWarning(detectBarMove(diff, { liveTokens: liveRetirementTokens(diff, absWtPath) }));
   } catch {
     return null;
   }
@@ -1597,18 +1617,17 @@ export function detectTransplantTargetsMadeStale(changedFiles, { projectDir = PR
     .map((b) => `transplant target made stale by this merge: ${b.target} [${b.bundle}] (${b.hit.join(', ')}). ${staleTargetRemedy(b)}`);
 }
 
-/** A target that edited managed files has forked them: re-transplanting would discard those edits. */
+/** A re-transplant keeps a target's managed-file edits (kept or 3-way merged), so it is the remedy either way. */
 function staleTargetRemedy(b) {
   const edited = b.locally_modified || [];
-  if (edited.length) {
-    return (
-      `It edited ${edited.length} managed file(s) locally (${edited.slice(0, 3).join(', ')}${edited.length > 3 ? ', ...' : ''}); ` +
-      `re-transplanting would discard them. Upstream those edits to brief2dev first, or leave the target as a fork.`
-    );
-  }
-  return (
+  const command =
     `Re-transplant after user confirmation (writes to that repo, from a worktree there): ` +
-    `node .claude/scripts/transplant-bundle.mjs --bundle ${b.bundle} --target <worktree of ${b.target}>`
+    `node .claude/scripts/transplant-bundle.mjs --bundle ${b.bundle} --target <worktree of ${b.target}>`;
+  if (!edited.length) return command;
+  return (
+    `It edited ${edited.length} managed file(s) locally (${edited.slice(0, 3).join(', ')}${edited.length > 3 ? ', ...' : ''}); ` +
+    `re-transplant keeps them (unchanged upstream → as is, otherwise 3-way merged; --dry-run lists which). ` +
+    `Upstream the edits every project needs. ${command}`
   );
 }
 
