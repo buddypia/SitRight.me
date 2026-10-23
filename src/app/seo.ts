@@ -151,7 +151,7 @@ function buildMetadata({
       card: 'summary_large_image',
       title,
       description,
-      images: [imageDescriptor],
+      images: [{ url: ogImage, alt: ogAlt }],
     },
   };
 }
