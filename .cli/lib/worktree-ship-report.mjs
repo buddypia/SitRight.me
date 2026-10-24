@@ -58,6 +58,7 @@ export const DEFAULT_REPORT_LABELS = Object.freeze({
   cleanup_partial: 'partial / failed after merge',
   cleanup_unknown: 'attempted / unknown',
   cleanup_skipped: 'skipped (--no-cleanup)',
+  cleanup_not_merged: 'not run — the PR is not merged',
   report_branch_cleanup: 'Branch cleanup',
   branch_cleanup_merged: 'remote delete requested; local cleanup handled by cleanup-worktree when enabled',
   not_performed: 'not performed',
@@ -67,6 +68,7 @@ export const DEFAULT_REPORT_LABELS = Object.freeze({
   not_reported: 'not reported',
   not_run: 'not run',
   report_files_heading: '## 3. Applied Files',
+  files_not_landed: '(nothing landed — the PR is not merged)',
   report_actions_heading: '## 4. Remaining Actions (priority-ordered)',
   report_notes_heading: '## 5. Issue / Improvement Notes',
   action_pr_pending: 'PR not merged — retry merge once CI/review passes, or inspect manually',
@@ -791,16 +793,17 @@ export function buildPostApprovalCompletionReport({
   const L = labels;
   const cr = cleanupResult ?? {};
   const mergedSituation = result.merged ? L.merged : result.pending ? L.pending : L.not_merged;
-  const cleanupSituation = cleanup
-    ? cleanedUp
-      ? L.cleanup_completed
-      : cr.ok === false
-        ? L.cleanup_partial
-        : L.cleanup_unknown
-    : L.cleanup_skipped;
+  // ship-worktree cleans up and collects changed_files only after a merge (ops.mjs `cleanup && result.merged`).
+  // Reporting an unmerged PR through the merged branches read as a cleanup that was tried and a PR with no files.
+  let cleanupSituation = L.cleanup_skipped;
+  if (cleanup && !result.merged) cleanupSituation = L.cleanup_not_merged;
+  else if (cleanup && cleanedUp) cleanupSituation = L.cleanup_completed;
+  else if (cleanup) cleanupSituation = cr.ok === false ? L.cleanup_partial : L.cleanup_unknown;
   const branchCleanup = result.merged ? L.branch_cleanup_merged : L.not_performed;
-  const mainStatus = cr.sync_status || (cleanup ? L.not_reported : L.not_run);
-  const changedTree = result.changed_files_tree || buildFileTree(result.changed_files || [], L);
+  const mainStatus = result.merged ? cr.sync_status || (cleanup ? L.not_reported : L.not_run) : L.not_run;
+  const changedTree = result.merged
+    ? result.changed_files_tree || buildFileTree(result.changed_files || [], L)
+    : L.files_not_landed;
 
   return [
     L.report_title,
