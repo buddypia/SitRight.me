@@ -110,7 +110,7 @@ Use Subagent-Driven Development (SDD) only when one of these holds, and record w
 - **Parallel lanes**: `PLAN.md` Worktree Parallelization Strategy has lanes with disjoint `write_scope` that need little from each other and hand back a compact result. The lane is the dispatch unit: one implementer subagent runs its lane's tasks in order, and the Task Reviewer still checks each task's diff.
 - **Measured context bloat**: during this feature the main loop already lost track (re-did a finished task, contradicted an earlier decision after compaction). Dispatch per task from that point on.
 
-Never dispatch parallel implementation agents that modify the same file concurrently. Inline mode has no per-task Task Reviewer; its review stays `/code-review --fix` and `final-review` after all tasks (`feature-pilot` steps 8-9).
+Never dispatch parallel implementation agents that modify the same file concurrently. Inline mode has no per-task Task Reviewer; its review stays `/code-review --fix` and, optionally, `final-review` after all tasks (`feature-pilot` steps 8-9).
 
 Fixed SDD sequence (Superpowers v6.1.1 aligned — Unified Task Reviewer):
 
