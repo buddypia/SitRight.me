@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+// Invariants (guarded by tests/unit/verify-gate.test.ts):
+//  - Node built-ins only: `--ci-diff-check` runs in CI before `npm ci`, so no third-party import may load here.
+//  - Fingerprinting reads through one file descriptor (openSync → fstatSync → readFileSync(fd)), never
+//    existsSync/statSync followed by a path read: that check-then-use gap is CodeQL js/file-system-race.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { appendFileSync, closeSync, existsSync, fstatSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';

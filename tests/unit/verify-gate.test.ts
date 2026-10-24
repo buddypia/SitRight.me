@@ -1,4 +1,4 @@
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -62,5 +62,16 @@ describe('verify-gate and shared agent-scratchpad', () => {
     const r2 = runVerifyGate({ rootDir: repoDir, changedFiles: ['AGENTS.md'], allFiles: ['src/index.ts', 'AGENTS.md'], scratchpadDir, runner });
     expect(r2.results.map((r: { stage: string; mode: string }) => r.mode)).toEqual(['cached', 'cached', 'cached']);
     expect(calls).toEqual([]);
+  });
+
+  it('keeps zero external dependencies and fd-bound fingerprint reads (CodeQL js/file-system-race)', () => {
+    const src = readFileSync(path.resolve(__dirname, '../../scripts/verify-gate.mjs'), 'utf8');
+    const specifiers = [...src.matchAll(/^import\s[^;]*?from\s+'([^']+)'/gm)].map((m) => m[1]);
+    expect(specifiers.length).toBeGreaterThan(0);
+    expect(specifiers.filter((s) => !s.startsWith('node:'))).toEqual([]);
+
+    const body = /export function computeFilesFingerprint[\s\S]*?\n}\n/.exec(src)?.[0] ?? '';
+    expect(body).toMatch(/openSync\([^)]*\)[\s\S]*fstatSync\(fd\)[\s\S]*readFileSync\(fd\)/);
+    expect(body).not.toMatch(/\b(?:existsSync|statSync|lstatSync|accessSync)\(/);
   });
 });
