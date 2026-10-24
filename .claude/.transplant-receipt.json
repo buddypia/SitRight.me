@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "$comment": "brief2dev transplant-bundle receipt — Inventory SSOT for bundles transplanted into this project. role=managed files are always overwritten with latest source on re-transplants (do not edit locally — make adjustments in role=customizable files or brief2dev source). role=customizable files are edited by this project and preserved during re-transplants.",
+  "$comment": "brief2dev transplant-bundle receipt — Inventory SSOT for bundles transplanted into this project. role=managed files are brief2dev code: sha256 is the base a re-transplant merges local edits against (unchanged upstream → kept, otherwise 3-way merged; overlapping edits are left for a hand merge). Fixes that apply to every project belong in brief2dev source. role=customizable files are edited by this project and preserved during re-transplants.",
   "generated_by": "transplant-bundle.mjs",
   "bundles": {
     "git-worktree-isolation": {
@@ -8,9 +8,9 @@
       "bundle_version": "1.4",
       "source": {
         "repo": "brief2dev",
-        "commit": "c8141e8d85ef846dff8a6a31cdc010acb8d6c99c"
+        "commit": "61fa5500c24beed40a9bdc6b0d03b3eaf283bfaf"
       },
-      "transplanted_at": "2026-10-23T15:41:43.504Z",
+      "transplanted_at": "2026-10-24T05:25:12.854Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle git-worktree-isolation --target <this-project-root> --json",
       "files": [
         {
@@ -47,7 +47,7 @@
         {
           "path": ".claude/scripts/create-pr/ops.mjs",
           "role": "managed",
-          "sha256": "cdb860bafb1ea5c6a26ce691df86658cd59e4ea30a758f090b4caa14e84e27c6"
+          "sha256": "bd03dd9d3d517b9d69c2e9a1c9ee6c8511ab68377906679c00f1dea647e484c2"
         },
         {
           "path": ".claude/scripts/followup-debt-tracker.mjs",
@@ -471,7 +471,7 @@
         {
           "path": ".cli/lib/worktree-ship-report.mjs",
           "role": "managed",
-          "sha256": "c5237ff0352ed52e172b87afbfb180069e796d23c7dffc5b61b30127c9357c7b"
+          "sha256": "6105a8fe520343e366ddd54538732dc0c736d7c8bff769cb60d687fc928db750"
         },
         {
           "path": ".codex/hooks.json",

@@ -471,7 +471,15 @@ function followupDebtRegisterArgs(prNumber, { body, prUrl } = {}) {
   return args;
 }
 
-const FOLLOWUP_DEBT_REGISTER_TIMEOUT_MS = 30_000;
+/**
+ * Ceiling for one tracker run. ETIMEDOUT drops the debt silently — ship has already merged and
+ * nothing retries — and the child makes no network call (`followupDebtRegisterArgs`), so its ~0.5 s
+ * only passes 10 s when the machine is starved: a ship reported `ETIMEDOUT` for a body with zero
+ * items to register. Floored by `execTimeoutFloorMs`, as `safeExec` is.
+ */
+export const FOLLOWUP_DEBT_REGISTER_TIMEOUT_MS = 30_000;
+export const followupDebtRegisterTimeoutMs = () =>
+  Math.max(FOLLOWUP_DEBT_REGISTER_TIMEOUT_MS, execTimeoutFloorMs());
 
 /**
  * Runs the tracker with `args` and returns its raw stdout, or `null` when the tracker is not
@@ -502,10 +510,7 @@ function runFollowupDebtRegister(args, treeDir) {
     cwd: PROJECT_DIR,
     encoding: 'utf-8',
     stdio: ['ignore', 'pipe', 'pipe'],
-    // ETIMEDOUT here silently drops the debt (ship already merged, nothing retries). The child makes no
-    // network call, so its 0.5 s run only exceeds 10 s when the machine is starved — as it was at the
-    // reporting ship, with zero items to register. Same floor `safeExec` honours (`execTimeoutFloorMs`).
-    timeout: Math.max(FOLLOWUP_DEBT_REGISTER_TIMEOUT_MS, execTimeoutFloorMs()),
+    timeout: followupDebtRegisterTimeoutMs(),
     env: withoutInheritedRepository(),
   });
 }
