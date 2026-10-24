@@ -20,6 +20,9 @@
  *   - Ledger `.tmp/worktree-<safeBranch>/test-lock.json` (mailbox slot; dies with the worktree) is written
  *     atomically and only by this CLI. It records manual locks and *releases*; it is never deleted, so the
  *     Pre-Ship Panel can list every release (`create-pr/ops.mjs` warnings).
+ *   - `lock <file>` refuses a test file that differs from HEAD (new, untracked, staged or modified): the lock
+ *     takes HEAD as the baseline, so the red commit must come first. `lock --all` refuses only an edited
+ *     tracked test file (`uncommittedTestFiles`).
  *   - `unlock` requires `--reason`. Releasing is the sanctioned route out of a deny — but it is recorded.
  *   - Enforcement: commit time `.cli/hooks/commit-guard.mjs`, ship time `create-pr/ops.mjs`, and — only where
  *     `.cli/hooks/coverage-threshold-guard.mjs` is installed (brief2dev; not in the transplant bundle) — edit
@@ -27,7 +30,7 @@
  *
  * Exit codes:
  *   0 — success (status: lock present or absent are both 0)
- *   1 — usage error / no test file given / missing --reason on unlock / write failure
+ *   1 — usage error / no test file given / test file not committed yet / missing --reason on unlock / write failure
  *
  * Boundary (R-CM-028): boundary-uniform meaning; Perspective 1 deployment only (P2 port = follow-up debt).
  */
@@ -40,13 +43,16 @@ import { inferBranchFromWorktreePath } from '../../.cli/lib/worktree-plan-path.m
 import { resolveWorktreeRoot } from '../../.cli/lib/worktree-path.mjs';
 import {
   TEST_LOCK_VERSION,
+  dirtyLockedFiles,
   effectiveTestLock,
   isTestFilePath,
+  parseStatusPorcelain,
   readTestLock,
   recordTestLockRelease,
   relockNote,
   resolveLockScope,
   scopeText,
+  shellQuote,
   toRootRelative,
   upsertTestLock,
 } from '../../.cli/lib/test-lock.mjs';
@@ -189,6 +195,28 @@ function printResult(result, json) {
   for (const r of result.rejected ?? []) console.log(`   ⚠️  ignored: ${r}`);
 }
 
+/**
+ * Test files in the lock's scope whose later commit the lock would misread.
+ *
+ * Why: a manual lock records HEAD as every named file's baseline, and ship time reports any locked file
+ * whose content moved after it (`shipTestLockFindings`). Locking a test before its red commit therefore
+ * turns that very commit into a "changed after its red commit" finding (DEBT-570). So for named files,
+ * unlike `dirtyLockedFiles`, a new or untracked file counts: it is exactly the red commit not yet made.
+ * `--all` records no per-file baseline, so a new test file there is harmless; only an edit to a tracked
+ * one is refused — the very edit commit-guard would deny right after, i.e. `dirtyLockedFiles`.
+ * `null` git output (not a repository) reads as clean — the lock is then no worse than before.
+ *
+ * @param {{files: string[], allTests: boolean, gitFn: (args: string) => string|null}} args
+ * @returns {{path: string, status: string}[]}
+ */
+export function uncommittedTestFiles({ files, allTests, gitFn }) {
+  if (allTests) return dirtyLockedFiles({ files: [], allTests: true, gitFn });
+  const out = gitFn(`status --porcelain=v1 --untracked-files=all -- ${files.map(shellQuote).join(' ')}`);
+  return parseStatusPorcelain(out)
+    .filter((e) => files.includes(e.path))
+    .map((e) => ({ path: e.path, status: e.xy }));
+}
+
 function cmdLock(args, cwd) {
   if (!args.all && args.files.length === 0) {
     console.error('test-lock: give at least one test file, or --all');
@@ -200,6 +228,19 @@ function cmdLock(args, cwd) {
   const built = buildLock(args, cwd, { headSha });
   if (!built.lock.all_tests && built.lock.files.length === 0) {
     console.error(`test-lock: nothing to lock\n  ${built.rejected.join('\n  ')}`);
+    return 1;
+  }
+  const uncommitted = uncommittedTestFiles({ files: built.lock.files, allTests: built.lock.all_tests, gitFn: gitAt(root) });
+  if (uncommitted.length > 0) {
+    const why = built.lock.all_tests
+      ? 'these test files have uncommitted edits, and once every test is locked commit-guard denies committing them:\n'
+      : 'these test files differ from HEAD, and the lock takes HEAD as their baseline, ' +
+        'so committing them afterwards would be reported at ship time as a change to a locked test:\n';
+    console.error(
+      `test-lock: not locked — ${why}` +
+        uncommitted.map((u) => `  ${u.status} ${u.path}`).join('\n') +
+        '\n  Commit the failing test first (the red commit), then lock.',
+    );
     return 1;
   }
   let written;

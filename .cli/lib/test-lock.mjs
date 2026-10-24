@@ -682,6 +682,11 @@ export function formatTestLockDenial({ rel, lock, lockPath, kind, source, sha })
  * a worktree-only change (` M path` → `M path`). The X/Y distinction is not needed here — any status
  * letter means "changed", and a new file is recognised by `A` in either column — so the code is read as
  * the run of status letters before the first blank.
+ *
+ * Quoted paths are unquoted: git C-quotes a path holding a blank, `"`, `\` or a control byte — and, under
+ * `core.quotePath=true` (its default), every non-ASCII byte as `\ooo` — and quotes each side of a rename
+ * on its own. Left quoted, the path never equals the file name it is compared with, so a changed locked
+ * file read as clean.
  */
 export function parseStatusPorcelain(text) {
   const out = [];
@@ -689,11 +694,37 @@ export function parseStatusPorcelain(text) {
     const m = /^([MADRCUT?!]{1,2}) +(.+)$/.exec(raw.trim());
     if (!m) continue;
     const [, xy, rest] = m;
-    const arrow = rest.indexOf(' -> ');
-    if (arrow >= 0) out.push({ xy, from: rest.slice(0, arrow).replace(/\\/g, '/'), path: rest.slice(arrow + 4).replace(/\\/g, '/') });
-    else out.push({ xy, from: null, path: rest.replace(/\\/g, '/') });
+    const [first, after] = splitPathField(rest);
+    if (after.startsWith(' -> ')) out.push({ xy, from: first, path: splitPathField(after.slice(4))[0] });
+    else out.push({ xy, from: null, path: first });
   }
   return out;
+}
+
+const C_ESCAPES = { a: 7, b: 8, t: 9, n: 10, v: 11, f: 12, r: 13, '"': 34, '\\': 92 };
+
+// `[path, remainder]`. An unquoted path cannot hold a blank (git would have quoted it), so ` -> ` ends it.
+function splitPathField(s) {
+  if (s[0] !== '"') {
+    const arrow = s.indexOf(' -> ');
+    const field = arrow < 0 ? s : s.slice(0, arrow);
+    return [field.replace(/\\/g, '/'), s.slice(field.length)];
+  }
+  const chars = [...s];
+  const bytes = [];
+  let i = 1;
+  for (; i < chars.length && chars[i] !== '"'; i++) {
+    if (chars[i] !== '\\') {
+      bytes.push(...Buffer.from(chars[i]));
+    } else if (/[0-7]/.test(chars[i + 1])) {
+      bytes.push(parseInt(chars.slice(i + 1, i + 4).join(''), 8));
+      i += 3;
+    } else {
+      i += 1;
+      bytes.push(C_ESCAPES[chars[i]] ?? chars[i].charCodeAt(0));
+    }
+  }
+  return [Buffer.from(bytes).toString('utf8'), chars.slice(i + 1).join('')];
 }
 
 /**
