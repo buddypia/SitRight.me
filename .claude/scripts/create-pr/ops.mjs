@@ -84,6 +84,7 @@ import {
 } from '../../../.cli/lib/layout-resolver.mjs';
 import { resolveMainRepoRoot } from '../../../.cli/lib/worktree-path.mjs';
 import { createPrLeaseContent } from '../../../.cli/lib/create-pr-lease.mjs';
+import { execTimeoutFloorMs } from '../../../.cli/lib/utils.mjs';
 
 export { buildFileTree };
 
@@ -470,6 +471,8 @@ function followupDebtRegisterArgs(prNumber, { body, prUrl } = {}) {
   return args;
 }
 
+const FOLLOWUP_DEBT_REGISTER_TIMEOUT_MS = 30_000;
+
 /**
  * Runs the tracker with `args` and returns its raw stdout, or `null` when the tracker is not
  * installed. Split out as the injection seam for `registerFollowupDebtFromPr` — the script must
@@ -499,7 +502,10 @@ function runFollowupDebtRegister(args, treeDir) {
     cwd: PROJECT_DIR,
     encoding: 'utf-8',
     stdio: ['ignore', 'pipe', 'pipe'],
-    timeout: 10_000,
+    // ETIMEDOUT here silently drops the debt (ship already merged, nothing retries). The child makes no
+    // network call, so its 0.5 s run only exceeds 10 s when the machine is starved — as it was at the
+    // reporting ship, with zero items to register. Same floor `safeExec` honours (`execTimeoutFloorMs`).
+    timeout: Math.max(FOLLOWUP_DEBT_REGISTER_TIMEOUT_MS, execTimeoutFloorMs()),
     env: withoutInheritedRepository(),
   });
 }
