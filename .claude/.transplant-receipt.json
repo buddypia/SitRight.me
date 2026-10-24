@@ -8,9 +8,9 @@
       "bundle_version": "1.4",
       "source": {
         "repo": "brief2dev",
-        "commit": "61fa5500c24beed40a9bdc6b0d03b3eaf283bfaf"
+        "commit": "4c069566edd9a284ec2e9338b5a06327b873d8e4"
       },
-      "transplanted_at": "2026-10-24T05:25:12.854Z",
+      "transplanted_at": "2026-10-24T09:14:46.115Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle git-worktree-isolation --target <this-project-root> --json",
       "files": [
         {
@@ -222,7 +222,7 @@
         {
           "path": ".claude/scripts/regression-test-lock.mjs",
           "role": "managed",
-          "sha256": "679b6b82f0d3b453050a0d02395cf57fc69a393fa554bb04cb1f8038dc6c23b3"
+          "sha256": "eeba5891d29f8f7c34e247ae4ea5ff940c47fa4fcc33cb8a23ad5d089502ba3f"
         },
         {
           "path": ".claude/scripts/review-deck.mjs",
@@ -431,7 +431,7 @@
         {
           "path": ".cli/lib/test-lock.mjs",
           "role": "managed",
-          "sha256": "215aac594a89d2515809f14d192cb7ee5a799de9e16d95b1261c5307af6b8063"
+          "sha256": "273486aafc52ea66ceed097114939731af3a3acd475af6136be360e66192d9f4"
         },
         {
           "path": ".cli/lib/trunk-branch.mjs",
