@@ -103,7 +103,14 @@ If interrupted, provide a `status: paused` handoff so subsequent AI sessions can
 
 ## SDD Mode
 
-Consider Subagent-Driven Development (SDD) when `PLAN.md` exists and 3 or more independent tasks are identified. Never dispatch parallel implementation agents that modify the same file concurrently.
+Default to inline TDD in the main loop, however many tasks `PLAN.md` lists. Tasks of one feature share interfaces and decisions; the loop that has seen each earlier task's raw diff and test output connects them better than per-task subagents, which need earlier decisions re-pasted into every brief and hand back lossy summaries.
+
+Use Subagent-Driven Development (SDD) only when one of these holds, and record which one in `PLAN.md` Decisions:
+
+- **Parallel lanes**: `PLAN.md` Worktree Parallelization Strategy has lanes with disjoint `write_scope` that need little from each other and hand back a compact result.
+- **Measured context bloat**: during this feature the main loop already lost track (re-did a finished task, contradicted an earlier decision after compaction).
+
+Never dispatch parallel implementation agents that modify the same file concurrently. This narrows implementer subagents only: reviewer subagents that check a diff they did not write (Task Reviewer, `final-review`) stay as they are.
 
 Fixed SDD sequence (Superpowers v6.1.1 aligned — Unified Task Reviewer):
 

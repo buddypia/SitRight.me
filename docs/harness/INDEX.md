@@ -13,3 +13,8 @@ harness（AGENTS.md・skill・スクリプト・hook）を変える前に、同�
 
 - [3D シーンを覆う backdrop-filter の禁止を、常駐の文章から hook と ESLint に移す](experience/2026-10-18-scene-backdrop-hook.md) — 2026-10-18 · 確度 中 · 部品: `src/components/PostureScene`, `CLAUDE.md`（常駐）, `scene-backdrop-guard` hook と ESLint
   - きっかけ: 1 ファイルの中だけで機械的に見分けられる禁止事項（クラスの組み合わせ、使ってはいけない API）が、常駐の文章として書かれている
+
+## subagent
+
+- [タスクごとの実装 subagent（SDD）を既定から外し、主ループの inline TDD を既定にする](experience/2026-10-25-fold-sdd-subagents.md) — 2026-10-25 · 確度 低 · 部品: `feature-implementer`（SKILL.md・`references/implementation-protocol-details.md`）, `engineering-plan-writer`（呼び出し図）, `agent-harness`（「Subagent を足す・残す・畳む」）
+  - きっかけ: skill が、タスクの数や作業の種類（設計・実装・テスト）を理由に subagent を自動で起動するよう書かれている
