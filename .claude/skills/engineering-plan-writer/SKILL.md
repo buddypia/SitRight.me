@@ -295,8 +295,8 @@ Post-authoring:
 
 ```
 feature-architect → feature-spec-generator → engineering-plan-writer → feature-implementer
-                                                                    ↘ (In SDD Mode)
-                                                               subagent per task + 2-stage review
+                                                                    ↘ (SDD Mode: parallel lanes or measured context bloat only)
+                                                               implementer subagent per lane + Task Reviewer
 ```
 
 **Callers:**

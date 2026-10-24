@@ -781,7 +781,7 @@ Update `CONTEXT.json` directly during work and upon completion:
 
 > Aligned with: Superpowers v6.1.1, 2026-07-17 (Source: `skills/subagent-driven-development/SKILL.md` + `task-reviewer-prompt.md`)
 
-> **Automatically activate SDD mode when `PLAN.md` exists and 3 or more independent tasks are identified.**
+> **Default is inline TDD in the main loop, regardless of task count.** Activate SDD mode only under the conditions in `SKILL.md` §SDD Mode (parallel lanes with disjoint `write_scope`, or measured context bloat during this feature), and record which one under `## Decisions` in the worktree PLAN. In lane mode the "Per Task" loop below runs inside one implementer subagent per lane.
 > If `PLAN.md` is absent, execute in standard inline TDD mode.
 
 ### What is SDD Mode?
