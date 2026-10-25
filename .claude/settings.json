@@ -1,6 +1,38 @@
 {
   "outputStyle": "Concise",
   "language": "japanese",
+  "enabledPlugins": {
+    "posthog@posthog": false,
+    "dart-flutter@dart-flutter": false,
+    "supabase@supabase-agent-skills": false,
+    "postgres-best-practices@supabase-agent-skills": false
+  },
+  "skillOverrides": {
+    "remotion-best-practices": "user-invocable-only",
+    "remotion-captions": "user-invocable-only",
+    "remotion-create": "user-invocable-only",
+    "remotion-docs": "user-invocable-only",
+    "remotion-interactivity": "user-invocable-only",
+    "remotion-maps": "user-invocable-only",
+    "remotion-markup": "user-invocable-only",
+    "remotion-multimedia": "user-invocable-only",
+    "remotion-render": "user-invocable-only",
+    "remotion-saas": "user-invocable-only",
+    "remotion-studio": "user-invocable-only",
+    "remotion-upgrade": "user-invocable-only",
+    "supabase": "user-invocable-only",
+    "supabase-postgres-best-practices": "user-invocable-only",
+    "shadcn": "user-invocable-only",
+    "migrate-radix-to-base": "user-invocable-only",
+    "sandbox-next": "user-invocable-only",
+    "sandbox-stable": "user-invocable-only",
+    "sandbox-migrate-to-next": "user-invocable-only",
+    "agents-sdk": "user-invocable-only",
+    "durable-objects": "user-invocable-only",
+    "cloudflare-one": "user-invocable-only",
+    "cloudflare-one-migrations": "user-invocable-only",
+    "cloudflare-email-service": "user-invocable-only"
+  },
   "hooks": {
     "PreToolUse": [
       {

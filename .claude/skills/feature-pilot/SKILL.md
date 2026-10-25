@@ -95,10 +95,12 @@ If any item fails, halt execution and report the reason and next steps.
 
 | Type | Decision Criteria | Required Flow |
 | --- | --- | --- |
-| NEW_FEATURE | Domain Placement Verdict is NEW_IN_EXISTING_DOMAIN or NEW_DOMAIN | `research-pilot` (conditional) -> `feature-architect` -> `feature-spec-generator` -> `ui-approval-gate` -> Readiness Gate -> worktree/PLAN -> implementation -> `feature-wiring` -> QA -> `feature-status-sync` |
+| NEW_FEATURE | Domain Placement Verdict is NEW_IN_EXISTING_DOMAIN or NEW_DOMAIN | `research-pilot` (conditional) -> `feature-architect` -> `feature-spec-generator` -> `ui-approval-gate` -> Readiness Gate -> PLAN -> implementation -> `feature-wiring` -> QA -> `feature-status-sync` |
 | MODIFY_FEATURE | Existing SPEC exists or Verdict is EXTEND_EXISTING | `feature-spec-updater` -> `ui-approval-gate` -> Readiness Gate -> implementation -> `feature-wiring` (conditional) -> `feature-status-sync` -> QA |
 | BUG_FIX | Bug, error, malfunction | `bug-fix` -> verify regression test -> QA |
 | DOCS_ONLY | Docs only, SPEC only, no implementation | Run specified doc/spec skills only; do not proceed to implementation |
+
+Every flow runs inside the worktree created at PF-008, before the first file edit (SPEC and docs included). Edits made on the base branch before it exist cannot ship.
 
 Executing `node .claude/scripts/generate-code-ownership-index.mjs query "<user request>" --json` and looking up `{DOCS_DIR}/domain-map.json` + `{DOCS_DIR}/index.md` is mandatory before deciding NEW vs MODIFY (PF-010, details in `references/feature-pilot-protocol-details.md` Phase 0). Candidate files/features from the ownership query serve solely as input evidence for Domain Placement; final judgment is checked against `domain-map.json` and feature docs. If Verdict is DUPLICATE, halt and report existing features; if candidates are ambiguous, ask user for confirmation instead of guessing. Transition immediately to `AwaitingUser` and seek user confirmation for security, payments, or PII.
 
@@ -129,7 +131,7 @@ Re-execution may be skipped if cache is valid, but force re-execution upon inval
 4. **Produce Or Update SPEC**: Use `feature-spec-generator` for new, `feature-spec-updater` for modifications.
 5. **UI Approval**: UI changes must not proceed to Readiness Gate without `ui-approval-gate` approval.
 6. **Readiness Gate**: Evaluate Go/No-Go per `references/readiness-gate-protocol.md`. Return to SPEC stage if No-Go.
-7. **Worktree Handoff**: Create the GitHub Flow branch and fill in `.worktrees/<branch>/.tmp/worktree-<safeBranch>/PLAN.md`, recording `branch`, `worktree_path`, `plan_path`, `status`, `last_updated`, `handoff` in `CONTEXT.json execution.worktree`.
+7. **Worktree Handoff**: In the worktree created at PF-008, fill in `.worktrees/<branch>/.tmp/worktree-<safeBranch>/PLAN.md`, recording `branch`, `worktree_path`, `plan_path`, `status`, `last_updated`, `handoff` in `CONTEXT.json execution.worktree`.
 8. **Implement And Clean**: Coordinate `feature-implementer` (with `engineering-plan-writer` / SDD if needed), followed by `/code-review --fix` clean up. <!-- retired-ref-ok: history note replacing de-sloppify -->
 9. **Wire And Verify**: Run `feature-wiring`, `pre-quality-gate`, and optionally `final-review` / `verification-loop`.
 10. **Sync And Cleanup**: Run `feature-status-sync`, then finalize worktree PLAN and `CONTEXT.json` cleanup status.
@@ -138,7 +140,7 @@ Re-execution may be skipped if cache is valid, but force re-execution upon inval
 
 ### Step 3.6: Git Worktree Preparation - Mandatory
 
-Prepare the GitHub Flow branch and `.worktrees/<branch>` worktree before code modifications. Fill in the PLAN that `worktree-init.mjs` generated at `.worktrees/<branch>/.tmp/worktree-<safeBranch>/PLAN.md` (resolve it with `worktree-plan-path.mjs#resolveWorktreePlanPath`; do not create one at the worktree root) and record `branch`, `worktree_path`, `plan_path`, `status`, `last_updated`, and `handoff` in feature `CONTEXT.json execution.worktree`. Do not modify implementation files before completing this step.
+Prepare the GitHub Flow branch and `.worktrees/<branch>` worktree at PF-008, before the first file edit (SPEC and docs included). Fill in the PLAN that `worktree-init.mjs` generated at `.worktrees/<branch>/.tmp/worktree-<safeBranch>/PLAN.md` (resolve it with `worktree-plan-path.mjs#resolveWorktreePlanPath`; do not create one at the worktree root) and record `branch`, `worktree_path`, `plan_path`, `status`, `last_updated`, and `handoff` in feature `CONTEXT.json execution.worktree`. Do not modify implementation files before completing this step.
 
 ## Stage Review Checkpoints (review-deck — Gated Semi-Automated)
 
