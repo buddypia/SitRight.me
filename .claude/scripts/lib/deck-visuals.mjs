@@ -5,14 +5,12 @@
  *   (a) Threat: Measured 0 `<svg>` elements in deck outputs (`.tmp/ship-deck/<branch>/index.html`,
  *       `.tmp/review-deck/<key>/<stage>/index.html`, 2026-07-25). Humans review far more effectively
  *       when figures are present, yet decks only had text, tables, and single bars.
- *   (b) Gaps: Visualizations relied solely on the optional `--diagram <svg>` — requiring AI to write SVG by hand
- *       and pass `isSafeDiagramSvg` without any mandate in SKILL.md.
+ *   (b) Gaps: Hand-written SVG from the AI was the only way to get a figure, and nothing asked for it.
  *   (c) Simpler alternatives comparison: "Mandate SVG writing by AI" risks prose restatement and is unverifiable (R-CM-024 spirit).
  *       "Mermaid/chart CDN" violates self-contained HTML principle.
  *       Adopted: Pure-function SVGs rendered deterministically from **pre-existing model data** (zero external dependencies).
  *
- * All functions assemble only escaped strings without generating `<script>` or event handlers —
- * unlike `--diagram` injected SVG, this is a trusted code path (author is code).
+ * All functions assemble only escaped strings without generating `<script>` or event handlers.
  *
  * Boundary (R-CM-028): perspective1-only — same deployment isolation as deck assets.
  */

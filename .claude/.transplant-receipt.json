@@ -8,9 +8,9 @@
       "bundle_version": "1.4",
       "source": {
         "repo": "brief2dev",
-        "commit": "20c7fafbf58571dec42409b5b16635bd7c1379a3"
+        "commit": "4bb00b7b185a3c4253205d58930a8b9f33df41ff"
       },
-      "transplanted_at": "2026-10-25T03:00:17.301Z",
+      "transplanted_at": "2026-10-25T05:06:49.817Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle git-worktree-isolation --target <this-project-root> --json",
       "files": [
         {
@@ -107,7 +107,7 @@
         {
           "path": ".claude/scripts/lib/deck-visuals.mjs",
           "role": "managed",
-          "sha256": "ad653fd59457a6d887a1c1faccf1afe4f7e1e193ed2c85f95a788ca804dbba08"
+          "sha256": "9aabbdce3afe9b48c3a2bd80a7e38d0778408f2df8f499755a956aa10f3eeef9"
         },
         {
           "path": ".claude/scripts/lib/doc-outline.mjs",
@@ -560,9 +560,9 @@
       "bundle_version": "1.1",
       "source": {
         "repo": "brief2dev",
-        "commit": "20c7fafbf58571dec42409b5b16635bd7c1379a3"
+        "commit": "4bb00b7b185a3c4253205d58930a8b9f33df41ff"
       },
-      "transplanted_at": "2026-10-25T02:59:33.954Z",
+      "transplanted_at": "2026-10-25T05:06:50.601Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle feature-delivery-core --target <this-project-root> --json",
       "files": [
         {
@@ -785,9 +785,9 @@
       "bundle_version": "1.0",
       "source": {
         "repo": "brief2dev",
-        "commit": "20c7fafbf58571dec42409b5b16635bd7c1379a3"
+        "commit": "4bb00b7b185a3c4253205d58930a8b9f33df41ff"
       },
-      "transplanted_at": "2026-10-25T02:59:34.803Z",
+      "transplanted_at": "2026-10-25T05:06:51.387Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle quality-gate-core --target <this-project-root> --json",
       "files": [
         {
@@ -949,9 +949,9 @@
       "bundle_version": "1.0",
       "source": {
         "repo": "brief2dev",
-        "commit": "9de27b125e921e7dbff31798c2d976b96896d944"
+        "commit": "4bb00b7b185a3c4253205d58930a8b9f33df41ff"
       },
-      "transplanted_at": "2026-10-10T00:54:31.447Z",
+      "transplanted_at": "2026-10-25T05:06:52.022Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle api-contract-layer --target <this-project-root> --json",
       "files": [
         {
@@ -982,9 +982,9 @@
       "bundle_version": "1.0",
       "source": {
         "repo": "brief2dev",
-        "commit": "20c7fafbf58571dec42409b5b16635bd7c1379a3"
+        "commit": "4bb00b7b185a3c4253205d58930a8b9f33df41ff"
       },
-      "transplanted_at": "2026-10-25T02:59:35.547Z",
+      "transplanted_at": "2026-10-25T05:06:52.606Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle debug-fix-pair --target <this-project-root> --json",
       "files": [
         {
@@ -1070,9 +1070,9 @@
       "bundle_version": "1.0",
       "source": {
         "repo": "brief2dev",
-        "commit": "20c7fafbf58571dec42409b5b16635bd7c1379a3"
+        "commit": "4bb00b7b185a3c4253205d58930a8b9f33df41ff"
       },
-      "transplanted_at": "2026-10-25T02:59:36.268Z",
+      "transplanted_at": "2026-10-25T05:06:53.226Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle feature-orchestration --target <this-project-root> --json",
       "files": [
         {
@@ -1153,7 +1153,7 @@
         {
           "path": ".claude/skills/feature-pilot/references/review-deck-contract.md",
           "role": "managed",
-          "sha256": "0ad59cb4cd02ea7f227378e35237f63c4ff3d184ff6580c933eca6ca53593879"
+          "sha256": "657b0a56a530a4b1652a201f96d4de28dac89f7ba6425de12e41cf6443142bf5"
         },
         {
           "path": ".claude/skills/feature-pilot/scripts/validate_spec.py",
