@@ -12,7 +12,8 @@
     "feature-implementer"
   ],
   "calls": [
-    "observability-and-instrumentation"
+    "observability-and-instrumentation",
+    "subagent-driven-development"
   ],
   "called_by": [
     "feature-pilot"
@@ -34,10 +35,6 @@
       "description": "Legacy full implementation protocol archive. Reference only when code templates, test authoring examples, error handling tables, or SDD detailed procedures are needed"
     },
     {
-      "file": "references/sdd-implementer-prompt.md",
-      "description": "Implementer prompt for SDD mode"
-    },
-    {
       "file": "references/test-coverage-diagram-template.md",
       "description": "Test coverage diagram template"
     },
@@ -45,14 +42,6 @@
       "file": "references/gan-generator-evaluator-pattern.md",
       "description": "GAN Generator-Evaluator separation pattern. Generation-evaluation separation principle + adversarial evaluator design + AI-slop prevention rubric. Enhances SDD 2-stage review. Transplanted from ECC gan-style-harness.",
       "transplant_source": "tp-everything-claude-code-round2-20260402"
-    },
-    {
-      "file": "references/superpowers-controller-verification.md",
-      "description": "Merged into controller-side verification for feature-implementer SDD mode. Direct deployment of Superpowers execution loop is avoided."
-    },
-    {
-      "file": "references/sdd-task-reviewer-prompt.md",
-      "description": "Unified SDD Task Reviewer (1 reviewer · spec+quality 2 verdicts). Replaces former separate spec/quality reviewer prompts (the 2 legacy files are deleted — see git history)"
     }
   ]
 }

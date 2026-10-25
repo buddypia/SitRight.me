@@ -86,10 +86,6 @@
   ],
   "references": [
     {
-      "file": "references/superpowers-branch-completion-options.md",
-      "description": "Branch completion options reference aligned with create-pr Mode B and destructive guard policies."
-    },
-    {
       "file": "references/merge-conflict-resolution.md",
       "description": "Merge conflict 5-step protocol (investigate intent → preserve both → verify) without aborting — adapted for R-CM-034 multi-worktree reconcile."
     }

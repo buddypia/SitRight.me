@@ -1,0 +1,28 @@
+{
+  "schema_version": 2,
+  "skill_id": "test-driven-development",
+  "tier": 2,
+  "tier_description": "Process - Red-Green-Refactor discipline",
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "tdd",
+      "test first",
+      "red green refactor",
+      "write the failing test"
+    ]
+  },
+  "dependencies": {
+    "required": [],
+    "optional": []
+  },
+  "called_by": [],
+  "calls": [],
+  "references": [
+    {
+      "file": "references/writing-good-tests.md",
+      "description": "Test quality guidance and anti-patterns"
+    }
+  ],
+  "source": "MIT-licensed skills library, Copyright (c) 2025 Jesse Vincent — upstream v7.0.1 (2ce8aa1). See LICENSE.txt and THIRD_PARTY_NOTICES.md"
+}

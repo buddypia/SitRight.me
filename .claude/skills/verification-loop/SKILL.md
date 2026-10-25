@@ -265,7 +265,7 @@ Overall: PASS — Proceeding to DoD verification
 | Document | Phase | Purpose |
 |----------|-------|---------|
 | `references/test-failure-triage-template.md` | Phase 4 | Test failure Ownership Triage (in-branch vs. pre-existing) |
-| `references/superpowers-claim-evidence-protocol.md` | Reporting | Mapping completion claims to fresh empirical evidence |
+| `verification-before-completion` skill | Reporting | Mapping completion claims to fresh empirical evidence |
 | `data/schemas/ci/verification-checkpoint.schema.json` | All | Strict mode per-phase checkpoint structure |
 | `data/schemas/ci/verification-phases.schema.json` | All | 6-Phase aggregated summary structure |
 

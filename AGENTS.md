@@ -51,6 +51,18 @@
 - PR を作る直前に、変更の大きさに合うレビュー手段を選ぶときは `.agents/skills/pre-ship-quality-advisor/SKILL.md` を読んで従う。
 - 最終レビュー・QA・コードチェックを頼まれたときは `.agents/skills/final-review/SKILL.md` を読んで従う。
 - worktree の作業を PR にして出すときは `.agents/skills/create-pr/SKILL.md` を読んで従う。
+- 作業を始めて、どの skill が当てはまるか確かめるときは `.agents/skills/using-skills/SKILL.md` を読んで従う。
+- 作るものの設計がまだ決まっていないときは `.agents/skills/brainstorming/SKILL.md` を読んで従う。
+- 決まった設計からタスク単位の実装計画を書くときは `.agents/skills/writing-plans/SKILL.md` を読んで従う。
+- 計画をこのセッションでタスクごとに実行するときは `.agents/skills/executing-plans/SKILL.md` を読んで従う。
+- 書き込み範囲の重ならない並列レーンがあるか、コンテキストの膨張を測ったうえで、タスクごとに subagent で計画を実行するときは `.agents/skills/subagent-driven-development/SKILL.md` を読んで従う。
+- 互いに独立した問題を並列の subagent に任せるときは `.agents/skills/dispatching-parallel-agents/SKILL.md` を読んで従う。
+- コードを書く・直す（テストを先に書く）ときは `.agents/skills/test-driven-development/SKILL.md` を読んで従う。
+- 隔離した worktree で作業を始めるときは `.agents/skills/using-git-worktrees/SKILL.md` を読んで従う。
+- タスクごとにレビュー subagent に見てもらうときは `.agents/skills/requesting-code-review/SKILL.md` を読んで従う。
+- 受けたレビュー指摘への対応を決めるときは `.agents/skills/receiving-code-review/SKILL.md` を読んで従う。
+- 「できた」「直った」と報告するときは `.agents/skills/verification-before-completion/SKILL.md` を読んで従う。
+- 実装を終えてブランチを仕上げるときは `.agents/skills/finishing-a-development-branch/SKILL.md` を読んで従う。
 - AGENTS.md・skill・スクリプト・hook を追加・変更するとき、エージェントが指示を守らない・同じ失敗を繰り返すときは `.agents/skills/agent-harness/SKILL.md` を読んで従う。
 
 <!-- BEGIN:nextjs-agent-rules -->

@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "skill_id": "dispatching-parallel-agents",
+  "tier": 2,
+  "tier_description": "Process - Parallel subagents for independent problems",
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "parallel agents",
+      "dispatch in parallel",
+      "independent failures"
+    ]
+  },
+  "dependencies": {
+    "required": [],
+    "optional": []
+  },
+  "called_by": [],
+  "calls": [],
+  "source": "MIT-licensed skills library, Copyright (c) 2025 Jesse Vincent — upstream v7.0.1 (2ce8aa1). See LICENSE.txt and THIRD_PARTY_NOTICES.md"
+}

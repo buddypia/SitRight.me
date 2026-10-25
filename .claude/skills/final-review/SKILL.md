@@ -141,6 +141,8 @@ Under `--strict`, Conditional Go is prohibited, and Go requires CRITICAL=0, HIGH
 
 Consult `references/final-review-protocol-details.md` on-demand for full protocols (adaptive depth, path scoping, self-review bias defenses, multi-perspective, security confidence gates).
 
+**Dispatching and answering a review**: a single-reviewer dispatch prompt follows the `requesting-code-review` skill; acting on findings (verify before implementing, no performative agreement) follows `receiving-code-review`.
+
 **No-Go / Conditional Go Handling**: Follow `references/no-go-routing.md` for blocker routing matrix + Generation-Verification Loop + 3-Strike Escalation. As `final-review` is Read-Only, fixes are executed by routed skills (`bug-fix` / `feature-implementer` / `code-standards-aligner`, etc. — inline code review uses Claude `code-review --fix` built-in / Codex `codex review` / shared `pre-quality-gate`).
 
 ## Maintenance

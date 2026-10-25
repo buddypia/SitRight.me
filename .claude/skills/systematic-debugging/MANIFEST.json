@@ -32,12 +32,40 @@
       "description": "Root cause tracing protocol"
     },
     {
-      "file": "references/superpowers-systematic-debugging.md",
-      "description": "Stripped original frontmatter. Normalized 'your human partner' expressions to brief2dev human-AI collaboration context. Stated alignment with R-CM-017 Rule 3 (3-Strike Escalation). Converted internal superpowers cross-references (such as superpowers:test-driven-development) to brief2dev bug-fix Red-Green step and R-CM-010. Preserved language-neutral boundary instrumentation code examples."
+      "file": "references/four-phase-method.md",
+      "description": "Stripped original frontmatter. Normalized 'your human partner' expressions to brief2dev human-AI collaboration context. Stated alignment with R-CM-017 Rule 3 (3-Strike Escalation). Converted internal upstream cross-references (such as test-driven-development) to brief2dev bug-fix Red-Green step and R-CM-010. Preserved language-neutral boundary instrumentation code examples."
     },
     {
       "file": "references/feedback-loop-catalog.md",
       "description": "10-technique feedback loop catalog + loop-tightening discipline + non-deterministic bug reproduction strategies — comprehensive expansion of Phase 0 (4 options)."
+    },
+    {
+      "file": "references/condition-based-waiting.md",
+      "description": "Condition-based waiting instead of arbitrary sleeps for flaky async tests"
+    },
+    {
+      "file": "references/condition-based-waiting-example.ts",
+      "description": "TypeScript waitFor helpers illustrating condition-based waiting"
+    },
+    {
+      "file": "scripts/find-polluter.sh",
+      "description": "Bisection script that finds the test creating an unwanted file or state"
+    },
+    {
+      "file": "references/pressure-tests/test-academic.md",
+      "description": "Baseline comprehension scenario for testing this skill"
+    },
+    {
+      "file": "references/pressure-tests/test-pressure-1.md",
+      "description": "Pressure scenario: emergency time pressure"
+    },
+    {
+      "file": "references/pressure-tests/test-pressure-2.md",
+      "description": "Pressure scenario: sunk cost and exhaustion"
+    },
+    {
+      "file": "references/pressure-tests/test-pressure-3.md",
+      "description": "Pressure scenario: authority and social pressure"
     }
   ]
 }

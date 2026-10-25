@@ -1,0 +1,57 @@
+{
+  "schema_version": 2,
+  "skill_id": "brainstorming",
+  "tier": 2,
+  "tier_description": "Process - Idea-to-design dialogue before any creative or build work, with an optional local visual companion",
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "brainstorm",
+      "design this",
+      "new feature idea",
+      "let's build",
+      "explore options"
+    ]
+  },
+  "dependencies": {
+    "required": [],
+    "optional": []
+  },
+  "called_by": [
+    "using-skills"
+  ],
+  "calls": [
+    "writing-plans"
+  ],
+  "references": [
+    {
+      "file": "references/builder-check-prompt.md",
+      "description": "Subagent prompt that checks a design is buildable before planning"
+    },
+    {
+      "file": "scripts/frame-template.html",
+      "description": "Companion page frame template"
+    },
+    {
+      "file": "scripts/helper.js",
+      "description": "Browser-side helper for selection and comment capture"
+    },
+    {
+      "file": "scripts/server.cjs",
+      "description": "Dependency-free Node HTTP/WebSocket companion server (no remote assets or telemetry)"
+    },
+    {
+      "file": "scripts/start-server.sh",
+      "description": "Starts the local companion server (127.0.0.1, key-protected) under $TMPDIR"
+    },
+    {
+      "file": "scripts/stop-server.sh",
+      "description": "Stops the companion server and removes its session directory under the temp root"
+    },
+    {
+      "file": "references/visual-companion.md",
+      "description": "How to use the browser companion for mockups and option boards"
+    }
+  ],
+  "source": "MIT-licensed skills library, Copyright (c) 2025 Jesse Vincent — upstream v7.0.1 (2ce8aa1). See LICENSE.txt and THIRD_PARTY_NOTICES.md"
+}

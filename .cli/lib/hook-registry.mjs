@@ -643,6 +643,16 @@ export const MANAGED_HOOK_REGISTRY = {
           "cliTargets": ["antigravity"]
         },
         {
+          "id": "skill-bootstrap-injector",
+          "module": ".cli/hooks/skill-bootstrap-injector.mjs",
+          "priority": 8,
+          "profile": "standard",
+          "description": "Inject the using-skills skill body (frontmatter stripped) at session start so the agent checks for an applicable skill before acting. Skips source===\"resume\" (context already in transcript). Fail-open when the skill file is missing. Ported from an MIT-licensed skills library (THIRD_PARTY_NOTICES.md). Antigravity: PreInvocation invocationNum===0",
+          "orchestrated": true,
+          "timeout": 10,
+          "cliTargets": ["codex", "antigravity"]
+        },
+        {
           "id": "session-start",
           "module": "../scripts/session-start.mjs",
           "priority": 10,

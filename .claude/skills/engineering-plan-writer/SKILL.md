@@ -150,6 +150,7 @@ Reference the compression multiples per task type below when estimating task eff
 ### Step 3: Bite-Sized Task Breakdown (Grouped by Horizons)
 
 Detail: `references/cold-start-plan-protocol.md` — Cold-Start planning protocol for self-contained task context briefs.
+Task sizing, the plan header, no-placeholder rules and the plan self-review follow the `writing-plans` skill; executing the finished plan follows `executing-plans` (inline) or `subagent-driven-development` (under `feature-implementer` §SDD Mode).
 
 **Each Step is a Single Action (2–5 Minutes):**
 - "Write the failing test" — Step

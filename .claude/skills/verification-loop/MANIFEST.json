@@ -101,10 +101,6 @@
       "file": "references/test-failure-triage-template.md",
       "description": "Test failure ownership triage template. 4-tier classification (T1 AI error to T4 environment issue) + remediation strategies. Transplanted from gstack ship.",
       "transplant_source": "tp-gstack-round4-20260325"
-    },
-    {
-      "file": "references/superpowers-claim-evidence-protocol.md",
-      "description": "Merged into verification-loop completion claim discipline. Avoided standalone skill deployment to prevent redundancy."
     }
   ]
 }

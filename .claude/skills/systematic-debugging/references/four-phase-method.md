@@ -1,7 +1,7 @@
 # 4-Phase Debugging Protocol (systematic-debugging Reference Guide)
 
-> **Source**: `oss/superpowers/skills/systematic-debugging/SKILL.md` (Pattern Track adapted)
-> **Adaptation**: Stripped original frontmatter. Normalized "your human partner" → "user". Mapped superpowers cross-references (`test-driven-development`, `verification-before-completion`) to brief2dev `bug-fix` Red-Green step and R-CM-010. Preserved language-neutral boundary instrumentation examples.
+> **Source**: upstream `skills/systematic-debugging/SKILL.md` (Pattern Track adapted)
+> **Adaptation**: Stripped original frontmatter. Normalized "your human partner" → "user". Mapped upstream cross-references (`test-driven-development`, `verification-before-completion`) to brief2dev `bug-fix` Red-Green step and R-CM-010. Preserved language-neutral boundary instrumentation examples.
 > **Loaded by**: Invoked when `systematic-debugging` requires strict 4-phase sequencing and multi-tier boundary instrumentation.
 
 ---
@@ -162,7 +162,37 @@ Phase 4 Step 5 in this guide and R-CM-017 Rule 3 represent the identical governa
 ## Maintenance
 
 - **Sources**:
-  - Original: `oss/superpowers/skills/systematic-debugging/SKILL.md`
-  - Attribution: superpowers OSS by Jesse Vincent / Prime Radiant
+  - Original: upstream `skills/systematic-debugging/SKILL.md`
+  - Attribution: MIT-licensed skills library, Copyright (c) 2025 Jesse Vincent (`THIRD_PARTY_NOTICES.md`)
 - **Last updated**: 2026-04-25
 - **Adaptation type**: `adapted` (Preserved 4-phase principles + aligned with brief2dev R-CM-017)
+
+---
+
+## Third-Party Notice
+
+Portions of this file are adapted from an MIT-licensed skills library (upstream v7.0.1, commit `2ce8aa1`). The notice travels with this file because it is deployed on its own.
+
+```text
+MIT License
+
+Copyright (c) 2025 Jesse Vincent
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```

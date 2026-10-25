@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "skill_id": "receiving-code-review",
+  "tier": 2,
+  "tier_description": "Process - Evaluating review feedback with technical rigor before acting",
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "review feedback",
+      "address review comments",
+      "reviewer said"
+    ]
+  },
+  "dependencies": {
+    "required": [],
+    "optional": []
+  },
+  "called_by": [],
+  "calls": [],
+  "source": "MIT-licensed skills library, Copyright (c) 2025 Jesse Vincent — upstream v7.0.1 (2ce8aa1). See LICENSE.txt and THIRD_PARTY_NOTICES.md"
+}

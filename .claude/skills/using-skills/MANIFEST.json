@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "skill_id": "using-skills",
+  "tier": 2,
+  "tier_description": "Process - Skill discovery bootstrap (injected at SessionStart where a skill-bootstrap-injector hook is registered)",
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "using skills",
+      "which skill",
+      "find a skill",
+      "skill check"
+    ]
+  },
+  "dependencies": {
+    "required": [],
+    "optional": []
+  },
+  "called_by": [],
+  "calls": [
+    "brainstorming"
+  ],
+  "references": [
+    {
+      "file": "references/antigravity-tools.md",
+      "description": "Antigravity CLI equivalents (skill discovery, subagents)"
+    },
+    {
+      "file": "references/claude-code-tools.md",
+      "description": "Claude Code tool names (Skill, Agent, TodoWrite) for the skill workflow"
+    },
+    {
+      "file": "references/codex-tools.md",
+      "description": "Codex CLI equivalents (skill discovery, subagents, plan tool)"
+    }
+  ],
+  "source": "MIT-licensed skills library, Copyright (c) 2025 Jesse Vincent — upstream v7.0.1 (2ce8aa1). See LICENSE.txt and THIRD_PARTY_NOTICES.md"
+}

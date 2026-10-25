@@ -71,7 +71,7 @@ The natural tendency of an evaluator is leniency. This must be actively correcte
 
 ### Integration with SDD Task Reviewer
 
-In `feature-implementer` SDD mode, the unified Task Reviewer evaluates both spec compliance and code quality via a single diff read per task, returning 2 independent verdicts (`sdd-task-reviewer-prompt.md`, aligned with Superpowers v6.1.1 — replacing legacy separated reviewers).
+In `feature-implementer` SDD mode, the unified Task Reviewer evaluates both spec compliance and code quality via a single diff read per task, returning 2 independent verdicts (the `subagent-driven-development` skill's `references/task-reviewer-prompt.md`).
 
 The GAN pattern **strengthens the quality verdict axis** of this Task Reviewer:
 - Injects "ruthless evaluator" principles into the code quality evaluation criteria of the Task Reviewer prompt
