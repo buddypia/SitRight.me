@@ -190,6 +190,9 @@ function collectStageGateReasons(st, s) {
     reasons.push({ code: 'production_gate', detail: `production_gate=${s.production_gate ?? 'unknown'}` });
   }
   if (s.builder_override === true) reasons.push({ code: 'builder_override', detail: 'override of a failed gate' });
+  // min_confidence (0.65) is an assumed threshold: unlike the RADAR gating cited above, nothing has
+  // calibrated it against outcomes yet. In brief2dev, check it with `node .claude/scripts/gate-calibration.mjs report`
+  // (that script is not deployed to generated projects).
   const conf = Number(s.confidence);
   if (!Number.isFinite(conf) || conf < Number(st.min_confidence ?? 0.65)) {
     reasons.push({ code: 'low_confidence', detail: `confidence=${Number.isFinite(conf) ? conf : 'unknown'} < ${st.min_confidence}` });

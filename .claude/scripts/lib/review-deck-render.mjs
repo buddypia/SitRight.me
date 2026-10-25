@@ -43,7 +43,6 @@ import {
   annotateGlossaryTerms,
   DECK_CSS,
   DECK_JS,
-  isSafeDiagramSvg,
   renderAppendix,
   renderChecklistSection,
   renderGlossarySection,
@@ -152,24 +151,6 @@ function renderStorySection({ narrative, title, glossary }) {
 ${rows}
   </dl>
 </section>`;
-}
-
-/** Injected diagram is supplementary — rendered in separate section only when provided (does not replace machine-generated visuals) */
-function renderDiagramBlockSection(model) {
-  const html = renderDiagramBlock(model.diagramSvg);
-  if (!html) return '';
-  return `<section class="card" id="diagram">
-  <h2>Supporting Diagram <span class="gen ai">AI-authored</span></h2>
-  ${html}
-</section>`;
-}
-
-function renderDiagramBlock(diagramSvg) {
-  if (!diagramSvg) return '';
-  if (!isSafeDiagramSvg(diagramSvg)) {
-    return '<p class="muted">Injected diagram SVG omitted due to safety check failure (script/event handlers prohibited).</p>';
-  }
-  return `<div class="diagram">${diagramSvg}</div>`;
 }
 
 /** PLAN checkbox progress bar (Machine) */
@@ -500,7 +481,6 @@ export function renderMilestoneDeckHtml(model) {
     }),
     renderChangesSection(model),
     renderSourceDocSection(model, { title: 'Plan Source Document (All sections of PLAN.md)', sourceLabel: 'PLAN.md' }),
-    renderDiagramBlockSection(model),
     renderGlossarySection(model),
     renderChecklistSection(model, CHECKLIST_KIND, ''),
     renderAppendix(model),
@@ -511,7 +491,7 @@ export function renderMilestoneDeckHtml(model) {
     pageTitle: `Review Deck (Milestone) — ${model.branch}`,
     headerHtml,
     sectionsHtml,
-    deckData: { branch: model.branch, docKey: model.docKey, tool: 'review-deck:milestone', bridgeToken: model.bridgeToken },
+    deckData: { branch: model.branch, docKey: model.docKey, tool: 'review-deck:milestone' },
   });
 }
 
@@ -607,7 +587,6 @@ export function renderSpecDeckHtml(model) {
       title: 'Requirements Definition Document (All sections of SPEC)',
       sourceLabel: 'SPEC',
     }),
-    renderDiagramBlockSection(model),
     renderGlossarySection(model),
     renderChecklistSection(model, CHECKLIST_KIND, ''),
   ]
@@ -617,7 +596,7 @@ export function renderSpecDeckHtml(model) {
     pageTitle: `Review Deck (SPEC) — ${model.docKey}`,
     headerHtml,
     sectionsHtml,
-    deckData: { branch: model.docKey, docKey: model.docKey, tool: 'review-deck:spec', bridgeToken: model.bridgeToken },
+    deckData: { branch: model.docKey, docKey: model.docKey, tool: 'review-deck:spec' },
   });
 }
 
@@ -674,7 +653,6 @@ export function renderPlanDeckHtml(model) {
     renderImpactSection({ narrative: model.narrative, glossary: model.glossary }),
     renderPlanBodySection(model),
     renderSourceDocSection(model, { title: 'Plan Source Document (All sections of PLAN.md)', sourceLabel: 'PLAN.md' }),
-    renderDiagramBlockSection(model),
     renderGlossarySection(model),
     renderChecklistSection(model, CHECKLIST_KIND, ''),
   ]
@@ -684,7 +662,7 @@ export function renderPlanDeckHtml(model) {
     pageTitle: `Review Deck (PLAN) — ${model.branch}`,
     headerHtml,
     sectionsHtml,
-    deckData: { branch: model.branch, docKey: model.docKey, tool: 'review-deck:plan', bridgeToken: model.bridgeToken },
+    deckData: { branch: model.branch, docKey: model.docKey, tool: 'review-deck:plan' },
   });
 }
 
@@ -740,7 +718,6 @@ export function renderUiDeckHtml(model) {
       title: 'Wireframe Source Document (All sections)',
       sourceLabel: 'Wireframe',
     }),
-    renderDiagramBlockSection(model),
     renderGlossarySection(model),
     renderChecklistSection(model, CHECKLIST_KIND, ''),
   ]
@@ -750,7 +727,7 @@ export function renderUiDeckHtml(model) {
     pageTitle: `Review Deck (UI) — ${model.docKey}`,
     headerHtml,
     sectionsHtml,
-    deckData: { branch: model.docKey, docKey: model.docKey, tool: 'review-deck:ui', bridgeToken: model.bridgeToken },
+    deckData: { branch: model.docKey, docKey: model.docKey, tool: 'review-deck:ui' },
   });
 }
 

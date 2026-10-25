@@ -113,34 +113,6 @@ export function serializeDeckData(data) {
   return JSON.stringify(data).replace(/</g, '\\u003c');
 }
 
-function decodeEntities(text) {
-  return text
-    .replace(/&#x([0-9a-f]+);?/gi, (_m, hex) => String.fromCodePoint(parseInt(hex, 16)))
-    .replace(/&#(\d+);?/g, (_m, dec) => String.fromCodePoint(parseInt(dec, 10)))
-    .replace(/&amp;/gi, '&');
-}
-
-/**
- * SVG safety check for AI-generated diagrams.
- */
-export function isSafeDiagramSvg(svg) {
-  if (!svg || typeof svg !== 'string') return false;
-  const lowered = decodeEntities(svg).toLowerCase().replace(/\s+/g, ' ');
-  if (!lowered.includes('<svg')) return false;
-  const DANGEROUS = [
-    /<\s*script/,
-    /<\s*foreignobject/,
-    /<\s*iframe/,
-    /<\s*use\b/,
-    /<\s*a\b/,
-    /[\s/]on[a-z]+\s*=/,
-    /javascript:/,
-    /data:\s*text\/html/,
-    /data:\s*image\/svg/,
-  ];
-  return !DANGEROUS.some((re) => re.test(lowered));
-}
-
 function fileBadge(kind) {
   const colors = { NEW: '#2ea45f', DELETE: '#e5534b', RENAME: '#a371f7', EDIT: '#58a6ff' };
   const color = colors[kind] || colors.EDIT;
@@ -177,7 +149,6 @@ ${items}
   </ul>
   <div class="check-footer">
     <button type="button" class="btn" data-copy-results>Copy Results</button>
-    <span class="muted small" data-bridge-status>Auto-save: Not connected</span>
   </div>
 </section>`;
 }
@@ -225,7 +196,6 @@ h3 { font-size: 13px; margin: 16px 0 8px; color: #9da7b3; }
 .hm-bar { background: linear-gradient(90deg, #1f6feb, #e5534b); height: 100%; border-radius: 4px; }
 .hm-num { font-size: 11px; color: #8b949e; text-align: right; }
 .files { list-style: none; padding: 0; display: grid; gap: 4px; font-size: 12px; }
-.diagram svg { max-width: 100%; height: auto; }
 .between { display: flex; justify-content: space-between; align-items: center; }
 .check-list { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 10px; }
 .check-item { display: grid; grid-template-columns: 1fr auto; gap: 10px; background: #0d1117;
@@ -393,10 +363,6 @@ export const DECK_JS = `
   try { state = JSON.parse(localStorage.getItem(storeKey) || '{}') || {}; } catch (e) { state = {}; }
   var items = Array.prototype.slice.call(document.querySelectorAll('[data-check-item]'));
   var progressEl = document.querySelector('[data-checklist-progress]');
-  var bridgeStatusEl = document.querySelector('[data-bridge-status]');
-  var bridgePort = new URLSearchParams(location.search).get('bridge') || '7357';
-  var bridgeBase = 'http://127.0.0.1:' + bridgePort;
-  var bridgeConnected = false;
 
   function itemMeta(li) {
     var slug = li.getAttribute('data-check-item');
@@ -419,22 +385,6 @@ export const DECK_JS = `
     return { total: total, checked: ok + ng, ok: ok, ng: ng };
   }
 
-  function buildResult(sum) {
-    return {
-      tool: tool,
-      version: 1,
-      branch: data.branch,
-      page: location.pathname,
-      updatedAt: new Date().toISOString(),
-      summary: sum || summary(),
-      items: items.map(function (li) {
-        var meta = itemMeta(li);
-        var s = state[meta.slug] || {};
-        return { slug: meta.slug, label: meta.label, desc: meta.desc, state: s.state || null, note: s.note || '' };
-      }),
-    };
-  }
-
   function buildMarkdown() {
     var sum = summary();
     var lines = ['## Ship Deck Review Results — ' + data.branch, 'Verified ' + sum.checked + '/' + sum.total + ' · Issues ' + sum.ng];
@@ -454,58 +404,9 @@ export const DECK_JS = `
     progressEl.textContent = 'Verified ' + sum.checked + '/' + sum.total + ' · Issues ' + sum.ng;
   }
 
-  function pushBridge(sum) {
-    if (!bridgeConnected) return;
-    // The bridge refuses POST /result without the deck's token (ship-deck-bridge.mjs#BRIDGE_TOKEN_HEADER).
-    var headers = { 'content-type': 'application/json' };
-    if (data.bridgeToken) headers['x-ship-deck-token'] = data.bridgeToken;
-    fetch(bridgeBase + '/result', {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify(buildResult(sum)),
-    }).then(function (r) {
-      // A refused POST (403: this deck's token is not the bridge's) saved nothing — say so.
-      bridgeRejected = !r.ok;
-      setBridgeStatus(bridgeConnected);
-    }).catch(function () { setBridgeStatus(false); });
-  }
-
-  var bridgeRejected = false;
-  function setBridgeStatus(connected) {
-    bridgeConnected = connected;
-    if (!bridgeStatusEl) return;
-    bridgeStatusEl.textContent = !connected ? 'Auto-save: Not connected'
-      : bridgeRejected ? 'Auto-save: Rejected by bridge (re-render the deck)'
-      : 'Auto-save: Connected (port ' + bridgePort + ')';
-  }
-
-  var failCount = 0;
-  var pingTimer = null;
-  function schedulePing() {
-    if (pingTimer) clearTimeout(pingTimer);
-    var delay = bridgeConnected ? 5000 : Math.min(60000, 5000 * Math.pow(2, Math.min(failCount, 4)));
-    pingTimer = setTimeout(pingBridge, delay);
-  }
-  function pingBridge() {
-    if (typeof document !== 'undefined' && document.hidden) { schedulePing(); return; }
-    fetch(bridgeBase + '/ping')
-      .then(function (r) { if (!r.ok) throw new Error('bad status'); return r.json(); })
-      .then(function (body) {
-        var ok = !!(body && body.tool === 'ship-deck-bridge');
-        var was = bridgeConnected;
-        setBridgeStatus(ok);
-        failCount = ok ? 0 : failCount + 1;
-        if (!was && ok) pushBridge();
-        schedulePing();
-      })
-      .catch(function () { setBridgeStatus(false); failCount += 1; schedulePing(); });
-  }
-
   function save() {
     try { localStorage.setItem(storeKey, JSON.stringify(state)); } catch (e) { /* ignore storage error */ }
-    var sum = summary();
-    updateProgress(sum);
-    pushBridge(sum);
+    updateProgress();
   }
 
   function renderItem(li) {
@@ -564,10 +465,6 @@ export const DECK_JS = `
 
   items.forEach(renderItem);
   updateProgress();
-  pingBridge();
-  if (typeof document !== 'undefined' && document.addEventListener) {
-    document.addEventListener('visibilitychange', function () { if (!document.hidden) pingBridge(); });
-  }
 })();
 `;
 
@@ -626,7 +523,6 @@ export const DECK_LABELS = Object.freeze({
     foldRequirements: 'Requirements → implementation trace',
     foldImpact: 'Impact · regression notes <span class="muted-count">author notes</span>',
     foldImpactMap: 'Machine-measured impact map <span class="muted-count">feature ownership · contract surfaces</span>',
-    foldDiagram: 'Behavior · structure diagram (SVG)',
     foldGlossary: 'Glossary',
     foldSources: 'Source documents',
   },
@@ -678,7 +574,6 @@ export const DECK_LABELS = Object.freeze({
     foldRequirements: '요구사항 → 구현 추적',
     foldImpact: '영향 · 회귀 메모 <span class="muted-count">작성자 메모</span>',
     foldImpactMap: '기계 측정 영향 지도 <span class="muted-count">feature ownership · contract surfaces</span>',
-    foldDiagram: '동작 · 구조 도식 (SVG)',
     foldGlossary: '용어',
     foldSources: '원본 문서',
   },
@@ -914,17 +809,6 @@ function renderRequirementTrace(model) {
 </section>`;
 }
 
-function renderDecisionDiagram(model) {
-  if (!model.diagramSvg) return '';
-  if (!isSafeDiagramSvg(model.diagramSvg)) {
-    return `<section class="card" id="diagram"><h2>Behavior & Structure Visualization</h2><p class="muted">Diagram omitted due to SVG safety check failure.</p></section>`;
-  }
-  return `<section class="card" id="diagram">
-  <h2>Behavior & Structure Visualization <span class="gen ai">AI-authored · Supporting visual</span></h2>
-  <div class="diagram">${model.diagramSvg}</div>
-</section>`;
-}
-
 function renderFileTreeNodes(nodes, noteByPath, glossary, root = false) {
   const items = nodes
     .map((node) => {
@@ -992,7 +876,6 @@ function renderEvidenceFolds(model, stats, L = DECK_LABELS.en) {
     fold(`${L.foldRequirements} <span class="muted-count">requirements ${model.narrative.requirements.length}</span>`, renderRequirementTrace(model)),
     fold(L.foldImpact, renderImpactSection(model)),
     fold(L.foldImpactMap, renderImpactMapSection(model.signals?.impactMap, { readFirstTitle: 'Suggested read order' })),
-    fold(L.foldDiagram, renderDecisionDiagram(model)),
     fold(L.foldGlossary, renderGlossarySection(model)),
     fold(L.foldSources, renderAppendix(model)),
   ].join('\n');

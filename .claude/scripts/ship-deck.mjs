@@ -13,7 +13,6 @@
  *   node .claude/scripts/ship-deck.mjs --template            # print the narrative skeleton + rules
  *   node .claude/scripts/ship-deck.mjs --worktree .worktrees/feature/<task> \
  *     --narrative-json <path> [--base origin/main] [--out <dir>] \
- *     [--diagram <svg path>]
  *
  * Narrative contract: field presence + git path cross-check (lib/ship-deck-core.mjs) AND the
  * human-brief quality gate (lib/narrative-quality.mjs — ceilings, hype, empty phrases, cost of
@@ -77,7 +76,6 @@ export function parseArgs(argv) {
     '--checklist-json': 'checklistJson',
     '--narrative-json': 'narrativeJson',
     '--panel-md': 'panelMd',
-    '--diagram': 'diagram',
   };
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === '--template') {
@@ -201,7 +199,6 @@ function readPlanText(worktreePath, branch) {
 function readOptionalInputs(args) {
   const inputs = {};
   if (args.narrativeJson) inputs.narrative = readJsonOrFail(args.narrativeJson, '--narrative-json');
-  if (args.diagram) inputs.diagramSvg = readFileOrFail(args.diagram, '--diagram');
   return inputs;
 }
 

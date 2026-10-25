@@ -33,7 +33,7 @@
     },
     {
       "file": "references/superpowers-systematic-debugging.md",
-      "description": "Stripped original frontmatter. Normalized 'your human partner' expressions to brief2dev human-AI collaboration context. Stated alignment with R-CM-017 Rule 3 (3-Strike Escalation). Converted internal superpowers cross-references (such as superpowers:test-driven-development) to brief2dev tdd-guide agent. Preserved language-neutral boundary instrumentation code examples."
+      "description": "Stripped original frontmatter. Normalized 'your human partner' expressions to brief2dev human-AI collaboration context. Stated alignment with R-CM-017 Rule 3 (3-Strike Escalation). Converted internal superpowers cross-references (such as superpowers:test-driven-development) to brief2dev bug-fix Red-Green step and R-CM-010. Preserved language-neutral boundary instrumentation code examples."
     },
     {
       "file": "references/feedback-loop-catalog.md",

@@ -1,7 +1,7 @@
 # 4-Phase Debugging Protocol (systematic-debugging Reference Guide)
 
 > **Source**: `oss/superpowers/skills/systematic-debugging/SKILL.md` (Pattern Track adapted)
-> **Adaptation**: Stripped original frontmatter. Normalized "your human partner" → "user". Mapped superpowers cross-references (`test-driven-development`, `verification-before-completion`) to brief2dev `tdd-guide` agent and R-CM-010. Preserved language-neutral boundary instrumentation examples.
+> **Adaptation**: Stripped original frontmatter. Normalized "your human partner" → "user". Mapped superpowers cross-references (`test-driven-development`, `verification-before-completion`) to brief2dev `bug-fix` Red-Green step and R-CM-010. Preserved language-neutral boundary instrumentation examples.
 > **Loaded by**: Invoked when `systematic-debugging` requires strict 4-phase sequencing and multi-tier boundary instrumentation.
 
 ---
@@ -44,7 +44,7 @@ Complete each phase fully before advancing.
 
 ### Phase 4: Implementation
 
-1. **Create a Failing Test Case** — Mandatory failing test prior to fix (leverage `tdd-guide` agent).
+1. **Create a Failing Test Case** — Mandatory failing test prior to fix.
 2. **Implement a Single Targeted Fix** — Fix only the root cause; avoid opportunistic refactoring.
 3. **Verify the Fix** — Ensure tests pass, regressions are absent, and original symptoms are eliminated.
 4. **If Fix Fails** — STOP immediately. Count attempts. If < 3 → re-enter Phase 1. If ≥ 3 → advance to Step 5.
@@ -152,7 +152,6 @@ Phase 4 Step 5 in this guide and R-CM-017 Rule 3 represent the identical governa
 
 | Skill | Relationship |
 |-------|--------------|
-| `tdd-guide` agent | Phase 4 Step 1 (Authoring failing tests) |
 | `bug-fix` skill | Orchestrator utilizing this 4-phase protocol |
 | `final-review` | Invoked post-Phase 4 verification |
 | R-CM-010 (verification-before-completion) | Enforces empirical verification in Phase 4 |
@@ -166,4 +165,4 @@ Phase 4 Step 5 in this guide and R-CM-017 Rule 3 represent the identical governa
   - Original: `oss/superpowers/skills/systematic-debugging/SKILL.md`
   - Attribution: superpowers OSS by Jesse Vincent / Prime Radiant
 - **Last updated**: 2026-04-25
-- **Adaptation type**: `adapted` (Preserved 4-phase principles + aligned with brief2dev R-CM-017 and `tdd-guide`)
+- **Adaptation type**: `adapted` (Preserved 4-phase principles + aligned with brief2dev R-CM-017)

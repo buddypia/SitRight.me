@@ -464,7 +464,6 @@ export function buildSpecDeckModel(input = {}) {
     checklist: provided.length
       ? provided
       : buildSpecDefaultChecklist({ frs: spec.frs, acceptance: spec.acceptance, scale }),
-    diagramSvg: input.diagramSvg ?? null,
     narrative,
     narrativeUnmatchedFrIds: collectUnmatched(
       narrative?.frNotes,
@@ -618,7 +617,6 @@ export function buildMilestoneDeckModel(input = {}) {
           milestoneLabel: identity.milestoneLabel,
         }),
     panelMarkdown: null,
-    diagramSvg: input.diagramSvg ?? null,
     narrative,
     narrativeUnmatchedPaths: collectUnmatched(narrative?.fileNotes, 'path', changedPathSet),
     narrativeUnmatchedSpecDocs: collectUnmatched(narrative?.specChanges, 'doc', changedPathSet),
@@ -710,7 +708,6 @@ export function buildPlanDeckModel(input = {}) {
     progress: parsePlanProgress(planText),
     items,
     checklist: provided.length ? provided : buildPlanDefaultChecklist({ goal, items }),
-    diagramSvg: input.diagramSvg ?? null,
     narrative: normalizeNarrative(input.narrative),
   };
   return { ...model, signals: buildReviewSignals(model) };
@@ -820,7 +817,6 @@ export function buildUiDeckModel(input = {}) {
     generatedAt: input.generatedAt ?? null,
     screens,
     checklist: provided.length ? provided : buildUiDefaultChecklist({ screens }),
-    diagramSvg: input.diagramSvg ?? null,
     narrative: normalizeNarrative(input.narrative),
   };
   return { ...model, signals: buildReviewSignals(model) };

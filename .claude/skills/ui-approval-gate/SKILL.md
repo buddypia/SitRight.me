@@ -245,7 +245,7 @@ Presents generated wireframes to the user via an **explicit approval flow** (T2,
 ```bash
 node .claude/scripts/review-deck.mjs --stage ui --wireframe docs/wireframes/feature-<id>-wireframe.md \
   --narrative-json <path> [--feature <id>]
-# Open output index.html. Feedback loop (optional): reuse ship-deck-bridge
+# Open output index.html.
 ```
 
 Chat presentation (pipeline progress + 3-way choice) is preserved. **The Approve/Revise/Reject gate logic and CONTEXT.json state machine remain immutable** — the deck is merely a presentation format, not the verdict engine. If the script is absent (such as initial scaffold deployment), SKIP elevation and use chat presentation only.
@@ -386,7 +386,7 @@ This skill is strictly limited to **UI wireframe generation + user approval gate
 | Actual UI code implementation      | `feature-implementer`                            | Wireframe = consensus artifact, code = separate stage  |
 | Design tokens / color systems      | `design-pilot`, `color-palette`                  | Design system definition belongs to design-pilot SSOT   |
 | Frontend polishing / interactions  | `feature-implementer`, `final-review`            | Fine interactions are implementation responsibilities  |
-| E2E tests / visual regression      | `e2e-runner`                                     | This skill handles static wireframes only              |
+| E2E tests / visual regression      | Playwright E2E suite                             | This skill handles static wireframes only              |
 | Mermaid → SVG actual rendering     | (External Mermaid renderer)                      | This skill outputs Mermaid text only                   |
 | Production UI code review          | `design-pilot --review-only`, `final-review`     | Post-implementation review is a separate gate          |
 | A/B testing / user metrics         | `metrics-designer`                               | Hypothesis validation belongs to metrics design        |

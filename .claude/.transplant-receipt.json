@@ -8,9 +8,9 @@
       "bundle_version": "1.4",
       "source": {
         "repo": "brief2dev",
-        "commit": "4c069566edd9a284ec2e9338b5a06327b873d8e4"
+        "commit": "20c7fafbf58571dec42409b5b16635bd7c1379a3"
       },
-      "transplanted_at": "2026-10-24T09:14:46.115Z",
+      "transplanted_at": "2026-10-25T03:00:17.301Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle git-worktree-isolation --target <this-project-root> --json",
       "files": [
         {
@@ -57,7 +57,7 @@
         {
           "path": ".claude/scripts/lib/approval-policy.mjs",
           "role": "managed",
-          "sha256": "b583c16169ec410e959c15f96a31a1b82f336c64a7d4224f0a212a7ecc2bfbeb"
+          "sha256": "fb5c50804e19a71be3198bbb8a0fa1c1ed2db8ec9702b5a175bc01e514324062"
         },
         {
           "path": ".claude/scripts/lib/approval-trust.mjs",
@@ -147,12 +147,12 @@
         {
           "path": ".claude/scripts/lib/review-deck-core.mjs",
           "role": "managed",
-          "sha256": "9b87b57fbd905db32f74e49198370cffc9af4a3a556eaffb613e157c9e857782"
+          "sha256": "9e07e5667b0faf4f5d0529d0b7f3fc742b1fa316977f8c508c44c0f833cfdea0"
         },
         {
           "path": ".claude/scripts/lib/review-deck-render.mjs",
           "role": "managed",
-          "sha256": "89fa858c381f5da4545f9736676ae417ea328e7ae0cab8917b179a55137f9519"
+          "sha256": "c5e42eb49480be691451c602bc6a3183ec7b2585035b78e5f1b532dd3b8d8c42"
         },
         {
           "path": ".claude/scripts/lib/review-narrative.mjs",
@@ -167,12 +167,12 @@
         {
           "path": ".claude/scripts/lib/ship-deck-core.mjs",
           "role": "managed",
-          "sha256": "5d1c45271eebfc76018e2823dfb5bfdd1b52c019f37cbed83e0f5822dc06463d"
+          "sha256": "96e8196fc0b7c3735f25c0ec88bd433f653923692d4823d5a85aeb426698f834"
         },
         {
           "path": ".claude/scripts/lib/ship-deck-render.mjs",
           "role": "managed",
-          "sha256": "576aee1ce3eb984a3de5e6fe404ea2f0498d80f9211ceccaa1f4b965ada57b64"
+          "sha256": "66110c30afa52e80ee80c384789cb01dd233de0de08078e143b5d888daac0011"
         },
         {
           "path": ".claude/scripts/lib/task-acceptance.mjs",
@@ -227,17 +227,12 @@
         {
           "path": ".claude/scripts/review-deck.mjs",
           "role": "managed",
-          "sha256": "ac990b6e3e22cc05193434a23a79cb8032d2a8bad943f2799033e97c2c6ecf6d"
-        },
-        {
-          "path": ".claude/scripts/ship-deck-bridge.mjs",
-          "role": "managed",
-          "sha256": "5879422638587c2c185b0ddab484926b49e6fa6237e4726a5355e65689f6c98e"
+          "sha256": "fc0cfb16d5573a13476fed6e4b80cc07b37382a4b4007646ab3adf57b717e950"
         },
         {
           "path": ".claude/scripts/ship-deck.mjs",
           "role": "managed",
-          "sha256": "ac21786fc53e903affc16c1f59d0550dc29f940a122460c7093249cef83e18aa"
+          "sha256": "441791403cc11519dec49984e7f49297ef9a4cf4699b9914e38e8af2efc50ba5"
         },
         {
           "path": ".claude/scripts/task-interpretation.mjs",
@@ -391,7 +386,7 @@
         {
           "path": ".cli/lib/hook-registry.mjs",
           "role": "managed",
-          "sha256": "a6c82d84f7e1b7d373d9dd03d72cdae5b1186b0fffd0a75d8db8c3e3f6332445"
+          "sha256": "38d0db8358e64dc6955c8f7e5ddd940af1613cb81f07a3940c09cdb1d1404c11"
         },
         {
           "path": ".cli/lib/layout-resolver.mjs",
@@ -565,9 +560,9 @@
       "bundle_version": "1.1",
       "source": {
         "repo": "brief2dev",
-        "commit": "061f861a0431e679c1864a9983a216a815b2a752"
+        "commit": "20c7fafbf58571dec42409b5b16635bd7c1379a3"
       },
-      "transplanted_at": "2026-10-22T12:29:22.322Z",
+      "transplanted_at": "2026-10-25T02:59:33.954Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle feature-delivery-core --target <this-project-root> --json",
       "files": [
         {
@@ -713,7 +708,7 @@
         {
           "path": ".claude/skills/observability-and-instrumentation/SKILL.md",
           "role": "managed",
-          "sha256": "9a3ab6bd43c872b5d4d8fb136a5bf01867151f964394126f6fe2c5b85c82dde1"
+          "sha256": "3b6444fa3d577284629629dd675b81f279bcc55600c003bf7954e8864f127267"
         },
         {
           "path": ".claude/skills/story-decomposer/MANIFEST.json",
@@ -743,7 +738,7 @@
         {
           "path": ".claude/skills/ui-approval-gate/SKILL.md",
           "role": "managed",
-          "sha256": "4721da89b3ab7493fb3b9f3871ed005a92a0c419e050c9b9fc2175c98283ae9d"
+          "sha256": "9cd2daabedecb1ba97696388cd35a2db136a6d5ea4cac0b8a484c6886a7b72cc"
         },
         {
           "path": "docs/_templates/api_template.md",
@@ -790,9 +785,9 @@
       "bundle_version": "1.0",
       "source": {
         "repo": "brief2dev",
-        "commit": "241d0c7d842ce4b8ef8f69a4c0cdd1f72c72bc57"
+        "commit": "20c7fafbf58571dec42409b5b16635bd7c1379a3"
       },
-      "transplanted_at": "2026-10-20T13:51:03.564Z",
+      "transplanted_at": "2026-10-25T02:59:34.803Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle quality-gate-core --target <this-project-root> --json",
       "files": [
         {
@@ -853,7 +848,7 @@
         {
           "path": ".claude/skills/final-review/references/no-go-routing.md",
           "role": "managed",
-          "sha256": "bd25623ec436ca2cc519e248f834706af2e9455d045977169d078dd386bb34ed"
+          "sha256": "538af083b2ca662854dfb1f2c53557a2787255832a860930e7b5a8f56230a24c"
         },
         {
           "path": ".claude/skills/final-review/references/pm-intended-vs-implemented.md",
@@ -987,9 +982,9 @@
       "bundle_version": "1.0",
       "source": {
         "repo": "brief2dev",
-        "commit": "9de27b125e921e7dbff31798c2d976b96896d944"
+        "commit": "20c7fafbf58571dec42409b5b16635bd7c1379a3"
       },
-      "transplanted_at": "2026-10-10T00:54:31.622Z",
+      "transplanted_at": "2026-10-25T02:59:35.547Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle debug-fix-pair --target <this-project-root> --json",
       "files": [
         {
@@ -1035,7 +1030,7 @@
         {
           "path": ".claude/skills/systematic-debugging/MANIFEST.json",
           "role": "managed",
-          "sha256": "113ae7bfd9f60350fdf199b41c5bd3a5f7263e290369e43e8b132788f404e1fa"
+          "sha256": "ac81e83c0b442c9fb81650d57e3643389ec86b82b9118d25f437f7d780c6216d"
         },
         {
           "path": ".claude/skills/systematic-debugging/references/defense-in-depth.md",
@@ -1055,7 +1050,7 @@
         {
           "path": ".claude/skills/systematic-debugging/references/superpowers-systematic-debugging.md",
           "role": "managed",
-          "sha256": "0ca844f878349e82eb97115898100178e8590234e62f8e3290f50221bfd78829"
+          "sha256": "a9a5a3690f6d9a778d41002b46486338417e13b0dd050b3556ad916b5a145c96"
         },
         {
           "path": ".claude/skills/systematic-debugging/SKILL.md",
@@ -1075,9 +1070,9 @@
       "bundle_version": "1.0",
       "source": {
         "repo": "brief2dev",
-        "commit": "061f861a0431e679c1864a9983a216a815b2a752"
+        "commit": "20c7fafbf58571dec42409b5b16635bd7c1379a3"
       },
-      "transplanted_at": "2026-10-22T12:29:22.564Z",
+      "transplanted_at": "2026-10-25T02:59:36.268Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle feature-orchestration --target <this-project-root> --json",
       "files": [
         {
@@ -1168,7 +1163,7 @@
         {
           "path": ".claude/skills/feature-pilot/SKILL.md",
           "role": "managed",
-          "sha256": "cdf5fe2edffa6b14b4fd687d9afcb9b12cd205240fba742a4c0d9afe7b6800a6"
+          "sha256": "a6fbf5bb3869fbedddcbd07816e5c368c0c1a5af18b5668b4a8489abe849793c"
         }
       ],
       "target_notes": [

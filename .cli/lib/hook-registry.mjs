@@ -166,20 +166,6 @@ export const PROMPT_AGENT_HOOKS = {
 export const MANAGED_HOOK_REGISTRY = {
   "PreToolUse": [
     {
-      "matcher": "*",
-      "hooks": [
-        {
-          "id": "pre-tool-enforcer",
-          "module": "../scripts/pre-tool-enforcer.mjs",
-          "priority": 10,
-          "profile": "minimal",
-          "description": "Pipeline context injection + validation before skill execution",
-          "orchestrated": false,
-          "timeout": 5
-        }
-      ]
-    },
-    {
       "matcher": "Edit|Write",
       "hooks": [
         {
@@ -431,7 +417,7 @@ export const MANAGED_HOOK_REGISTRY = {
           "module": "./wisdom-ref-tracker.mjs",
           "priority": 10,
           "profile": "standard",
-          "description": "Track Wisdom file references (updates last_referenced — input to session-extractor confidence scoring)",
+          "description": "Track Wisdom file references (updates last_referenced / reference_count — what SessionStart wisdom injection selects by)",
           "orchestrated": false,
           "timeout": 3
         },
@@ -474,7 +460,7 @@ export const MANAGED_HOOK_REGISTRY = {
           "module": "./handoff-consistency-guard.mjs",
           "priority": 40,
           "profile": "standard",
-          "description": "Validate Confidence Ratchet + Handoff structure (3-Layer L2). 2026-07-11 Tier C expansion. No-op in Antigravity PostToolUse due to missing toolCall — operates in Codex only (MULTI-CLI.md PostToolUse limitation section)",
+          "description": "Write back evidence-derived confidence + validate Handoff structure (3-Layer L2). 2026-07-11 Tier C expansion. No-op in Antigravity PostToolUse due to missing toolCall — operates in Codex only (MULTI-CLI.md PostToolUse limitation section)",
           "orchestrated": true,
           "cliTargets": ["codex", "antigravity"],
           "cliMatcherTools": ["Edit", "Write", "MultiEdit"]
@@ -487,18 +473,6 @@ export const MANAGED_HOOK_REGISTRY = {
           "description": "Detect Input→Output Staleness (3-Layer L2). 2026-07-11 Tier C expansion (async is Claude-exclusive — CLI registrations emit {type,command,timeout} only). No-op in Antigravity PostToolUse due to missing toolCall — operates in Codex only (MULTI-CLI.md PostToolUse limitation section)",
           "orchestrated": true,
           "async": true,
-          "cliTargets": ["codex", "antigravity"],
-          "cliMatcherTools": ["Edit", "Write", "MultiEdit"]
-        },
-        {
-          "id": "skill-structure-guard",
-          "module": "./skill-structure-guard.mjs",
-          "priority": 90,
-          "profile": "standard",
-          "description": "[R-CM-018 / R-CM-040 Rule 10] Validate SKILL.md structure (notice) + block Harness² surface violations on SKILL.md / subagent / root AGENTS.md writes (missing description, name≠dir, untriggered skill, script a skill runs but the repo lacks, subagent without name/description, AGENTS.md over 8,000 chars, dangling pointer)",
-          "orchestrated": true,
-          "timeout": 5,
-          "statusMessage": "R-CM-018 / Harness²: validating skill surface",
           "cliTargets": ["codex", "antigravity"],
           "cliMatcherTools": ["Edit", "Write", "MultiEdit"]
         },
@@ -770,7 +744,7 @@ export const MANAGED_HOOK_REGISTRY = {
           "module": "./session-extractor.mjs",
           "priority": 50,
           "profile": "standard",
-          "description": "Session pattern analysis + wisdom confidence update + instinct promotion",
+          "description": "Session pattern analysis + wisdom metadata init + instinct promotion",
           "orchestrated": false,
           "async": true,
           "timeout": 15

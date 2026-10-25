@@ -474,7 +474,6 @@ export function buildDeckModel(input = {}) {
     panelMarkdown: toStringOrNull(input.panelMarkdown),
     origin: input.origin ?? null,
     featureIndex: input.featureIndex ?? null,
-    diagramSvg: toStringOrNull(input.diagramSvg),
   };
   return { ...model, signals: buildReviewSignals(model), traceGraph: buildTraceGraph(model) };
 }
