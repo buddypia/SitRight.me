@@ -387,7 +387,7 @@ Step 3: [Built-in] Execute Readiness Gate Protocol
         +------------------------------------+
         v Go → Step 3.5 / No-Go → Revert to Step 2
 
-Step 3.5: [Conditional] Generate Engineering Plan (Prepare SDD Mode)
+Step 3.5: [Conditional] Generate Engineering Plan
         +------------------------------------+
         | Condition: >= 3 independent tasks  |
         |                                    |
@@ -396,22 +396,27 @@ Step 3.5: [Conditional] Generate Engineering Plan (Prepare SDD Mode)
         | - args: "<featureID>"              |
         |                                    |
         | Artifact: PLAN.md (bite-sized)     |
-        | → feature-implementer activates    |
-        |   SDD mode (per-task subagent +    |
-        |   2-stage review) automatically    |
+        | → feature-implementer stays inline |
+        |   TDD by default; SDD only under   |
+        |   its SKILL.md § SDD Mode          |
+        |   (parallel lanes / measured       |
+        |   context bloat)                   |
         |                                    |
         | < 3 tasks:                         |
         | → Skip PLAN.md, inline TDD mode    |
         +------------------------------------+
-        v PLAN.md created → Step 4 (SDD) / Skipped → Step 4 (Inline)
+        v Step 4 (Inline, or SDD per § SDD Mode)
 
 Step 3.6: Git worktree preparation - Mandatory
         +------------------------------------+
-        | Establish GitHub Flow branch name  |
+        | Created at PF-008, before Step 1   |
+        | (SPEC/doc edits happen inside it); |
+        | here: confirm and fill in PLAN     |
         | Worktree path: .worktrees/<branch> |
         |                                    |
         | Mandatory deliverables:            |
-        | - .worktrees/<branch>/PLAN.md      |
+        | - .tmp/worktree-<safeBranch>/      |
+        |   PLAN.md (in the worktree)        |
         | - CONTEXT.json execution.worktree  |
         |                                    |
         | execution.worktree required fields:|
