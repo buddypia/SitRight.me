@@ -157,15 +157,15 @@ Principle: "Reviewing only after everything is built is already too late". Upon 
 | CP-SHIP | Immediately before ship (R-CM-030 Rule 12 `ship-deck`, invariant) | Large deck mandatory |
 
 ```bash
-node .claude/scripts/review-deck.mjs --stage spec --spec <SPEC.md path> --narrative-json <path> [--feature <id>] [--diagram <svg>]
+node .claude/scripts/review-deck.mjs --stage spec --spec <SPEC.md path> --narrative-json <path> [--feature <id>]
 node .claude/scripts/review-deck.mjs --stage plan --worktree .worktrees/<branch> --narrative-json <path> [--plan <PLAN.md path>]
 node .claude/scripts/review-deck.mjs --stage milestone --worktree .worktrees/<branch> --narrative-json <path> --milestone "<milestone label>"
 node .claude/scripts/review-deck.mjs --stage ui --wireframe docs/wireframes/<id>-wireframe.md --narrative-json <path> [--feature <id>]
-# Present generated index.html via open. Optional feedback: node .claude/scripts/ship-deck-bridge.mjs --out <outDir>/review-result.json
+# Present generated index.html via open.
 ```
 
 - **Deck content and narrative contract**: read `references/review-deck-contract.md` before writing `--narrative-json` (original request, impact map, verbatim sections, visuals, risk levels, required narrative and review-depth fields, CP-SHIP impact-first brief, plain-language rule).
-- **Feedback Discipline (Same as R-CM-030 Rule 12)**: In stage decks (with checklists), user's "re-edit required" (`state:"ng"`) verdict slug/note is used directly as task input — do not re-interpret prose. If bridge was launched, read `review-result.json`. Ship decks have no checklist; verdict and revision instructions are received in chat.
+- **Feedback Discipline (Same as R-CM-030 Rule 12)**: In stage decks (with checklists), user's "re-edit required" (`state:"ng"`) verdict slug/note is used directly as task input — do not re-interpret prose. Verdicts and revision instructions are received in chat.
 - **Manual Entrypoint**: User may request deck generation at any time (run command directly).
 - **Enforcement (Transparent Disclosure)**: Prompt-level only. CP-MILESTONE use is measured, not enforced: the ship ledger records `milestone_deck` per ship. Large ships still need the `ship-deck` pre-ship step (R-CM-030 Rule 12). CP-SPEC/CP-PLAN/CP-UI rely on audit tracking (R-CM-024).
 

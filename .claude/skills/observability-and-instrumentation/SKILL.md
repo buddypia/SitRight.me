@@ -28,8 +28,7 @@ Origin: `oss/agent-skills/skills/observability-and-instrumentation/SKILL.md` (ag
 
 - **Business KPI / North Star Metric Architecture** → `metrics-designer` (Discovery stage; measures customer value delivered). This skill operates at an engineering tier — measuring **whether production systems are functioning correctly**. Although both use the word "metrics," their scopes differ: `metrics-designer` defines weekly business KPIs displayed on executive dashboards; this skill defines real-time RED/USE engineering signals observed by on-call engineers.
 - **Live Outage Debugging** → `systematic-debugging`. Telemetry created by this skill directly dictates the diagnostic speed of `systematic-debugging` (without instrumentation, debugging becomes archeology).
-- **Web Performance Audits (Core Web Vitals, Lighthouse)** → `web-performance-auditor` agent. This skill provides underlying trace/metric data, but the performance audit itself (scoring and grading) belongs to that specialized agent.
-- **Live UI/UX Visual Verification** → `design-reviewer-live`. This skill deals with telemetry integrity, not visual rendering defects.
+- **Web Performance Audits (Core Web Vitals, Lighthouse)** and **live UI visual verification** — this skill provides trace/metric data and telemetry integrity, not performance scoring or visual rendering checks.
 - **Runtime SRE On-Call Platform Provisioning** → brief2dev generates scaffold code, not a managed SaaS monitoring infrastructure (AGENTS.md exclusions). This skill provides self-contained telemetry *patterns*.
 
 ---
@@ -200,11 +199,10 @@ For the comprehensive pre-release checklist, consult `references/observability-c
 
 ## Related Skills
 
-| Direction | Skill / Agent | Relationship |
+| Direction | Skill | Relationship |
 |---|---|---|
 | Boundary | `metrics-designer` | Business KPI / North Star Metric design (Customer value vs. Engineering system health) |
 | Subsequent | `systematic-debugging` | Telemetry directly dictates incident resolution speed |
-| Subsequent (Web) | `web-performance-auditor` | Traces and metrics provide foundation data for Core Web Vitals audits |
 
 ## Maintenance
 

@@ -9,22 +9,22 @@
  *   # CP-SPEC — Requirements specification review (after SPEC creation/update, before implementation)
  *   node .claude/scripts/review-deck.mjs --stage spec --spec docs/features/<id>/SPEC-*.md \
  *     --narrative-json <path> [--feature <docKey>] [--checklist-json <path>] \
- *     [--diagram <svg>] [--out <dir>]
+ *     [--out <dir>]
  *
  *   # CP-PLAN — Pre-kickoff plan review (SPEC-less PLAN.md-only path — DEBT-224)
  *   node .claude/scripts/review-deck.mjs --stage plan --worktree .worktrees/<branch> \
  *     --narrative-json <path> [--plan <path>] [--branch <name>] \
- *     [--checklist-json <path>] [--diagram <svg>] [--out <dir>]
+ *     [--checklist-json <path>] [--out <dir>]
  *
  *   # CP-MILESTONE — Intermediate implementation review (when PLAN milestone is complete)
  *   node .claude/scripts/review-deck.mjs --stage milestone --worktree .worktrees/<branch> \
  *     --narrative-json <path> [--milestone "M1 core"] [--base origin/main] \
- *     [--checklist-json <path>] [--diagram <svg>] [--out <dir>]
+ *     [--checklist-json <path>] [--out <dir>]
  *
  *   # CP-UI — Wireframe review (promoted format for ui-approval-gate — DEBT-226)
  *   node .claude/scripts/review-deck.mjs --stage ui --wireframe docs/wireframes/<id>-wireframe.md \
  *     --narrative-json <path> [--feature <docKey>] [--checklist-json <path>] \
- *     [--diagram <svg>] [--out <dir>]
+ *     [--out <dir>]
  *
  *   --narrative-json: { what, why, how, next,
  *     file_notes: [{path, change, reason}],   // milestone
@@ -39,7 +39,6 @@
  *   - Output: <main>/.tmp/review-deck/<key>/<stage>/index.html (self-contained HTML). For milestone, <main> is
  *     the repo that owns --worktree, where the ship ledger looks for the deck (`ship-scale.mjs#hasMilestoneDeckTrace`);
  *     a relative --out resolves there too.
- *   - Feedback loop: review-result.json via ship-deck-bridge.
  *
  * Exit codes: 0 success / 1 invalid arguments or collection failure
  *
@@ -85,7 +84,6 @@ import {
   renderSpecDeckHtml,
   renderUiDeckHtml,
 } from './lib/review-deck-render.mjs';
-import { ensureBridgeToken } from './ship-deck-bridge.mjs';
 
 
 /**
@@ -108,7 +106,6 @@ export function parseArgs(argv) {
     '--out': 'out',
     '--checklist-json': 'checklistJson',
     '--narrative-json': 'narrativeJson',
-    '--diagram': 'diagram',
   };
   for (let i = 0; i < argv.length; i += 1) {
     const key = flagMap[argv[i]];
@@ -222,7 +219,6 @@ function readOptionalInputs(args, mainRoot, planText = null) {
   const inputs = { origin: resolveReviewOrigin({ planText, repoRoot: mainRoot }) };
   if (args.checklistJson) inputs.checklist = readJsonOrFail(args.checklistJson, '--checklist-json');
   if (args.narrativeJson) inputs.narrative = readJsonOrFail(args.narrativeJson, '--narrative-json');
-  if (args.diagram) inputs.diagramSvg = readFileOrFail(args.diagram, '--diagram');
   return inputs;
 }
 
@@ -259,12 +255,10 @@ function enforcePlainLanguage(model) {
   return { ...model, glossary: matches };
 }
 
-/** `render` receives the bridge token so the deck can authenticate its POST /result. */
 function writeDeck({ outDir, render, payload }) {
   mkdirSync(outDir, { recursive: true });
   const outPath = join(outDir, 'index.html');
-  writeFileSync(outPath, render(ensureBridgeToken(outDir)), 'utf8');
-  const resultJsonPath = join(outDir, 'review-result.json');
+  writeFileSync(outPath, render(), 'utf8');
   process.stdout.write(
     `${JSON.stringify(
       {
@@ -272,7 +266,6 @@ function writeDeck({ outDir, render, payload }) {
         out: outPath,
         ...payload,
         open_hint: `open "${outPath}"`,
-        bridge_hint: `node .claude/scripts/ship-deck-bridge.mjs --out "${resultJsonPath}"`,
       },
       null,
       2,
@@ -298,7 +291,7 @@ function runSpecStage(args, mainRoot) {
   );
   writeDeck({
     outDir: resolveOutDir(args, mainRoot, [model.docKey, 'spec']),
-    render: (bridgeToken) => renderSpecDeckHtml({ ...model, bridgeToken }),
+    render: () => renderSpecDeckHtml(model),
     payload: {
       stage: 'spec',
       docKey: model.docKey,
@@ -358,7 +351,7 @@ function runMilestoneStage(args, mainRoot) {
       safeBranchKey(branch),
       `milestone-${slugify(model.milestoneLabel, 'checkpoint')}`,
     ]),
-    render: (bridgeToken) => renderMilestoneDeckHtml({ ...model, bridgeToken }),
+    render: () => renderMilestoneDeckHtml(model),
     payload: {
       stage: 'milestone',
       branch,
@@ -407,7 +400,7 @@ function runPlanStage(args, mainRoot) {
   );
   writeDeck({
     outDir: resolveOutDir(args, mainRoot, [branch ? safeBranchKey(branch) : model.docKey, 'plan']),
-    render: (bridgeToken) => renderPlanDeckHtml({ ...model, bridgeToken }),
+    render: () => renderPlanDeckHtml(model),
     payload: {
       stage: 'plan',
       branch: model.branch,
@@ -438,7 +431,7 @@ function runUiStage(args, mainRoot) {
   );
   writeDeck({
     outDir: resolveOutDir(args, mainRoot, [model.docKey, 'ui']),
-    render: (bridgeToken) => renderUiDeckHtml({ ...model, bridgeToken }),
+    render: () => renderUiDeckHtml(model),
     payload: {
       stage: 'ui',
       docKey: model.docKey,

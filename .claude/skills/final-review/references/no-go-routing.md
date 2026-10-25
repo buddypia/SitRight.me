@@ -18,7 +18,7 @@ Classify items from the `Blockers` row of `Review Summary` using the following t
 
 | Blocker Category (8-Axis Mapping) | Routed Skill | Rationale / Reinforcing Rule |
 | --- | --- | --- |
-| Test Failure / Missing Tests (Axis 6) | `feature-implementer` (code + tests together) or the `tdd-guide` agent | R-CM-010 Red-Green cycle |
+| Test Failure / Missing Tests (Axis 6) | `feature-implementer` (code + tests together) | R-CM-010 Red-Green cycle |
 | Logic Bug / Edge Cases (Axes 2-3) | `bug-fix` (write reproducing test → fix → pass) | R-CM-017 Dynamic Scope Lock |
 | Security Finding (Axis 4, Confidence ≥ 8/10) | `bug-fix` + explicit security context | OWASP/STRIDE remediation, `cso-security-protocol.md` |
 | Un-rollbackable / Operational Risk (Axis 7) | `bug-fix` or SPEC review then `feature-implementer` | — |
