@@ -5,12 +5,12 @@
   "bundles": {
     "git-worktree-isolation": {
       "title": "Git/Worktree Isolation + AI Safety Git Guards + Worktree Creation Tools (Multi-CLI)",
-      "bundle_version": "1.4",
+      "bundle_version": "1.5",
       "source": {
         "repo": "brief2dev",
-        "commit": "4bb00b7b185a3c4253205d58930a8b9f33df41ff"
+        "commit": "6b2fec306769a7c6131533c232dc6ef123a2d855"
       },
-      "transplanted_at": "2026-10-25T05:06:49.817Z",
+      "transplanted_at": "2026-10-25T10:30:17.106Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle git-worktree-isolation --target <this-project-root> --json",
       "files": [
         {
@@ -266,7 +266,7 @@
         {
           "path": ".claude/skills/create-pr/MANIFEST.json",
           "role": "managed",
-          "sha256": "1c46f3673bc8879191c030a41d66cce53311f2062becfe80d0058633719e2f91"
+          "sha256": "af577a6ce9b7005395e064d045dc7027e0d2c5e07c1d9fba8500f02edf0106aa"
         },
         {
           "path": ".claude/skills/create-pr/references/merge-conflict-resolution.md",
@@ -274,14 +274,9 @@
           "sha256": "ec211512b9ed6bd9ed1bf75d6b9e952f4f157de1019a51f7da4e45e8a77169ee"
         },
         {
-          "path": ".claude/skills/create-pr/references/superpowers-branch-completion-options.md",
-          "role": "managed",
-          "sha256": "aec92cb8d8a2ae1df09d7fa03ef15c540719846c8cf229d84ab081d9d7f53833"
-        },
-        {
           "path": ".claude/skills/create-pr/SKILL.md",
           "role": "managed",
-          "sha256": "2f281744adff6a2a79ecb339e87f77828b703390664b15d86a166354cab6aad9"
+          "sha256": "b967135401d626ff3faf6325b426f9e02740d00d4e7026807b6fe821025f5e00"
         },
         {
           "path": ".cli/_cli-dispatch.mjs",
@@ -386,7 +381,7 @@
         {
           "path": ".cli/lib/hook-registry.mjs",
           "role": "managed",
-          "sha256": "38d0db8358e64dc6955c8f7e5ddd940af1613cb81f07a3940c09cdb1d1404c11"
+          "sha256": "0f9b3a758de2b4c1261a3222fbb0af7b731a0e5ef256eeb2aca6a2db79f5de8b"
         },
         {
           "path": ".cli/lib/layout-resolver.mjs",
@@ -557,12 +552,12 @@
     },
     "feature-delivery-core": {
       "title": "SPEC Delivery Core (Architect → SPEC → UI Approval → Implementation → Wiring → Status Sync, Excluding Orchestrators)",
-      "bundle_version": "1.1",
+      "bundle_version": "1.2",
       "source": {
         "repo": "brief2dev",
-        "commit": "4bb00b7b185a3c4253205d58930a8b9f33df41ff"
+        "commit": "82fab528b705ba1d92c4775a418f1fbaf3ed0ce3"
       },
-      "transplanted_at": "2026-10-25T05:06:50.601Z",
+      "transplanted_at": "2026-10-25T12:29:50.948Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle feature-delivery-core --target <this-project-root> --json",
       "files": [
         {
@@ -578,32 +573,17 @@
         {
           "path": ".claude/skills/feature-implementer/MANIFEST.json",
           "role": "managed",
-          "sha256": "4e0ac94a9143d39ba013122c499eff9ed8307bbbe0740e94f0fbd6a5e4941692"
+          "sha256": "8e5c95a78733e8a92f384f385dca14e5644b2851c2f13ad9e018a6b9b0ed190b"
         },
         {
           "path": ".claude/skills/feature-implementer/references/gan-generator-evaluator-pattern.md",
           "role": "managed",
-          "sha256": "bf8a40bf9b43c69166f52382a50cb0f9f865a7cb8c8ac159dde5948ae74ce3f0"
+          "sha256": "3141ff7f2817c9b6840854b4bff954a670099c7dfa31f51a504bb32dfaee9d53"
         },
         {
           "path": ".claude/skills/feature-implementer/references/implementation-protocol-details.md",
           "role": "managed",
-          "sha256": "47b77ab3b5bec38e3ef2af27483ca0d5988a6e2371a061c2779f199ff9729b70"
-        },
-        {
-          "path": ".claude/skills/feature-implementer/references/sdd-implementer-prompt.md",
-          "role": "managed",
-          "sha256": "10ac6aea64cba7cd42f7601150f439ce1a17c4cf84bec0e0816fc206c7045f30"
-        },
-        {
-          "path": ".claude/skills/feature-implementer/references/sdd-task-reviewer-prompt.md",
-          "role": "managed",
-          "sha256": "ecb116498e963d81b4f3e935a32f961ad24f25d894b8e097fbcff1481bb26e91"
-        },
-        {
-          "path": ".claude/skills/feature-implementer/references/superpowers-controller-verification.md",
-          "role": "managed",
-          "sha256": "3c39536de03aa360c454d829f6c7398c6b36fe8ec349e5c9ec228d6f8b305811"
+          "sha256": "6ab278dbe63a30fb788043dcc579a0a08a55248b8999a105cd0528f3301ab973"
         },
         {
           "path": ".claude/skills/feature-implementer/references/test-coverage-diagram-template.md",
@@ -613,7 +593,7 @@
         {
           "path": ".claude/skills/feature-implementer/SKILL.md",
           "role": "managed",
-          "sha256": "2580ce8d07bcfc0ce2604d708f512f2961f135c4add144fac0a47812c642ad3a"
+          "sha256": "e34eb1e91f89d349e3cfd3d5b8cbbd70ebc15901d956cd4f5237c021e78028f3"
         },
         {
           "path": ".claude/skills/feature-spec-generator/MANIFEST.json",
@@ -782,12 +762,12 @@
     },
     "quality-gate-core": {
       "title": "Quality Gate Core (Quality Check → Verification Loop → Standards Alignment → Pre-Ship Advisor → Final Review, Excluding Orchestrators)",
-      "bundle_version": "1.0",
+      "bundle_version": "1.1",
       "source": {
         "repo": "brief2dev",
-        "commit": "4bb00b7b185a3c4253205d58930a8b9f33df41ff"
+        "commit": "6b2fec306769a7c6131533c232dc6ef123a2d855"
       },
-      "transplanted_at": "2026-10-25T05:06:51.387Z",
+      "transplanted_at": "2026-10-25T10:30:18.410Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle quality-gate-core --target <this-project-root> --json",
       "files": [
         {
@@ -803,7 +783,7 @@
         {
           "path": ".claude/skills/final-review/MANIFEST.json",
           "role": "managed",
-          "sha256": "81c61ea85bc378597c22c538f1b274f2eaf7a0e6543a4fcc737717f035bf323a"
+          "sha256": "72882ad978e1353fc15f7c9dbeac95521cbeada60372c826a43cf5fbecc69b2d"
         },
         {
           "path": ".claude/skills/final-review/references/cross-model-review-format.md",
@@ -863,22 +843,12 @@
         {
           "path": ".claude/skills/final-review/references/santa-adversarial-review-protocol.md",
           "role": "managed",
-          "sha256": "6cecd60fa73520c55d1d80971478e42e08e430bb8ecd05bc7261133b59f47ca0"
-        },
-        {
-          "path": ".claude/skills/final-review/references/superpowers-receiving-code-review.md",
-          "role": "managed",
-          "sha256": "8286740a19d3f739a9eb701e092b4d495d6dceebc58ff3b07edaa6cf820ea93c"
-        },
-        {
-          "path": ".claude/skills/final-review/references/superpowers-requesting-code-review.md",
-          "role": "managed",
-          "sha256": "4fa8287581daac35d5f7b477acc16b4a4e8185defac9f0e98db81d1447cef471"
+          "sha256": "b33e1985bab15549ba749b5f628e6c4bd1322a8927af4d4ae17ab15345aec5d0"
         },
         {
           "path": ".claude/skills/final-review/SKILL.md",
           "role": "managed",
-          "sha256": "e308b6510892b0bba10dbf482d91851c9395a450c010e37a72d3ccb84cceb7b6"
+          "sha256": "e3f508be4b8b635b8975ea5ef968d5bdc67e1db13479f3ba3304cf29f9edfa66"
         },
         {
           "path": ".claude/skills/pre-quality-gate/MANIFEST.json",
@@ -903,12 +873,7 @@
         {
           "path": ".claude/skills/verification-loop/MANIFEST.json",
           "role": "managed",
-          "sha256": "ec645f4c146e6956fd9d37134802fae498f070a4fb85e1bd0f736ca12263cb88"
-        },
-        {
-          "path": ".claude/skills/verification-loop/references/superpowers-claim-evidence-protocol.md",
-          "role": "managed",
-          "sha256": "a1ab713aa61cd76a1b4bb82858c568dff31e5bdeb70bda7499e9a41a988402d8"
+          "sha256": "1a2260054f816b4a85a3b18c9abd4f5d720b7ff72a58dfe857f11351e5219c46"
         },
         {
           "path": ".claude/skills/verification-loop/references/test-failure-triage-template.md",
@@ -918,7 +883,7 @@
         {
           "path": ".claude/skills/verification-loop/SKILL.md",
           "role": "managed",
-          "sha256": "869b39bea5f6e5ab687e3b69b9781b7fc5a373e2f9848c0db5be7694e2de6d37"
+          "sha256": "7d5b5547a064b4b40fd629227184c1577dd67f924ea37cc1e8bab5d2ebd757b7"
         },
         {
           "path": "data/schemas/ci/verification-checkpoint.schema.json",
@@ -949,9 +914,9 @@
       "bundle_version": "1.0",
       "source": {
         "repo": "brief2dev",
-        "commit": "4bb00b7b185a3c4253205d58930a8b9f33df41ff"
+        "commit": "6b2fec306769a7c6131533c232dc6ef123a2d855"
       },
-      "transplanted_at": "2026-10-25T05:06:52.022Z",
+      "transplanted_at": "2026-10-25T10:30:19.049Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle api-contract-layer --target <this-project-root> --json",
       "files": [
         {
@@ -979,12 +944,12 @@
     },
     "debug-fix-pair": {
       "title": "Debug-Fix Pair (Symptom → Hypothesis → Verification Systematic Debugging + Reproduction Test-First Bug Fix)",
-      "bundle_version": "1.0",
+      "bundle_version": "1.1",
       "source": {
         "repo": "brief2dev",
-        "commit": "4bb00b7b185a3c4253205d58930a8b9f33df41ff"
+        "commit": "6b2fec306769a7c6131533c232dc6ef123a2d855"
       },
-      "transplanted_at": "2026-10-25T05:06:52.606Z",
+      "transplanted_at": "2026-10-25T10:30:19.642Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle debug-fix-pair --target <this-project-root> --json",
       "files": [
         {
@@ -1028,9 +993,24 @@
           "sha256": "32c0d4fb2d70c4d69a59b7b4f1397985ae814521bcabfd6cb87cfcb10efeb097"
         },
         {
+          "path": ".claude/skills/systematic-debugging/LICENSE.txt",
+          "role": "managed",
+          "sha256": "5e29376d7317129f84bc9e02d1214e54f80e20925fcca8a0e05f1d31ff82b0c2"
+        },
+        {
           "path": ".claude/skills/systematic-debugging/MANIFEST.json",
           "role": "managed",
-          "sha256": "ac81e83c0b442c9fb81650d57e3643389ec86b82b9118d25f437f7d780c6216d"
+          "sha256": "8317a63b9dbaaff78203088e517fdeaab9648b59cbbf5c974deba11807d13ab4"
+        },
+        {
+          "path": ".claude/skills/systematic-debugging/references/condition-based-waiting-example.ts",
+          "role": "managed",
+          "sha256": "40ae5ebe497fdf310200e43fe986552546d0a22837c0d39e855db1cfd33eb88e"
+        },
+        {
+          "path": ".claude/skills/systematic-debugging/references/condition-based-waiting.md",
+          "role": "managed",
+          "sha256": "e89fec8400d6cd50f43407cec9fab50976ba4d55d0ec2eb51c0bd68036b54c26"
         },
         {
           "path": ".claude/skills/systematic-debugging/references/defense-in-depth.md",
@@ -1043,36 +1023,61 @@
           "sha256": "392ce4cc56a4e85c411fae14ae679dcbb06534ce0165cd94565c98caa647cd33"
         },
         {
+          "path": ".claude/skills/systematic-debugging/references/four-phase-method.md",
+          "role": "managed",
+          "sha256": "38dca18480d99bc82a53ee079c8236029a61fe4e1a7a12952a5ab64002bdd11f"
+        },
+        {
+          "path": ".claude/skills/systematic-debugging/references/pressure-tests/test-academic.md",
+          "role": "managed",
+          "sha256": "fe2ba480d78ac0d686dc025f41c2a32a43d642bf533f91b0c6053a04d35d6486"
+        },
+        {
+          "path": ".claude/skills/systematic-debugging/references/pressure-tests/test-pressure-1.md",
+          "role": "managed",
+          "sha256": "0b6a915db0054577819834c79be9eb614e97bddba10d73768e1fbe91cfed048a"
+        },
+        {
+          "path": ".claude/skills/systematic-debugging/references/pressure-tests/test-pressure-2.md",
+          "role": "managed",
+          "sha256": "b2030aeffba07050e8ad573ddf87486457c4a016a786bb326235bebd856f2016"
+        },
+        {
+          "path": ".claude/skills/systematic-debugging/references/pressure-tests/test-pressure-3.md",
+          "role": "managed",
+          "sha256": "96b50a52e2c7989c9cf20fb752c47c1e9a3a70dc362f8f7989f8f5b64dac7708"
+        },
+        {
           "path": ".claude/skills/systematic-debugging/references/root-cause-tracing.md",
           "role": "managed",
           "sha256": "63062df1e3225bb18c560a60991e6af990b58276d0c20b341f283a1a83465098"
         },
         {
-          "path": ".claude/skills/systematic-debugging/references/superpowers-systematic-debugging.md",
+          "path": ".claude/skills/systematic-debugging/scripts/find-polluter.sh",
           "role": "managed",
-          "sha256": "a9a5a3690f6d9a778d41002b46486338417e13b0dd050b3556ad916b5a145c96"
+          "sha256": "dd7b8f13c4cc2a24b33ff87b18da9248f3e1c80a085c3316224f69ff0fa5c43c"
         },
         {
           "path": ".claude/skills/systematic-debugging/SKILL.md",
           "role": "managed",
-          "sha256": "86e81f53bc9af3f648212fcd5675950bbc5ea44df8825a7332875170394ffb2e"
+          "sha256": "66e3461463af845345d841e5331e7197dacb0f46abbe9750681581171177e86a"
         }
       ],
       "target_notes": [
         {
           "id": "historical-transplant-plan-paths",
-          "note": "References in systematic-debugging references/superpowers-systematic-debugging.md mention .brief2dev/transplants/... paths, but these are documentation provenance notes of OSS transplant history, not runtime dependencies — harmless if target lacks .brief2dev/."
+          "note": "References in systematic-debugging references/four-phase-method.md mention .brief2dev/transplants/... paths, but these are documentation provenance notes of OSS transplant history, not runtime dependencies — harmless if target lacks .brief2dev/."
         }
       ]
     },
     "feature-orchestration": {
       "title": "Feature Development Full Orchestration (feature-pilot Single Entrypoint + Implementation Plan Authoring + Derived Code Ownership Index)",
-      "bundle_version": "1.0",
+      "bundle_version": "1.1",
       "source": {
         "repo": "brief2dev",
-        "commit": "4bb00b7b185a3c4253205d58930a8b9f33df41ff"
+        "commit": "6b2fec306769a7c6131533c232dc6ef123a2d855"
       },
-      "transplanted_at": "2026-10-25T05:06:53.226Z",
+      "transplanted_at": "2026-10-25T10:30:20.588Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle feature-orchestration --target <this-project-root> --json",
       "files": [
         {
@@ -1088,7 +1093,7 @@
         {
           "path": ".claude/skills/engineering-plan-writer/MANIFEST.json",
           "role": "managed",
-          "sha256": "8d99865b7e6886d322083f7099d770a5312d2ac9d94e8ecaf08843e75a195a34"
+          "sha256": "f7d7309c09638b5cb4ac5e6194e6287d99433f1572a8307fd1fae5c6b18651e0"
         },
         {
           "path": ".claude/skills/engineering-plan-writer/references/cold-start-plan-protocol.md",
@@ -1101,16 +1106,6 @@
           "sha256": "91d5289cd84f511720473b523fbf57499c4bfd09d6e15a41468a278f3a73dc00"
         },
         {
-          "path": ".claude/skills/engineering-plan-writer/references/superpowers-executing-plans.md",
-          "role": "managed",
-          "sha256": "e16c63cc807170fe0818c7d895b07abef7b31fbbed5c0d0395495372d0e976ec"
-        },
-        {
-          "path": ".claude/skills/engineering-plan-writer/references/superpowers-writing-plans.md",
-          "role": "managed",
-          "sha256": "4f60d1e896fe18afc261824b7da537fca44b9a4c245697f401bfd1861410b3f6"
-        },
-        {
           "path": ".claude/skills/engineering-plan-writer/references/temporal-interrogation.md",
           "role": "managed",
           "sha256": "9fde70f6b2feebbad9e41342c662dbea588084a93e6704a83e36264e30ea869c"
@@ -1118,7 +1113,7 @@
         {
           "path": ".claude/skills/engineering-plan-writer/SKILL.md",
           "role": "managed",
-          "sha256": "17e399a43c6134572dcc178d33f389e96087e496fb7e995f1fca7752bb4e78e5"
+          "sha256": "2b07fabbf35b32575a787cd02f8cd93cdadb9f0bb3d8c66b6701a4063d7a6e54"
         },
         {
           "path": ".claude/skills/feature-pilot/MANIFEST.json",
@@ -1143,7 +1138,7 @@
         {
           "path": ".claude/skills/feature-pilot/references/feature-pilot-protocol-details.md",
           "role": "managed",
-          "sha256": "ce76f109cf945d827f2406b57b748f93a20e8b5c5e7f92c8f8464815080bb819"
+          "sha256": "b9eec2d1577097425e156332272200b5f7c778a2201ca8cea3a70017af87b3b6"
         },
         {
           "path": ".claude/skills/feature-pilot/references/readiness-gate-protocol.md",
@@ -1163,7 +1158,7 @@
         {
           "path": ".claude/skills/feature-pilot/SKILL.md",
           "role": "managed",
-          "sha256": "a6fbf5bb3869fbedddcbd07816e5c368c0c1a5af18b5668b4a8489abe849793c"
+          "sha256": "16849fc02dbd53d7f402e5a2e42e24b066f3b1ee2abdabd641a7d2eb088b8f75"
         }
       ],
       "target_notes": [
@@ -1182,6 +1177,339 @@
         {
           "id": "ownership-index-derived",
           "note": "generate-code-ownership-index.mjs is an index derived from project-config.json/docs/features/domain-map.json/feature CONTEXT.json/SPEC documents (not a new SSOT) — joins with docs/_templates conventions transplanted by feature-delivery-core. In initial states without source files, outputs an empty candidate index without failing."
+        }
+      ]
+    },
+    "dev-discipline-workflow": {
+      "title": "Development Discipline Workflow (Brainstorm → Plan → Subagent/Inline Execution → Review → Finish, TDD and Verification Throughout)",
+      "bundle_version": "1.0",
+      "source": {
+        "repo": "brief2dev",
+        "commit": "82fab528b705ba1d92c4775a418f1fbaf3ed0ce3"
+      },
+      "transplanted_at": "2026-10-25T12:28:46.968Z",
+      "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle dev-discipline-workflow --target <this-project-root> --json",
+      "files": [
+        {
+          "path": ".claude/skills/brainstorming/LICENSE.txt",
+          "role": "managed",
+          "sha256": "48df5f75a7846e8e1dfaf99b6d9c20be52eabf0e9d604925c815ab4f7a6aa467"
+        },
+        {
+          "path": ".claude/skills/brainstorming/MANIFEST.json",
+          "role": "managed",
+          "sha256": "f04f7d8c7f6d8a9b7ec3079f3acfa62f47d0f63dd4233bc61ec379285df136d2"
+        },
+        {
+          "path": ".claude/skills/brainstorming/references/builder-check-prompt.md",
+          "role": "managed",
+          "sha256": "36d51a4723d6f0a3ce5811a0ea3b3a8424f07533947e1355f5d8cb8cce40c55e"
+        },
+        {
+          "path": ".claude/skills/brainstorming/references/visual-companion.md",
+          "role": "managed",
+          "sha256": "b666e50c01c3a3afac55ff36bd81778d7aeab1ec1fabef4e43134421b623d8dd"
+        },
+        {
+          "path": ".claude/skills/brainstorming/scripts/frame-template.html",
+          "role": "managed",
+          "sha256": "015063070dcf70d92b4f8cc219616c089d6986e5d7ccb17c4aa7ca0abdd7de65"
+        },
+        {
+          "path": ".claude/skills/brainstorming/scripts/helper.js",
+          "role": "managed",
+          "sha256": "43c6d69954a46ec34a2a262bcc62a9a7e83e839c739f199cb72646d397c686e3"
+        },
+        {
+          "path": ".claude/skills/brainstorming/scripts/server.cjs",
+          "role": "managed",
+          "sha256": "61c9de8280b848295b2c818397fa37cd508d705a143351dc98bf22430e9c0f66"
+        },
+        {
+          "path": ".claude/skills/brainstorming/scripts/start-server.sh",
+          "role": "managed",
+          "sha256": "4cb9796523c94db9b58a383853c52671518d2861bcf533e3d699ab7c1db44e72"
+        },
+        {
+          "path": ".claude/skills/brainstorming/scripts/stop-server.sh",
+          "role": "managed",
+          "sha256": "b33fae6dce618d5686853b2d8707b44460856ed5dd7f5e39594192e1840b99c8"
+        },
+        {
+          "path": ".claude/skills/brainstorming/SKILL.md",
+          "role": "managed",
+          "sha256": "4b58f6c7e7c055520f171fd003a8d5e748ff7240978767faa164d3f60857dc37"
+        },
+        {
+          "path": ".claude/skills/dispatching-parallel-agents/LICENSE.txt",
+          "role": "managed",
+          "sha256": "48df5f75a7846e8e1dfaf99b6d9c20be52eabf0e9d604925c815ab4f7a6aa467"
+        },
+        {
+          "path": ".claude/skills/dispatching-parallel-agents/MANIFEST.json",
+          "role": "managed",
+          "sha256": "12442b60e779eb975beb2223db73e0a11b928eeb78bae2fef03dd300ac431bbc"
+        },
+        {
+          "path": ".claude/skills/dispatching-parallel-agents/SKILL.md",
+          "role": "managed",
+          "sha256": "29676632e15cf4b2929e986528dc6de6fbff562595e2d19d25b761bab43fa823"
+        },
+        {
+          "path": ".claude/skills/executing-plans/LICENSE.txt",
+          "role": "managed",
+          "sha256": "48df5f75a7846e8e1dfaf99b6d9c20be52eabf0e9d604925c815ab4f7a6aa467"
+        },
+        {
+          "path": ".claude/skills/executing-plans/MANIFEST.json",
+          "role": "managed",
+          "sha256": "bac3806019afa0c1d35030d5f7ed743bef14da12a56be0787af52e878c5b28cd"
+        },
+        {
+          "path": ".claude/skills/executing-plans/scripts/task-done",
+          "role": "managed",
+          "sha256": "d0d4f2397c85a4426443ea955e699ef12568b41b408ec6122d4ec2433ee3a5f6"
+        },
+        {
+          "path": ".claude/skills/executing-plans/scripts/task-start",
+          "role": "managed",
+          "sha256": "f833693c8fce3700fc9f841562d80f8015cd40f652c168a3405ac3e46947a1fe"
+        },
+        {
+          "path": ".claude/skills/executing-plans/SKILL.md",
+          "role": "managed",
+          "sha256": "888c494b407b0db6b0a48d04a8356480ea0be76b42642cae21f14247cfc75bb3"
+        },
+        {
+          "path": ".claude/skills/finishing-a-development-branch/LICENSE.txt",
+          "role": "managed",
+          "sha256": "48df5f75a7846e8e1dfaf99b6d9c20be52eabf0e9d604925c815ab4f7a6aa467"
+        },
+        {
+          "path": ".claude/skills/finishing-a-development-branch/MANIFEST.json",
+          "role": "managed",
+          "sha256": "7ce057d6deec9b99b0b7465efa6b1764bb81c02ad43124627e686b3522027274"
+        },
+        {
+          "path": ".claude/skills/finishing-a-development-branch/SKILL.md",
+          "role": "managed",
+          "sha256": "b2b0f55bec74cb8ee09106147252feff1bd3275eb6e28880f2c12753bb43e94b"
+        },
+        {
+          "path": ".claude/skills/receiving-code-review/LICENSE.txt",
+          "role": "managed",
+          "sha256": "48df5f75a7846e8e1dfaf99b6d9c20be52eabf0e9d604925c815ab4f7a6aa467"
+        },
+        {
+          "path": ".claude/skills/receiving-code-review/MANIFEST.json",
+          "role": "managed",
+          "sha256": "52be13bb30d27717fa539fbcdd6ea00005d68a035a6cc41bd5f602bc0d85399f"
+        },
+        {
+          "path": ".claude/skills/receiving-code-review/SKILL.md",
+          "role": "managed",
+          "sha256": "844146021cd87cb62c48c45850e3272795a965853b46498a08e9bf2c5ff49bd1"
+        },
+        {
+          "path": ".claude/skills/requesting-code-review/LICENSE.txt",
+          "role": "managed",
+          "sha256": "48df5f75a7846e8e1dfaf99b6d9c20be52eabf0e9d604925c815ab4f7a6aa467"
+        },
+        {
+          "path": ".claude/skills/requesting-code-review/MANIFEST.json",
+          "role": "managed",
+          "sha256": "c55eba67e5a3be12d2c6ba6517352e75ea63e889e69526bb37f4e4f8cd7c7e85"
+        },
+        {
+          "path": ".claude/skills/requesting-code-review/references/code-reviewer.md",
+          "role": "managed",
+          "sha256": "82e370be6b3447523816286195571e4216ba56ba1ad6ad0e87862294c4c78dcb"
+        },
+        {
+          "path": ".claude/skills/requesting-code-review/SKILL.md",
+          "role": "managed",
+          "sha256": "d16ead7e741ad49f8481c98807eb7a8292432c04a29393eb180337917f52b813"
+        },
+        {
+          "path": ".claude/skills/subagent-driven-development/LICENSE.txt",
+          "role": "managed",
+          "sha256": "48df5f75a7846e8e1dfaf99b6d9c20be52eabf0e9d604925c815ab4f7a6aa467"
+        },
+        {
+          "path": ".claude/skills/subagent-driven-development/MANIFEST.json",
+          "role": "managed",
+          "sha256": "44a36d78f89cbe09b94efe7877283ee46003e225ad1a9c76e7cb030b11ee8c9c"
+        },
+        {
+          "path": ".claude/skills/subagent-driven-development/references/batching.md",
+          "role": "managed",
+          "sha256": "e33073abfc2ad3cec1026b918879af71364b7c28f5899920be07f034baec7540"
+        },
+        {
+          "path": ".claude/skills/subagent-driven-development/references/cannot-verify.md",
+          "role": "managed",
+          "sha256": "955754afa087ddd19e87a7032ca215335ca258ddb2e0e3e5ba0bcfadd7b1ad60"
+        },
+        {
+          "path": ".claude/skills/subagent-driven-development/references/final-review.md",
+          "role": "managed",
+          "sha256": "2653f72a77012961d788d331e8b877909abd4a54526d65adfac81ab97b55627b"
+        },
+        {
+          "path": ".claude/skills/subagent-driven-development/references/fix-loop.md",
+          "role": "managed",
+          "sha256": "9b13b3c7fd4a1ea42781adec82bbf686fd8e50da1f0644cbb8c7573c2cf72e6a"
+        },
+        {
+          "path": ".claude/skills/subagent-driven-development/references/handling-reports.md",
+          "role": "managed",
+          "sha256": "47bf11ec9e8842f5503348a2c13721ee63051751b90088d20c704acd16829b51"
+        },
+        {
+          "path": ".claude/skills/subagent-driven-development/references/implementer-prompt.md",
+          "role": "managed",
+          "sha256": "81dd9d5a3fb0b09b96b5829f03b9796842f3199ef7591d1ba1c2db2a515f64d0"
+        },
+        {
+          "path": ".claude/skills/subagent-driven-development/references/preflight.md",
+          "role": "managed",
+          "sha256": "04262bcb72409870cdf86b4ed6dc17b886ec4e2624b1c9a04071fd0b7920dc20"
+        },
+        {
+          "path": ".claude/skills/subagent-driven-development/references/re-review-prompt.md",
+          "role": "managed",
+          "sha256": "0828a5e9cbb12ba49f14621dd8c3953c48c0fc383e75bb5494f055ed0d6d824f"
+        },
+        {
+          "path": ".claude/skills/subagent-driven-development/references/resuming.md",
+          "role": "managed",
+          "sha256": "f1413b0b90ddc274c8b301bbcd60f36e5ca7514d0dcbfaf98a9a967ec0032cc7"
+        },
+        {
+          "path": ".claude/skills/subagent-driven-development/references/task-reviewer-prompt.md",
+          "role": "managed",
+          "sha256": "bfed55c8f19d0ff6ed57b0fe09127c92890e9311c6c73917129598826bf9ebe8"
+        },
+        {
+          "path": ".claude/skills/subagent-driven-development/scripts/review-package",
+          "role": "managed",
+          "sha256": "6ce2071d4e0b481c8fd5342ed405494d659894aeebe8c75e19d60ec6c1e9d52c"
+        },
+        {
+          "path": ".claude/skills/subagent-driven-development/scripts/sdd-workspace",
+          "role": "managed",
+          "sha256": "8931b36393771dbca486abc1e2b9395b9bfced7cfd6979b9b216a42d62422a83"
+        },
+        {
+          "path": ".claude/skills/subagent-driven-development/scripts/task-brief",
+          "role": "managed",
+          "sha256": "03bc555f73c38dd453a181719dc7467524418133de5cc5e68310a658c4282701"
+        },
+        {
+          "path": ".claude/skills/subagent-driven-development/SKILL.md",
+          "role": "managed",
+          "sha256": "7938ea8feebec0fd88111231c734f05d3cb6e94f7bec546c543dddab84fe99b4"
+        },
+        {
+          "path": ".claude/skills/test-driven-development/LICENSE.txt",
+          "role": "managed",
+          "sha256": "48df5f75a7846e8e1dfaf99b6d9c20be52eabf0e9d604925c815ab4f7a6aa467"
+        },
+        {
+          "path": ".claude/skills/test-driven-development/MANIFEST.json",
+          "role": "managed",
+          "sha256": "105dc84a93a21508dbb4cbcad5bda36b79808e0ee6cfc9e31b70d5faa95f1a98"
+        },
+        {
+          "path": ".claude/skills/test-driven-development/references/writing-good-tests.md",
+          "role": "managed",
+          "sha256": "f99bbfc43ea86bff776256f03e27316c7034119e03f981e5c7f220f022cb0b13"
+        },
+        {
+          "path": ".claude/skills/test-driven-development/SKILL.md",
+          "role": "managed",
+          "sha256": "20e28aa741538fb2fe1fd9fea2d8dd1d491763ad929d322273bf75b0f08659ba"
+        },
+        {
+          "path": ".claude/skills/using-git-worktrees/LICENSE.txt",
+          "role": "managed",
+          "sha256": "48df5f75a7846e8e1dfaf99b6d9c20be52eabf0e9d604925c815ab4f7a6aa467"
+        },
+        {
+          "path": ".claude/skills/using-git-worktrees/MANIFEST.json",
+          "role": "managed",
+          "sha256": "bd563ec4fecc622e2911f83688739839166a50922431d1b85f5403b549f9d47b"
+        },
+        {
+          "path": ".claude/skills/using-git-worktrees/SKILL.md",
+          "role": "managed",
+          "sha256": "c8323749e5f541837c6484434687a5c9cd617a76fad6d46a267a3faa134e8879"
+        },
+        {
+          "path": ".claude/skills/using-skills/LICENSE.txt",
+          "role": "managed",
+          "sha256": "48df5f75a7846e8e1dfaf99b6d9c20be52eabf0e9d604925c815ab4f7a6aa467"
+        },
+        {
+          "path": ".claude/skills/using-skills/MANIFEST.json",
+          "role": "managed",
+          "sha256": "f2d2b0713000ee87b47c00ec008bd75673becd942b53531d36e5832f040ac976"
+        },
+        {
+          "path": ".claude/skills/using-skills/references/antigravity-tools.md",
+          "role": "managed",
+          "sha256": "4880f6de3da4e32f9659ebe7a72b9e0ebfff04e028c2ed96173f86d0387a04c0"
+        },
+        {
+          "path": ".claude/skills/using-skills/references/claude-code-tools.md",
+          "role": "managed",
+          "sha256": "ed7e9278cc910f4362265b123d4b4d841d0fa4e2e938faa57339dc4c9113fe27"
+        },
+        {
+          "path": ".claude/skills/using-skills/references/codex-tools.md",
+          "role": "managed",
+          "sha256": "1a38ad9b188c393052f58d95657a1c35ea6aafc8b5a27f198f3922912f70bbe7"
+        },
+        {
+          "path": ".claude/skills/using-skills/SKILL.md",
+          "role": "managed",
+          "sha256": "4e8bbaa5b1147db442a6f9ee1342a384809d84c9bb9f634bf48e4cdfad9e6b3b"
+        },
+        {
+          "path": ".claude/skills/verification-before-completion/LICENSE.txt",
+          "role": "managed",
+          "sha256": "48df5f75a7846e8e1dfaf99b6d9c20be52eabf0e9d604925c815ab4f7a6aa467"
+        },
+        {
+          "path": ".claude/skills/verification-before-completion/MANIFEST.json",
+          "role": "managed",
+          "sha256": "fbcf5e86b9de7c1c169516ff9c33bfd31b771ca2fcae527f9f412969ddeecfc6"
+        },
+        {
+          "path": ".claude/skills/verification-before-completion/SKILL.md",
+          "role": "managed",
+          "sha256": "db8a49be63279af18df8c096ad5493d60140ad0ce66afa84eeb1e7da063a73fb"
+        },
+        {
+          "path": ".claude/skills/writing-plans/LICENSE.txt",
+          "role": "managed",
+          "sha256": "48df5f75a7846e8e1dfaf99b6d9c20be52eabf0e9d604925c815ab4f7a6aa467"
+        },
+        {
+          "path": ".claude/skills/writing-plans/MANIFEST.json",
+          "role": "managed",
+          "sha256": "f3fd45b696a13dda47bcef7448b2744d3d7d353dd7af63528c77f55b945ab985"
+        },
+        {
+          "path": ".claude/skills/writing-plans/SKILL.md",
+          "role": "managed",
+          "sha256": "ef4424a754ba00a45f598b76fd68c7bac7e568246b4c2611f9518639be126b15"
+        }
+      ],
+      "target_notes": [
+        {
+          "id": "in-this-repository-sections",
+          "note": "Each skill ends with an \"In This Repository\" section that names the repo entry points it defers to (worktree creation, PLAN.md location, quality gate command, ship command). Adjust that section when the target uses different entry points; the workflow above it is repository-neutral."
         }
       ]
     }

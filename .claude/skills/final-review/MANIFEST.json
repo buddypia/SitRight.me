@@ -173,14 +173,6 @@
       "transplant_source": "tp-gstack-20260420"
     },
     {
-      "file": "references/superpowers-requesting-code-review.md",
-      "description": "Stripped raw frontmatter. Maps superpowers Task tool model to brief2dev final-review multi-perspective protocol. 'No session history inheritance' principle matches brief2dev subagent model."
-    },
-    {
-      "file": "references/superpowers-receiving-code-review.md",
-      "description": "Stripped raw frontmatter. 'CLAUDE.md violation' phrasing mapped to brief2dev R-CM-016 (Anti-Sycophancy) violation. Forbidden Responses catalog aligns with R-CM-016 #1 forbidden phrases."
-    },
-    {
       "file": "references/gstack-review-report-contract.md",
       "description": "Review report unresolved-decisions sentinel (last line enforces NO UNRESOLVED DECISIONS or unresolved list) + commit distance-based staleness detection contract"
     },

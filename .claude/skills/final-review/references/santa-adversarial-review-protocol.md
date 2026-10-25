@@ -154,7 +154,7 @@ Reviewer C = Agent(description="Santa Reviewer C", prompt=RUBRIC + OUTPUT)
 
 ### Integration with SDD Task Reviewer
 
-In `feature-implementer` SDD mode, the unified Task Reviewer (`sdd-task-reviewer-prompt.md`) returns 2 independent verdicts for spec compliance + code quality.
+In `feature-implementer` SDD mode, the unified Task Reviewer (`subagent-driven-development` skill, `references/task-reviewer-prompt.md`) returns 2 independent verdicts for spec compliance + code quality.
 The Santa protocol operates as a **higher-order quality gate**:
 
 1. Execute standard review (Task Reviewer — spec + quality 2 verdicts)

@@ -1,0 +1,35 @@
+{
+  "schema_version": 2,
+  "skill_id": "executing-plans",
+  "tier": 2,
+  "tier_description": "Process - Inline task-by-task plan execution with a ledger",
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "execute the plan",
+      "run the plan",
+      "implement the plan inline"
+    ]
+  },
+  "dependencies": {
+    "required": [],
+    "optional": []
+  },
+  "called_by": [
+    "writing-plans"
+  ],
+  "calls": [
+    "finishing-a-development-branch"
+  ],
+  "references": [
+    {
+      "file": "scripts/task-done",
+      "description": "Runs the task verification and appends to the ledger only on success"
+    },
+    {
+      "file": "scripts/task-start",
+      "description": "Prints the next task brief and records the task base commit"
+    }
+  ],
+  "source": "MIT-licensed skills library, Copyright (c) 2025 Jesse Vincent — upstream v7.0.1 (2ce8aa1). See LICENSE.txt and THIRD_PARTY_NOTICES.md"
+}

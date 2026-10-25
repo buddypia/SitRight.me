@@ -156,6 +156,10 @@ Reference documents in this directory:
 - **`references/root-cause-tracing.md`** — Backtracing call stacks to identify initial triggers.
 - **`references/defense-in-depth.md`** — Implementing multi-layer validation post root-cause remediation.
 - **`references/feedback-loop-catalog.md`** — 10-technique feedback loop catalog and loop-tightening discipline.
+- **`references/four-phase-method.md`** — The full four-phase method with boundary instrumentation examples.
+- **`references/condition-based-waiting.md`** (+ `condition-based-waiting-example.ts`) — Replacing arbitrary sleeps in flaky tests with polling on the actual condition.
+- **`scripts/find-polluter.sh`** — Bisects a test suite to find the test that creates an unwanted file or state: `.claude/skills/systematic-debugging/scripts/find-polluter.sh <path-to-check> '<test-glob>'`.
+- **`references/pressure-tests/`** — Pressure scenarios (time, sunk cost, authority) for testing this skill with the `writing-skills` method.
 
 **Related Skills:**
 - **bug-fix** — Orchestrator invoking this skill as a REQUIRED SUB-SKILL to manage full bug remediation lifecycles.
@@ -189,6 +193,6 @@ If essential diagnostic inputs (error traces, reproduction steps, environment co
 
 ## Maintenance
 
-- **Sources**: brief2dev internal rules (`.claude/rules/` R-CM/R-PL) + skill conventions.
-- **Last updated**: 2026-04-11
+- **Sources**: brief2dev internal rules (`.claude/rules/` R-CM/R-PL) + skill conventions; supporting files derived from an MIT-licensed skills library (`LICENSE.txt`).
+- **Last updated**: 2026-10-25
 - **Known limits**: Explicit boundaries are defined in the frontmatter description (`|...`) and body text.

@@ -1,0 +1,81 @@
+{
+  "schema_version": 2,
+  "skill_id": "subagent-driven-development",
+  "tier": 2,
+  "tier_description": "Process - Plan execution with a fresh subagent per task plus review loops",
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "subagent driven",
+      "dispatch implementer",
+      "execute plan with subagents",
+      "sdd"
+    ]
+  },
+  "dependencies": {
+    "required": [],
+    "optional": []
+  },
+  "called_by": [
+    "writing-plans",
+    "feature-implementer"
+  ],
+  "calls": [
+    "finishing-a-development-branch"
+  ],
+  "references": [
+    {
+      "file": "references/implementer-prompt.md",
+      "description": "Implementer subagent prompt template"
+    },
+    {
+      "file": "references/re-review-prompt.md",
+      "description": "Re-review prompt after fixes"
+    },
+    {
+      "file": "references/batching.md",
+      "description": "When and how to batch small tasks"
+    },
+    {
+      "file": "references/cannot-verify.md",
+      "description": "What to do when a claim cannot be verified"
+    },
+    {
+      "file": "references/final-review.md",
+      "description": "Whole-branch final review"
+    },
+    {
+      "file": "references/fix-loop.md",
+      "description": "Review/fix loop discipline"
+    },
+    {
+      "file": "references/handling-reports.md",
+      "description": "Reading implementer reports"
+    },
+    {
+      "file": "references/preflight.md",
+      "description": "Preflight checks before dispatching"
+    },
+    {
+      "file": "references/resuming.md",
+      "description": "Resuming an interrupted run from the ledger"
+    },
+    {
+      "file": "scripts/review-package",
+      "description": "Builds the diff package handed to a reviewer"
+    },
+    {
+      "file": "scripts/sdd-workspace",
+      "description": "Creates the self-ignoring .tmp/sdd/<plan> workspace"
+    },
+    {
+      "file": "scripts/task-brief",
+      "description": "Extracts one task's brief from the plan (ignores fenced headings)"
+    },
+    {
+      "file": "references/task-reviewer-prompt.md",
+      "description": "Per-task reviewer subagent prompt template"
+    }
+  ],
+  "source": "MIT-licensed skills library, Copyright (c) 2025 Jesse Vincent — upstream v7.0.1 (2ce8aa1). See LICENSE.txt and THIRD_PARTY_NOTICES.md"
+}

@@ -779,117 +779,15 @@ Update `CONTEXT.json` directly during work and upon completion:
 
 ## SDD Mode (Subagent-Driven Development)
 
-> Aligned with: Superpowers v6.1.1, 2026-07-17 (Source: `skills/subagent-driven-development/SKILL.md` + `task-reviewer-prompt.md`)
+> **Default is inline TDD in the main loop, regardless of task count.** Activate SDD mode only under the conditions in `SKILL.md` §SDD Mode (parallel lanes with disjoint `write_scope`, or measured context bloat during this feature), and record which one under `## Decisions` in the worktree PLAN. If `PLAN.md` is absent, execute in standard inline TDD mode.
 
-> **Default is inline TDD in the main loop, regardless of task count.** Activate SDD mode only under the conditions in `SKILL.md` §SDD Mode (parallel lanes with disjoint `write_scope`, or measured context bloat during this feature), and record which one under `## Decisions` in the worktree PLAN. In lane mode the "Per Task" loop below runs inside one implementer subagent per lane.
-> If `PLAN.md` is absent, execute in standard inline TDD mode.
+How to run it is the `subagent-driven-development` skill: pre-flight plan review, task briefs and reports in `.tmp/sdd/`, implementer status handling, model selection, the unified task reviewer, the progress ledger and the branch final review, with its prompt templates under its `references/`. This skill decides only *whether* to use it and adds:
 
-### What is SDD Mode?
+- Task text comes from the feature's `PLAN.md`; binding values in each brief come from its Global Constraints section or the SPEC (FR AC/EC).
+- In lane mode one implementer subagent runs its lane's tasks in order; the task reviewer still checks each task's diff.
+- After the last task, update `CONTEXT.json` (§Direct CONTEXT.json Updates) and hand over to `feature-wiring` / `feature-status-sync`.
 
-An execution pattern where dedicated task-level subagents are dispatched to implement code, followed by a **Task Reviewer** (a single reviewer reading the diff once and returning 2 independent verdicts: spec compliance + code quality) for each task. Broad review spanning the entire branch is executed exactly once after all tasks complete (`final-review`).
-
-**Core Principle**: Fresh subagent per task + Task Reviewer (Unified spec + quality) + single branch-wide final review = High-quality, fast iteration.
-
-**Evolution History (v6.1.1 Re-alignment)**: Previous versions sequentially dispatched 2 separate subagents for Spec Compliance Review and Code Quality Review (2-Stage Review). Empirical measurement upstream showed excessive latency and context re-acquisition overhead, leading to unification into a single Task Reviewer returning 2 verdicts from a single diff read. Pre-Flight Plan Review, File Handoffs, Durable Progress Ledger, Model Selection, and Reviewer Prompt construction disciplines below are newly incorporated with this alignment.
-
-### Pre-Flight Plan Review (Once prior to Task 1)
-
-**Before** dispatching Task 1, scan `PLAN.md` once in full to identify:
-
-- Contradictions between tasks or against Global Constraints in `PLAN.md`
-- Items explicitly mandated by `PLAN.md` that the review rubric considers defects (e.g., tests asserting nothing, verbatim duplication of logic blocks)
-
-Present all discovered items to the user in a **single batched question** — place each finding alongside the verbatim `PLAN.md` excerpt directing it to confirm which takes precedence. Do not pause iteratively across tasks. If the scan is clean, proceed without comment. Conflicts emerging only during implementation continue to be caught by the standard task review loop.
-
-### SDD Process
-
-```
-Read PLAN.md → Pre-Flight Plan Review (Scan conflicts → Batch question) → Extract all tasks → Begin tracking via TaskCreate
-  ↓
-Per Task:
-  1. Extract task brief: Write full task text to `.tmp/sdd/task-N-brief.md` (no inline prompt pasting — File Handoffs)
-  2. Dispatch Implementer subagent (references/sdd-implementer-prompt.md) — pass brief/report file paths, specify model
-  3. Handle Implementer status (DONE / DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT)
-  4. Create review package: Write commit list + stat + diff to `.tmp/sdd/review-<base7>..<head7>.diff`
-  5. Dispatch Task Reviewer (references/sdd-task-reviewer-prompt.md) — pass 3 file paths (brief/report/diff) + Global Constraints
-     → ❌ Issues → Implementer fixes → Re-review (same reviewer re-evaluates both spec + quality)
-     → ✅ Passed → Task complete, append one line to `.tmp/sdd/progress.md`
-  ↓
-All tasks complete → Execute final-review (Single branch-wide comprehensive review)
-```
-
-### Implementer Status Handling
-
-| Status | Action |
-| --- | --- |
-| **DONE** | Create review package and dispatch Task Reviewer |
-| **DONE_WITH_CONCERNS** | Review concerns and proceed to Task Reviewer |
-| **NEEDS_CONTEXT** | Provide missing context and re-dispatch |
-| **BLOCKED** | (1) Context issue → Provide more (2) Task too large → Decompose (3) Plan error → Surface to user |
-
-### Model Selection
-
-**Principle**: "Turns beat token unit cost" — Cost scales with the number of turns subagents consume; cheaper models frequently consume 2-3x more turns on multi-step tasks, increasing total cost. Use mid-tier models as the baseline for reviewers and implementers working from prose descriptions. When task text contains complete code, implementation is merely transcription + testing, making lower-tier models sufficient.
-
-| Task Complexity | Model Selection | Signals |
-| --- | --- | --- |
-| Mechanical (1-2 files, complete spec) | Haiku tier | Complete code included in plan |
-| Integration (Multi-file, coordination needed) | Sonnet tier | Inter-file dependencies, pattern matching |
-| Architecture (Design judgment, broad context) | Opus tier | Architectural decisions. **Branch final review always uses this tier** — explicitly specified, not defaulting |
-
-**Always specify models explicitly upon dispatch.** Omitting the model causes inheritance of the session's default (typically the most expensive model), defeating the purpose of this section. Review tasks also select models according to diff size, complexity, and risk.
-
-### File Handoffs (File-based handoffs — No raw prompt pasting)
-
-Content pasted into dispatch prompts and subagent returns remain resident in the session context, re-read on every subsequent turn. Pass artifacts via files.
-
-- **Task Brief**: Prior to dispatching an implementer, extract the full task text into `.tmp/sdd/task-N-brief.md` and pass only the file path in the prompt (brief2dev equivalent of upstream `scripts/task-brief` — if no dedicated script is present, the AI extracts the section directly). The dispatch prompt contains only: (1) one line on where this task sits, (2) brief path ("read first — requirements and values to use as-is"), (3) interfaces/decisions from earlier tasks unknown to the brief, (4) resolutions of ambiguities in the brief, (5) report path + report contract. Exact values (numbers, magic strings, signatures, test cases) must exist solely in the brief file.
-- **Report File**: The report filename matches the brief filename (`task-N-brief.md` → `task-N-report.md`). The subagent writes the full report to the file and returns only status, commits, one-line test summary, and concerns to the controller.
-- **Reviewer Inputs**: The Task Reviewer receives 3 paths (brief file, report file, review package diff file) + Global Constraints binding the task.
-- Remediation dispatches append fix reports (including test outputs) to the same report file, and re-reviews read the updated file.
-- Measured case: A real session dispatch reached 42k characters, 99% of which was accumulated paste of earlier task summaries. A new subagent needs only its task, touching interfaces, and Global Constraints.
-
-**brief2dev Path Adaptation**: Upstream `.superpowers/sdd/` is translated to `.tmp/sdd/` per brief2dev conventions (`.tmp/` matches the git-ignored runtime artifact location in R-CM-034 — `PLAN.md` also resides in `.tmp/worktree-<safeBranch>/PLAN.md`). Progress ledger is `.tmp/sdd/progress.md`, task brief is `.tmp/sdd/task-N-brief.md`, and review package is `.tmp/sdd/review-<base7>..<head7>.diff`.
-
-### Durable Progress Ledger (Compaction Survival)
-
-Conversational context memory does not survive compaction. Controllers losing track of position and re-dispatching entire completed task sequences was observed as the costliest failure mode. Record progress in a ledger file in addition to todo items.
-
-- Check the ledger when starting SDD mode: `cat .tmp/sdd/progress.md` (create if absent). Never re-dispatch tasks recorded as completed in the ledger — resume from the first incomplete task.
-- When task review passes cleanly, append a line to the ledger in the same turn: `Task N: complete (commits <base7>..<head7>, review clean)`.
-- The ledger is a recovery map — even if context forgets commit creation, commits referenced in the ledger exist in git. Post-compaction, trust the ledger and `git log` over conversational memory.
-
-### Reviewer Prompt Construction Rules
-
-When populating Task Reviewer dispatch prompts:
-
-- Do not add open-ended instructions unrelated to the task (e.g., "check all call sites"). Do not ask reviewers to re-run tests the implementer already ran — the implementer's report contains test evidence.
-- **Never pre-judge reviewer findings** — do not include phrases like "do not flag this" or "maximum Minor severity" in dispatch prompts. If you believe a finding is a false positive, let the reviewer raise it and evaluate within the review loop.
-- Copy Global Constraints verbatim from the Global Constraints section of `PLAN.md` or the SPEC (exact values, formats, inter-component relationships). Process rules (YAGNI, test hygiene) already exist in the reviewer template.
-- Hand diffs to reviewers via file. Use the BASE recorded prior to task dispatch — avoid `HEAD~1`, which truncates multi-commit tasks.
-- Dispatch fix subagents for Critical/Important findings. Record Minor findings in the progress ledger, allowing the branch final review to assess whether fixes are needed before merge.
-- Findings labeled "plan-mandated" represent user decisions, identical to other plan contradictions. Present the finding alongside the plan text and ask which takes precedence — do not dismiss or dispatch fixes without asking.
-- When the branch final review returns findings, dispatch **one** fix subagent containing the aggregated findings list, rather than one per finding.
-
-### Handling Reviewer ⚠️ Items
-
-The Task Reviewer may report "⚠️ Unverifiable in Diff" items (requirements in unmodified code or spanning across tasks). These do not block the remainder of the review, but because the controller holds cross-task context, it must resolve each item before marking the task complete. If confirmed as a real gap, treat as a spec review failure — return to implementer and re-review.
-
-### Unified Task Reviewer Rules (Replacing Legacy 2-Stage Review)
-
-1. **Spec Compliance and Code Quality are judged together in a single diff read.** The reviewer returns both the spec compliance verdict (✅/❌/⚠️) and quality verdict (Approved/Needs fixes). Reports missing either verdict are treated as review omissions.
-2. **If reviewer finds issues** → Implementer fixes → Reviewer re-reviews both spec + quality. Never skip re-review.
-3. **Never dispatch implementation agents in parallel** (risk of conflicts).
-
-> Reference: `references/gan-generator-evaluator-pattern.md` — Generator-Evaluator separation pattern. Reference when strengthening Task Reviewers.
-
-### Prompt Templates and Schemas
-
-- `references/sdd-implementer-prompt.md` — Implementer subagent dispatch
-- `references/sdd-task-reviewer-prompt.md` — Task Reviewer dispatch (unified spec+quality 2 verdicts). **Introduced with v6.1.1 alignment — replaces the legacy 2-Stage separate files**
-- Legacy 2-Stage separated reviewer prompts are **deleted** — replaced by unified `sdd-task-reviewer-prompt.md`. Reference git history (`git log --follow`) for historical comparisons
-- `data/schemas/sdd-phase-transition.schema.json` — Phase transition tracking schema. **Note**: Still reflects legacy 2-Stage model (`spec_compliance=PASS` prerequisite for `quality_review`). Schema update for unified reviewer is tracked as follow-up work.
-- `data/schemas/stage-output/engineering-plan.schema.json` — `PLAN.md` structural validation
+Schemas: `data/schemas/sdd-phase-transition.schema.json` (phase transition tracking; still models the legacy 2-stage review) and `data/schemas/stage-output/engineering-plan.schema.json` (`PLAN.md` structure).
 
 ---
 
@@ -901,7 +799,7 @@ The Task Reviewer may report "⚠️ Unverifiable in Diff" items (requirements i
 | 2 | SPEC Template | Mandatory |
 | 3 | PLAN.md (Output of engineering-plan-writer) | Recommended (Mandatory for SDD mode) |
 | 4 | Existing feature implementation examples (`{FEATURES_DIR}/`) | Recommended |
-| 5 | SDD Prompt Templates (`references/sdd-*.md`) | Mandatory for SDD mode |
+| 5 | `subagent-driven-development` skill | Mandatory for SDD mode |
 | 6 | Test Coverage Diagram (`references/test-coverage-diagram-template.md`) | **Mandatory** |
 
 > Always confirm architecture rules in CLAUDE.md before starting implementation.
@@ -930,6 +828,6 @@ This diagram is a design tool that determines "what tests to write" in TDD. Exec
 
 ## Maintenance
 
-- **Sources**: TDD principles, SDD patterns (superpowers v6.1.1 `subagent-driven-development` re-alignment, 2026-07-17), project SPEC.md, CLAUDE.md
+- **Sources**: TDD principles, project SPEC.md, CLAUDE.md (SDD execution lives in the `subagent-driven-development` skill)
 - **Last updated**: 2026-07-17
 - **Known limits**: SDD mode requires PLAN.md to function; parallel subagent prohibition rule requires manual adherence; `data/schemas/sdd-phase-transition.schema.json` still assumes legacy 2-Stage model (follow-up update needed)

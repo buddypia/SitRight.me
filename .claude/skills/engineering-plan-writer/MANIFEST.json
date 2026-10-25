@@ -56,14 +56,6 @@
       "file": "references/temporal-interrogation.md",
       "description": "Proactive temporal decision resolution. Predicts and answers questions implementers will face across HOUR 1 (foundations) / HOUR 2-3 (core logic) / HOUR 4-5 (integration) / HOUR 6+ (polish) during planning. Dual Human + CC scale notation. Transplanted from gstack.",
       "transplant_source": "tp-gstack-20260417"
-    },
-    {
-      "file": "references/superpowers-writing-plans.md",
-      "description": "Stripped original frontmatter. Normalized 'your human partner' → user, 'subagent-driven-development' references → superpowers-subagent-driven-development.md references. Normalized plan storage paths to brief2dev conventions (docs/research/ or docs/features/). Mapped 'dedicated worktree' guide to brief2dev EnterWorktree tool."
-    },
-    {
-      "file": "references/superpowers-executing-plans.md",
-      "description": "Stripped original frontmatter. Transformed 'subagent-driven-development' recommendation into a sequential execution cycle guide. Mapped 'finishing-a-development-branch' sub-skill references to brief2dev create-pr skill. Cross-referenced prohibition on direct main/master branch edits with R-CM-008 (git-workflow)."
     }
   ]
 }

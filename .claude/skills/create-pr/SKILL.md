@@ -128,7 +128,7 @@ Flags in `.tmp/create-pr-active` (30-minute mtime freshness) automatically grant
 
 ## Branch Completion Options
 
-When work on a worktree is complete and deciding whether to create a PR, keep, or discard the branch, refer to `.claude/skills/create-pr/references/superpowers-branch-completion-options.md`.
+When work on a worktree is complete and deciding whether to create a PR, keep, or discard the branch, follow the `finishing-a-development-branch` skill; its PR option is `ship-worktree`.
 
 ## Merge Conflict Resolution
 

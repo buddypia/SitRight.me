@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "skill_id": "using-git-worktrees",
+  "tier": 2,
+  "tier_description": "Process - Isolated workspace setup (maps to make wt.new)",
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "worktree",
+      "isolated workspace",
+      "new branch workspace"
+    ]
+  },
+  "dependencies": {
+    "required": [],
+    "optional": []
+  },
+  "called_by": [],
+  "calls": [],
+  "source": "MIT-licensed skills library, Copyright (c) 2025 Jesse Vincent — upstream v7.0.1 (2ce8aa1). See LICENSE.txt and THIRD_PARTY_NOTICES.md"
+}

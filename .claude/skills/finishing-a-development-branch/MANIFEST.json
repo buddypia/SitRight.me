@@ -1,0 +1,25 @@
+{
+  "schema_version": 2,
+  "skill_id": "finishing-a-development-branch",
+  "tier": 2,
+  "tier_description": "Process - Branch completion options (hands off to the repository's ship command)",
+  "public_api": {
+    "direct_invocable": true,
+    "trigger_keywords": [
+      "finish branch",
+      "ship this",
+      "wrap up the branch",
+      "merge or pr"
+    ]
+  },
+  "dependencies": {
+    "required": [],
+    "optional": []
+  },
+  "called_by": [
+    "executing-plans",
+    "subagent-driven-development"
+  ],
+  "calls": [],
+  "source": "MIT-licensed skills library, Copyright (c) 2025 Jesse Vincent — upstream v7.0.1 (2ce8aa1). See LICENSE.txt and THIRD_PARTY_NOTICES.md"
+}

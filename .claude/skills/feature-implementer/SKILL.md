@@ -112,20 +112,7 @@ Use Subagent-Driven Development (SDD) only when one of these holds, and record w
 
 Never dispatch parallel implementation agents that modify the same file concurrently. Inline mode has no per-task Task Reviewer; its review stays `/code-review --fix` and, optionally, `final-review` after all tasks (`feature-pilot` steps 8-9).
 
-Fixed SDD sequence (Superpowers v6.1.1 aligned — Unified Task Reviewer):
-
-1. Run Pre-Flight Plan Review before starting Task 1 to check plan conflicts comprehensively.
-2. Implementer executes one task (task prompt passed via file handoffs rather than inline prompts).
-3. Single Task Reviewer evaluates Spec Compliance + Code Quality in a single diff pass and returns **2 independent verdicts**.
-4. Controller never blindly trusts subagent `DONE` reports; re-verifies diff, review output, and verification commands.
-5. If issues arise, route back to the same phase for remediation and re-review. Completed tasks are recorded in the Durable Progress Ledger (compaction-resistant).
-
-Prompts and detailed state handling:
-
-- `references/sdd-implementer-prompt.md`
-- `references/sdd-task-reviewer-prompt.md` (Unified spec+quality — replaces legacy separate reviewers)
-- `references/gan-generator-evaluator-pattern.md`
-- Detailed disciplines (Pre-Flight / File Handoffs / Progress Ledger / Model Selection): `references/implementation-protocol-details.md` §SDD Mode
+Run SDD with the `subagent-driven-development` skill: task briefs, one Task Reviewer per task returning separate Spec Compliance and Code Quality verdicts, controller re-verification of every `DONE`, progress ledger, final review. Feature-specific additions: `references/implementation-protocol-details.md` §SDD Mode.
 
 ## References
 
@@ -135,8 +122,6 @@ Consult on-demand only:
 | --- | --- |
 | `references/implementation-protocol-details.md` | Full legacy protocol, code templates, test authoring examples, or error handling tables are needed |
 | `references/test-coverage-diagram-template.md` | Mapping branches, user flows, and edge cases prior to starting TDD |
-| `references/sdd-*.md` | Subagent implementation/review prompts are needed in SDD mode |
-| `references/superpowers-controller-verification.md` | Controller re-verifies diff, review, and verification evidence after subagent reports completion |
 | `references/gan-generator-evaluator-pattern.md` | Reinforcing generator/evaluator separation principles |
 
 ## Not For / Boundaries
