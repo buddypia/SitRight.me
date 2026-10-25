@@ -9,7 +9,7 @@
 | 部品 | 変更 | 観察 | 判定 |
 |---|---|---|---|
 | `.claude/settings.json` の `enabledPlugins` | このリポジトリで使わない posthog・dart-flutter・supabase・postgres-best-practices を `false` にした（user 設定の `true` より project 設定が優先） | init イベントの skill 数が 366 から 172 になり、4 つの plugin が plugins から消えた | 効いた |
-| `.claude/settings.json` の `skillOverrides` | 依存に無い技術の user skill 26 個（remotion-*・supabase・shadcn・Cloudflare Sandbox / Agents / Durable Objects / One / Email）を `user-invocable-only` にした | init イベントには残るが、`claude -p` でモデルに一覧を書き写させると該当名は 0 件で、`wrangler` は残った。選択の精度が上がったかは測っていない | 切り分け不能 |
+| `.claude/settings.json` の `skillOverrides` | 依存に無い技術の user skill 24 個（remotion-*・supabase・shadcn・Cloudflare Sandbox / Agents / Durable Objects / One / Email）を `user-invocable-only` にした | init イベントには残るが、`claude -p` でモデルに一覧を書き写させると該当名は 0 件で、`wrangler` は残った。選択の精度が上がったかは測っていない | 切り分け不能 |
 
 ## 持ち越す教訓
 
