@@ -8,9 +8,9 @@
       "bundle_version": "1.5",
       "source": {
         "repo": "brief2dev",
-        "commit": "6b2fec306769a7c6131533c232dc6ef123a2d855"
+        "commit": "93404760757cf63d86c0478a3cc99244213ee7bf"
       },
-      "transplanted_at": "2026-10-25T10:30:17.106Z",
+      "transplanted_at": "2026-10-27T15:58:02.905Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle git-worktree-isolation --target <this-project-root> --json",
       "files": [
         {
@@ -291,7 +291,7 @@
         {
           "path": ".cli/hooks/destructive-git-guard.mjs",
           "role": "managed",
-          "sha256": "81bfcecedaeda80f46c5d23c1659c5d77cca2d52320ec75f28690d407938a918"
+          "sha256": "e182d7a8f17a1c723769f76535a95c25936e92e8567e5de28b81a21d58e9935e"
         },
         {
           "path": ".cli/hooks/pre-ship-review-guard.mjs",
@@ -1185,9 +1185,9 @@
       "bundle_version": "1.0",
       "source": {
         "repo": "brief2dev",
-        "commit": "82fab528b705ba1d92c4775a418f1fbaf3ed0ce3"
+        "commit": "93404760757cf63d86c0478a3cc99244213ee7bf"
       },
-      "transplanted_at": "2026-10-25T12:28:46.968Z",
+      "transplanted_at": "2026-10-27T15:57:57.695Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle dev-discipline-workflow --target <this-project-root> --json",
       "files": [
         {
@@ -1473,7 +1473,7 @@
         {
           "path": ".claude/skills/using-skills/SKILL.md",
           "role": "managed",
-          "sha256": "4e8bbaa5b1147db442a6f9ee1342a384809d84c9bb9f634bf48e4cdfad9e6b3b"
+          "sha256": "c537d6ea6f77fc45dfb2fe1cc90f10c4d3c9f6face711a917c0aa0bcc2281706"
         },
         {
           "path": ".claude/skills/verification-before-completion/LICENSE.txt",
