@@ -34,6 +34,9 @@
  * - git reset (bare, --mixed) (full unstage, index only)
  * - git restore --staged (unstage, index only)
  * - git restore <explicit file> (bounded blast radius — user decision 2026-06-16)
+ *   R-CM-028 deployment separation: this relaxation is Perspective 1 only (single-user local repo).
+ *   The scaffold template guard (`project-scaffolder/templates/hooks/destructive-git-guard.mjs`)
+ *   keeps the conservative baseline for generated projects; the two files evolve independently.
  * - git stash push/save/drop/apply/pop/list/show/branch / git stash with no args (all stashes except clear)
  * - git checkout <branch-name> (branch switching)
  */
