@@ -7,6 +7,12 @@ description: Quality verification skill for target projects. Executes Makefile S
 
 # Pre-Quality Gate
 
+## In This Repository
+
+- Run `make q.check` in the worktree; `make q.check FULL=1` forces all local checks. Make delegates to `scripts/verify-gate.mjs` (lint, types, harness, unit, build). See `.tmp/quality-gate-receipt.json` for executed, cached, and skipped stages.
+- This repository has no `q.fix`, `q.analyze`, `q.critical`, or the other individual Make targets shown in the upstream examples below. Do not call them. Diagnose the failing stage, make a targeted fix, then re-run `make q.check` within the retry limits below. A fix command succeeding is not a passing gate.
+- Available individual commands are in `package.json`. Local e2e remains CI-only as AGENTS.md requires. Keep full command output local; report the failed command and concrete cause without copying secrets.
+
 ## SSOT
 
 > **This skill does not define rules.**

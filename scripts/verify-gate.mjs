@@ -74,10 +74,13 @@ export const getStageVerdict = (stage, hash, { scratchpadDir = ensureAgentScratc
   const hit = readJson(path.join(scratchpadDir, 'verify-cache.json'), { stages: {} })?.stages?.[stage]?.[hash];
   return hit?.status === 'pass' ? hit : null;
 };
-export function recordStageVerdict(stage, hash, info = {}, { scratchpadDir = ensureAgentScratchpad() } = {}) {
-  const p = path.join(scratchpadDir, 'verify-cache.json'), cache = readJson(p, { stages: {} });
-  cache.stages = { ...(cache.stages || {}), [stage]: { ...(cache.stages?.[stage] || {}), [hash]: { status: 'pass', ...info, at: Date.now() } } };
-  writeJson(p, cache);
+export function recordStageVerdict(stage, hash, info = {}, { scratchpadDir = ensureAgentScratchpad(), timeoutMs = 180_000 } = {}) {
+  return withScratchpadLock('verify-cache', ({ acquired }) => {
+    if (!acquired) throw new Error('Verification cache lock timed out; no verdict was written.');
+    const p = path.join(scratchpadDir, 'verify-cache.json'), cache = readJson(p, { stages: {} });
+    cache.stages = { ...(cache.stages || {}), [stage]: { ...(cache.stages?.[stage] || {}), [hash]: { status: 'pass', ...info, at: Date.now() } } };
+    writeJson(p, cache);
+  }, { scratchpadDir, timeoutMs });
 }
 export function withScratchpadLock(name, fn, { scratchpadDir = ensureAgentScratchpad(), timeoutMs = 180_000 } = {}) {
   const lockDir = path.join(scratchpadDir, 'locks', `${name}.lock`), ownerFile = path.join(lockDir, 'owner.json');
@@ -106,13 +109,18 @@ export const isAppBuildAffecting = (p) => APP_EXACT.has(p) || /^(src|public|func
 export const isE2eAffecting = (p) => isAppBuildAffecting(p) || p === 'playwright.config.ts' || p === '.github/workflows/ci.yml' || p.startsWith('tests/e2e/');
 export const isLintAffecting = (p) => p === 'eslint.config.mjs' || p === 'package.json' || (p !== 'next-env.d.ts' && !LINT_IGNORE.some((x) => p.startsWith(x)) && /\.(?:[cm]?[jt]sx?)$/.test(p));
 export const isHarnessAffecting = (p) => isHarness(p) || p === 'scripts/check-agent-harness.mjs' || p === 'scripts/harness-library.mjs' || p === 'tests/unit/agent-harness.test.ts';
+export const isTypeCheckAffecting = (p) => ['package.json', 'package-lock.json', 'tsconfig.json'].includes(p) || /\.(?:[cm]?tsx?|json)$/.test(p) && !LINT_IGNORE.some((x) => p.startsWith(x));
 export const isUnitTestAffecting = (p) => isAppBuildAffecting(p) || isHarnessAffecting(p) || isLintAffecting(p) || p === 'vitest.config.mts' || p === 'docs/THIRD_PARTY_NOTICES.md' || /^(tests\/unit|scripts)\//.test(p);
 export function classifyChanges(files) {
   const list = [...new Set(files.map((f) => f.replace(/\\/g, '/')).filter(Boolean))].sort();
-  return { changedFiles: list, affectsAppBuild: list.some(isAppBuildAffecting), affectsE2e: list.some(isE2eAffecting), affectsLint: list.some(isLintAffecting), affectsHarness: list.some(isHarnessAffecting), affectsUnitTests: list.some(isUnitTestAffecting) };
+  // Harness instructions can reference any repository path; deletion outside harness directories matters too.
+  return { changedFiles: list, affectsAppBuild: list.some(isAppBuildAffecting), affectsE2e: list.some(isE2eAffecting), affectsLint: list.some(isLintAffecting), affectsHarness: list.length > 0, affectsTypeCheck: list.some(isTypeCheckAffecting), affectsUnitTests: list.some(isUnitTestAffecting) };
 }
 const gitOut = (cwd, args) => { try { return execFileSync('git', ['-C', cwd, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return ''; } };
 export function runVerifyGate({ rootDir = resolveCheckoutRoot(), full = false, base = '', changedFiles = /** @type {string[] | null} */ (null), allFiles: inputFiles = /** @type {string[] | null} */ (null), scratchpadDir = ensureAgentScratchpad(rootDir), runner = (c, a, d) => { const r = spawnSync(c, a, { cwd: d, stdio: 'inherit' }); if (r.status !== 0) throw new Error(`${c} failed`); } } = {}) {
+  const startedAt = new Date().toISOString();
+  const marker = path.join(rootDir, '.tmp/quality-gate-passed');
+  rmSync(marker, { force: true });
   const isIgnored = (p) => !p || /^(\.tmp|\.worktrees|\.cache|out|\.next)\//.test(p);
   const baseRef = base || (changedFiles ? 'HEAD' : gitOut(rootDir, ['merge-base', 'HEAD', 'origin/main']) ? 'origin/main' : 'HEAD');
   const changed = new Set((changedFiles ?? gitOut(rootDir, ['diff', '--name-only', '--no-renames', baseRef]).split('\n')).map((s) => s.trim()).filter((p) => !isIgnored(p)));
@@ -122,20 +130,57 @@ export function runVerifyGate({ rootDir = resolveCheckoutRoot(), full = false, b
     if (!isIgnored(rel)) { allFiles.push(rel); if (line[0] === '?') changed.add(rel); }
   }
   const info = classifyChanges([...changed]), results = [];
-  const hashes = { lint: computeFilesFingerprint(rootDir, allFiles.filter(isLintAffecting), { scratchpadDir }), test: computeFilesFingerprint(rootDir, allFiles.filter(isUnitTestAffecting), { scratchpadDir }), build: computeFilesFingerprint(rootDir, allFiles.filter(isAppBuildAffecting), { scratchpadDir }) };
-  const runStage = (stage, affects, fn) => {
-    if (!full && getStageVerdict(stage, hashes[stage], { scratchpadDir })) return results.push({ stage, mode: 'cached' });
-    if (!full && info.changedFiles.length > 0 && !affects) { recordStageVerdict(stage, hashes[stage], { worktree: rootDir }, { scratchpadDir }); return results.push({ stage, mode: 'skipped-diff' }); }
-    fn();
-    recordStageVerdict(stage, hashes[stage], { worktree: rootDir }, { scratchpadDir });
-    results.push({ stage, mode: 'full' });
+  // Include the gate and dependency manifests in every key: a verifier change invalidates old proof.
+  const common = ['scripts/verify-gate.mjs', 'package.json', 'package-lock.json'];
+  const inputs = {
+    lint: allFiles.filter(isLintAffecting),
+    'type-check': allFiles.filter((p) => isTypeCheckAffecting(p) || isUnitTestAffecting(p)),
+    harness: allFiles,
+    test: allFiles.filter(isUnitTestAffecting),
+    build: allFiles.filter(isAppBuildAffecting),
   };
-  runStage('lint', info.affectsLint, () => runner('npx', ['eslint', '--cache', '--cache-location', path.join(scratchpadDir, 'eslint/.eslintcache'), '.'], rootDir));
-  runStage('test', info.affectsUnitTests, () => runner('npx', ['vitest', 'run'], rootDir));
-  runStage('build', info.affectsAppBuild, () => withScratchpadLock('next-build', () => { if (full || !getStageVerdict('build', hashes.build, { scratchpadDir })) runner('npm', ['run', 'build'], rootDir); }, { scratchpadDir }));
-  mkdirSync(path.join(rootDir, '.tmp'), { recursive: true });
-  writeFileSync(path.join(rootDir, '.tmp/quality-gate-passed'), new Date().toISOString() + '\n');
-  return { ok: true, results, classification: info };
+  const hashes = Object.fromEntries(Object.entries(inputs).map(([stage, files]) => [stage, computeFilesFingerprint(rootDir, [...files, ...common], { scratchpadDir })]));
+  const receipt = { version: 1, ok: false, startedAt, finishedAt: '', head: gitOut(rootDir, ['rev-parse', 'HEAD']) || null, base: baseRef, baseCommit: gitOut(rootDir, ['rev-parse', baseRef]) || null, results, classification: info };
+  const persist = () => writeJson(path.join(rootDir, '.tmp/quality-gate-receipt.json'), receipt);
+  persist();
+  const runStage = (stage, affects, command, fn = () => runner(command[0], command.slice(1), rootDir)) => {
+    const start = Date.now(), fingerprint = hashes[stage];
+    const cached = !full && getStageVerdict(stage, fingerprint, { scratchpadDir });
+    const mode = cached ? 'cached' : !full && info.changedFiles.length > 0 && !affects ? 'skipped-diff' : 'full';
+    const result = { stage, mode, status: mode === 'skipped-diff' ? 'skipped' : 'pass', command, fingerprint, durationMs: 0, evidenceAt: cached ? cached.at : null };
+    try {
+      if (mode === 'full') {
+        fn();
+        recordStageVerdict(stage, fingerprint, { worktree: rootDir }, { scratchpadDir });
+        result.evidenceAt = Date.now();
+      }
+    } catch (error) {
+      result.status = 'fail';
+      recordStageVerdict(stage, fingerprint, { status: 'fail', worktree: rootDir }, { scratchpadDir });
+      throw error;
+    } finally {
+      result.durationMs = Date.now() - start;
+      results.push(result);
+      persist();
+    }
+  };
+  try {
+    runStage('lint', info.affectsLint, ['npx', 'eslint', '--cache', '--cache-location', path.join(scratchpadDir, 'eslint/.eslintcache'), '.']);
+    runStage('type-check', info.affectsTypeCheck, ['npm', 'run', 'type-check']);
+    runStage('harness', info.affectsHarness, ['npm', 'run', 'check:harness']);
+    runStage('test', info.affectsUnitTests, ['npx', 'vitest', 'run']);
+    runStage('build', info.affectsAppBuild, ['npm', 'run', 'build'], () => withScratchpadLock('next-build', ({ acquired }) => {
+      if (!acquired) throw new Error('Build lock timed out; wait for the active build and run the gate again.');
+      runner('npm', ['run', 'build'], rootDir);
+    }, { scratchpadDir }));
+    receipt.ok = true;
+  } finally {
+    receipt.finishedAt = new Date().toISOString();
+    persist();
+    appendFileSync(path.join(rootDir, '.tmp/quality-gate-history.jsonl'), JSON.stringify(receipt) + '\n');
+  }
+  writeFileSync(marker, receipt.finishedAt + '\n');
+  return receipt;
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2), baseIdx = args.indexOf('--base'), base = baseIdx >= 0 ? args[baseIdx + 1] : '';
@@ -147,5 +192,5 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     process.exit(0);
   }
   const out = runVerifyGate({ full: args.includes('--full') || process.env.CI === 'true', base });
-  for (const r of out.results) console.log(`  [${r.stage}] PASS (${r.mode})`);
+  for (const r of out.results) console.log(`  [${r.stage}] ${r.status.toUpperCase()} (${r.mode})`);
 }
