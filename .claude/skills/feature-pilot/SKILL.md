@@ -65,7 +65,7 @@ Pass resolved paths to sub-skills. Never hardcode designs to literal `src/featur
 
 ## Pre-flight Checklist
 
-Only checks a guard or gate backs stay here (PF-009 is backed only by git-ignore, noted in its row); a check nothing verifies was never output in practice (#1492). Do not print this table. Before the first edit, print one line instead: `Work Type · feature id · Target Scope · worktree / PLAN path`.
+Only checks a guard or gate backs stay here (PF-009 is backed only by git-ignore, noted in its row); a check nothing verifies was never output in practice (#1492). A named mechanism backs its clause (`brief2dev core:` / `generated project:`) only in a repository where its file exists and is registered; a clause whose mechanism is absent, as in a transplanted copy, is prompt-level there: perform that check yourself. Do not print this table. Before the first edit, print one line instead: `Work Type · feature id · Target Scope · worktree / PLAN path`.
 
 | ID | Item | Enforced by |
 | :----: | --- | --- |
@@ -171,7 +171,7 @@ Read `references/readiness-gate-protocol.md` for the detailed 5-Phase verificati
 
 ## Post-flight Checklist
 
-Same policy as Pre-flight: do not print this table. Report the final status (`Done | Blocked | AwaitingUser | Failed`) in one line.
+Same policy as Pre-flight, including its rule that a clause whose mechanism is absent is prompt-level: do not print this table. Report the final status (`Done | Blocked | AwaitingUser | Failed`) in one line.
 
 | ID | Item | Enforced by |
 | :-----: | --- | --- |
