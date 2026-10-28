@@ -28,3 +28,10 @@ harness（AGENTS.md・skill・スクリプト・hook）を変える前に、同�
 
 - [タスクごとの実装 subagent（SDD）を既定から外し、主ループの inline TDD を既定にする](experience/2026-10-25-fold-sdd-subagents.md) — 2026-10-25 · 確度 低 · 部品: `feature-implementer`（SKILL.md・`references/implementation-protocol-details.md`）, `engineering-plan-writer`（呼び出し図）, `agent-harness`（「Subagent を足す・残す・畳む」）
   - きっかけ: skill が、タスクの数や作業の種類（設計・実装・テスト）を理由に subagent を自動で起動するよう書かれている
+
+## verification
+
+- [全体検査が通っても、入力の同一性と検査対象の反例を試す](experience/2026-10-28-fingerprint-false-passes.md) — 2026-10-28 · 確度 中 · 部品: type-check の変更分類, fingerprint のリンク入力, fingerprint のファイル入力
+  - きっかけ: 成功 cache の同一性をファイルの metadata や拡張子の一部だけで判断する gate を変える
+- [検証の省略を成功キャッシュにせず、段階ごとの実行証拠を残す](experience/2026-10-28-verification-receipt.md) — 2026-10-28 · 確度 中 · 部品: `scripts/verify-gate.mjs` のキャッシュ, `scripts/verify-gate.mjs` の検証と receipt, `agent-harness` skill, `scripts/verify-gate.mjs` の共有 verdict 更新, harness 検査の入力範囲, `pre-quality-gate` skill
+  - きっかけ: 差分で検査を省略する gate が、同じ場所に成功キャッシュも保存する
