@@ -1075,9 +1075,9 @@
       "bundle_version": "1.1",
       "source": {
         "repo": "brief2dev",
-        "commit": "7c2bae57744cb80c62ae9a8e8aff41a118f562c3"
+        "commit": "1738caf87ac2d5380b4898b89ba33d5a96b31351"
       },
-      "transplanted_at": "2026-10-28T05:13:20.882Z",
+      "transplanted_at": "2026-10-28T05:51:17.491Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle feature-orchestration --target <this-project-root> --json",
       "files": [
         {
@@ -1158,7 +1158,7 @@
         {
           "path": ".claude/skills/feature-pilot/SKILL.md",
           "role": "managed",
-          "sha256": "34ffc81e0c384055e76735e13a46dd1e85118ff03339be7a421886bbd33191cf"
+          "sha256": "a9b5c37c3c6464a0cd100a0a4d8f2c0bdeaa5fb29ed4386b0af73bc97fbda9a1"
         }
       ],
       "target_notes": [
