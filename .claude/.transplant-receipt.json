@@ -1075,9 +1075,9 @@
       "bundle_version": "1.1",
       "source": {
         "repo": "brief2dev",
-        "commit": "6b2fec306769a7c6131533c232dc6ef123a2d855"
+        "commit": "7c2bae57744cb80c62ae9a8e8aff41a118f562c3"
       },
-      "transplanted_at": "2026-10-25T10:30:20.588Z",
+      "transplanted_at": "2026-10-28T05:13:20.882Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle feature-orchestration --target <this-project-root> --json",
       "files": [
         {
@@ -1118,7 +1118,7 @@
         {
           "path": ".claude/skills/feature-pilot/MANIFEST.json",
           "role": "managed",
-          "sha256": "a3ae5d3ee9afb73c52fbc286200f0ccc806557b66a28aaeabde46ad4a644df73"
+          "sha256": "9bf8349bf7bac3e2d12d8f1982b92a0a879c4b3b85f920cfbdcd00adbc8eb987"
         },
         {
           "path": ".claude/skills/feature-pilot/references/autonomy-control-rules.md",
@@ -1138,7 +1138,7 @@
         {
           "path": ".claude/skills/feature-pilot/references/feature-pilot-protocol-details.md",
           "role": "managed",
-          "sha256": "b9eec2d1577097425e156332272200b5f7c778a2201ca8cea3a70017af87b3b6"
+          "sha256": "8c5c40a1b5a4709b2d413779ba7604f45be2d334f8c443e40397ed2f7b6c4745"
         },
         {
           "path": ".claude/skills/feature-pilot/references/readiness-gate-protocol.md",
@@ -1158,7 +1158,7 @@
         {
           "path": ".claude/skills/feature-pilot/SKILL.md",
           "role": "managed",
-          "sha256": "16849fc02dbd53d7f402e5a2e42e24b066f3b1ee2abdabd641a7d2eb088b8f75"
+          "sha256": "34ffc81e0c384055e76735e13a46dd1e85118ff03339be7a421886bbd33191cf"
         }
       ],
       "target_notes": [
@@ -1172,7 +1172,7 @@
         },
         {
           "id": "pf-runtime-prereqs",
-          "note": "The 3 prerequisites for feature-pilot Pre/Post-flight require target environment preparation — (1) PF-000: target root project-config.json (paths/commands SSOT). If absent, reported by report.wiring.readiness.unmet — paths/conventions are assumptions of target structure, so not auto-generated. Generation recommended (identical schema to ecosystem-adapter Phase 2 output). (2) PF-008: worktree creation + PLAN.md initialization — companion transplant of git-worktree-isolation bundle recommended (not required — non-worktree projects replace this check with own branch conventions). (3) POF-003: pre-quality-gate is satisfied by quality-gate-core, but requires Makefile q.check target per that bundle's target-makefile-q-family-required note."
+          "note": "The 3 prerequisites for feature-pilot Pre/Post-flight require target environment preparation — (1) Path Contract: target root project-config.json (paths/commands SSOT). If absent, reported by report.wiring.readiness.unmet — paths/conventions are assumptions of target structure, so not auto-generated. Generation recommended (identical schema to ecosystem-adapter Phase 2 output). (2) PF-008: worktree creation + PLAN.md initialization — companion transplant of git-worktree-isolation bundle recommended (not required — non-worktree projects replace this check with own branch conventions). (3) POF-003: pre-quality-gate is satisfied by quality-gate-core, but requires Makefile q.check target per that bundle's target-makefile-q-family-required note."
         },
         {
           "id": "ownership-index-derived",

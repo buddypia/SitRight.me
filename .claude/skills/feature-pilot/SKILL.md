@@ -37,7 +37,7 @@ calls:
 - **Readiness Gate Built-in**: NEW_FEATURE / MODIFY_FEATURE must evaluate Go/No-Go in the built-in Readiness Gate following UI approval.
 - **Worktree Required**: Code changes must be performed in `.worktrees/<branch>`. The PLAN lives at `.worktrees/<branch>/.tmp/worktree-<safeBranch>/PLAN.md` (the path `worktree-plan-path.mjs#resolveWorktreePlanPath` resolves and every gate reads). `worktree-init.mjs` creates it from the template; do **not** write a `PLAN.md` at the worktree root (nothing reads it).
 - **Ownership Index Before Routing**: Before deciding NEW vs MODIFY, execute a derived ownership query to inspect existing feature/file candidates. This index serves as supplementary evidence and does not replace `domain-map.json` or `CONTEXT.json`.
-- **Evidence-Based Completion**: Verify test/quality validation, sub-skill Post-flights, and `CONTEXT.json` cleanup status before reporting completion.
+- **Evidence-Based Completion**: Verify test/quality validation before reporting completion.
 
 ## Path Contract
 
@@ -61,35 +61,19 @@ Pass resolved paths to sub-skills. Never hardcode designs to literal `src/featur
 - Default target: Development tasks in the current brief2dev repository.
 - Excluded target: Generated projects under `output/<slug>`. The mere presence of `output/<slug>/project-config.json` does not switch the target.
 - Exception: Allow output target only when the user explicitly specifies `output/<slug>`, "generated project", or "scaffold output", or when the current working directory is inside that generated project.
-- If the user specifies "output not needed" or "exclude output from deliverables", PF-009 locks target to the brief2dev core and halts output writing.
+- If the user specifies "output not needed" or "exclude output from deliverables", PF-009 locks target to the brief2dev core and you stop writing to output (prompt-level: no guard denies the write).
 
 ## Pre-flight Checklist
 
-Output the checklist below before starting the skill, updating each item from `---` to passed/failed status.
+Only checks a guard or gate backs stay here (PF-009 is backed only by git-ignore, noted in its row); a check nothing verifies was never output in practice (#1492). Do not print this table. Before the first edit, print one line instead: `Work Type · feature id · Target Scope · worktree / PLAN path`.
 
-```markdown
-## Pre-flight Checklist (feature-pilot)
+| ID | Item | Enforced by |
+| :----: | --- | --- |
+| PF-008 | Create worktree and initialize PLAN.md | `worktree-policy-guard` denies Tier 3 edits on trunk; `commit-guard` denies trunk commits (both perspectives) |
+| PF-009 | Confirm Target Scope (brief2dev core vs output/<slug>) | No guard denies an `output/` write; in brief2dev core `output/` is git-ignored, so a deliverable written there never ships |
+| PF-010 | Domain Placement determination completed (ownership query + domain-map.json + index.md lookup) | brief2dev core: `tests/unit/domain-placement-gate.test.mjs` fails pre-push on a feature folder missing from domain-map; `ownership-context-injector` injects ownership candidates into action prompts (advisory, never denies); generated project: `feature-boundary-guard` denies feature code without `CONTEXT.json`; `audit-domain-coherence.mjs` checks domain-map only when run (`make q.domain-coherence`, not in `q.check`) |
 
-|   ID   | Item | Status |
-| :----: | ------------------------------------------- | :--: |
-| PF-000 | Path Resolution completed (read project-config.json) | ---  |
-| PF-001 | Work type determination completed | ---  |
-| PF-002 | CONTEXT.json accessible or ready for creation | ---  |
-| PF-003 | Verify CLAUDE.md rules | ---  |
-| PF-004 | Feature Characteristics determination completed | ---  |
-| PF-005 | Verify Evidence cache | ---  |
-| PF-006 | Verify sub-skill ESP compatibility | ---  |
-| PF-007 | Confirm task ID | ---  |
-| PF-008 | Create worktree and initialize PLAN.md | ---  |
-| PF-009 | Confirm Target Scope (brief2dev core vs output/<slug>) | ---  |
-| PF-010 | Domain Placement determination completed (ownership query + domain-map.json + index.md lookup) | ---  |
-
-**Work Type**: [NEW_FEATURE | MODIFY_FEATURE | BUG_FIX | DOCS_ONLY]
-**Risk Level**: [high | medium | low]
-**Pipeline**: [List of pipeline steps]
-```
-
-If any item fails, halt execution and report the reason and next steps.
+If a guard denies, fix the cause it names; do not route around it.
 
 ## Work Type Routing
 
@@ -107,8 +91,6 @@ Executing `node .claude/scripts/generate-code-ownership-index.mjs query "<user r
 ## Model Routing
 
 Delegate lightweight scanning to a faster model and keep judgment work (trade-offs, experiment design, verdicts) on the session model.
-
-When sub-skills are ESP v2.0+, verify their Pre/Post-flights.
 
 ## Evidence Caching
 
@@ -189,23 +171,12 @@ Read `references/readiness-gate-protocol.md` for the detailed 5-Phase verificati
 
 ## Post-flight Checklist
 
-Output the checklist below before completion, updating each item.
+Same policy as Pre-flight: do not print this table. Report the final status (`Done | Blocked | AwaitingUser | Failed`) in one line.
 
-```markdown
-## Post-flight Checklist (feature-pilot)
-
-|   ID    | Item | Status |
-| :-----: | --------------------------------------------------- | :--: |
-| POF-001 | Pipeline completed or explicitly halted | ---  |
-| POF-002 | CONTEXT.json final state update completed | ---  |
-| POF-003 | QA verification passed (pre-quality-gate) | ---  |
-| POF-004 | All sub-skill Post-flights completed | ---  |
-| POF-005 | Evidence caching completed | ---  |
-| POF-006 | DoD verification completed (completion_contract verdict = passed) | ---  |
-| POF-007 | Worktree PLAN.md and CONTEXT.json cleanup completed | ---  |
-
-**Final Status**: [Done | Blocked | AwaitingUser | Failed]
-```
+| ID | Item | Enforced by |
+| :-----: | --- | --- |
+| POF-003 | QA verification passed (pre-quality-gate) | brief2dev core: `pre-ship-review-guard` denies ship without the marker that `mark-pre-ship-confirmed.mjs --quality` writes only after every `pre-ship-steps` step passes, including a recorded `go` quality verdict for the current HEAD (`--force` bypasses); generated project: `quality-gate-pr-guard` + `completion-evidence-guard` |
+| POF-007 | Worktree and PLAN.md cleaned up on ship | `/create-pr ship-worktree` removes the worktree with its PLAN; `worktree-shipping-guard` notices uncommitted or unmerged worktrees at Stop |
 
 ## References
 

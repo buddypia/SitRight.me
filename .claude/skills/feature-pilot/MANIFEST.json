@@ -44,46 +44,6 @@
   },
   "preflight_checks": [
     {
-      "id": "PF-000",
-      "description": "Path Resolution completed (read project-config.json)",
-      "blocking": true
-    },
-    {
-      "id": "PF-001",
-      "description": "Work type determination completed",
-      "blocking": true
-    },
-    {
-      "id": "PF-002",
-      "description": "CONTEXT.json accessible or ready for creation",
-      "blocking": true
-    },
-    {
-      "id": "PF-003",
-      "description": "Verify CLAUDE.md rules",
-      "blocking": true
-    },
-    {
-      "id": "PF-004",
-      "description": "Feature Characteristics determination completed",
-      "blocking": true
-    },
-    {
-      "id": "PF-005",
-      "description": "Verify Evidence cache",
-      "blocking": false
-    },
-    {
-      "id": "PF-006",
-      "description": "Verify sub-skill ESP compatibility",
-      "blocking": true
-    },
-    {
-      "id": "PF-007",
-      "description": "Confirm task ID",
-      "blocking": true
-    },
-    {
       "id": "PF-008",
       "description": "Create worktree and initialize PLAN.md",
       "blocking": true
@@ -101,38 +61,13 @@
   ],
   "postflight_checks": [
     {
-      "id": "POF-001",
-      "description": "Pipeline completed or explicitly halted",
-      "blocking": true
-    },
-    {
-      "id": "POF-002",
-      "description": "CONTEXT.json final state update completed",
-      "blocking": true
-    },
-    {
       "id": "POF-003",
       "description": "QA verification passed (pre-quality-gate)",
       "blocking": true
     },
     {
-      "id": "POF-004",
-      "description": "All sub-skill Post-flights completed",
-      "blocking": true
-    },
-    {
-      "id": "POF-005",
-      "description": "Evidence caching completed",
-      "blocking": false
-    },
-    {
-      "id": "POF-006",
-      "description": "DoD verification completed (completion_contract verdict = passed)",
-      "blocking": true
-    },
-    {
       "id": "POF-007",
-      "description": "Worktree PLAN.md and CONTEXT.json cleanup completed",
+      "description": "Worktree and PLAN.md cleaned up on ship",
       "blocking": true
     }
   ],
