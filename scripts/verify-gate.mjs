@@ -5,7 +5,7 @@
 //    existsSync/statSync followed by a path read: that check-then-use gap is CodeQL js/file-system-race.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { appendFileSync, closeSync, existsSync, fstatSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { appendFileSync, closeSync, existsSync, fstatSync, mkdirSync, openSync, readFileSync, readlinkSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -51,23 +51,21 @@ const writeJson = (p, data) => {
   writeFileSync(tmp, JSON.stringify(data) + '\n', 'utf8');
   renameSync(tmp, p);
 };
-export function computeFilesFingerprint(rootDir, relPaths, { scratchpadDir = ensureAgentScratchpad(rootDir) } = {}) {
-  const cachePath = path.join(scratchpadDir, 'file-hash-cache.json'), files = readJson(cachePath, { files: {} }).files || {};
-  let dirty = false;
+export function computeFilesFingerprint(rootDir, relPaths, _options = {}) {
   const h = createHash('sha256');
   for (const rel of [...new Set(relPaths.map((p) => p.replace(/\\/g, '/')))].sort()) {
     const abs = path.join(rootDir, rel);
+    // Directory links are tracked inputs too, even though they have no file bytes.
+    try { h.update(`${rel}:symlink:${readlinkSync(abs)}\n`); } catch { /* regular or missing path */ }
     let fd = -1;
     try {
       fd = openSync(abs, 'r');
       const st = fstatSync(fd);
       if (!st.isFile()) continue;
-      const sig = `${st.size}:${st.mtimeMs}`;
-      if (files[abs]?.sig !== sig) { files[abs] = { sig, sha256: createHash('sha256').update(readFileSync(fd)).digest('hex') }; dirty = true; }
-      h.update(`${rel}:${files[abs].sha256}\n`);
+      // Copies/restores can preserve both size and mtime; only current bytes prove content.
+      h.update(`${rel}:${createHash('sha256').update(readFileSync(fd)).digest('hex')}\n`);
     } catch { h.update(`${rel}:missing\n`); } finally { if (fd >= 0) try { closeSync(fd); } catch { /* ignore */ } }
   }
-  if (dirty) writeJson(cachePath, { files });
   return h.digest('hex');
 }
 export const getStageVerdict = (stage, hash, { scratchpadDir = ensureAgentScratchpad() } = {}) => {
@@ -109,7 +107,7 @@ export const isAppBuildAffecting = (p) => APP_EXACT.has(p) || /^(src|public|func
 export const isE2eAffecting = (p) => isAppBuildAffecting(p) || p === 'playwright.config.ts' || p === '.github/workflows/ci.yml' || p.startsWith('tests/e2e/');
 export const isLintAffecting = (p) => p === 'eslint.config.mjs' || p === 'package.json' || (p !== 'next-env.d.ts' && !LINT_IGNORE.some((x) => p.startsWith(x)) && /\.(?:[cm]?[jt]sx?)$/.test(p));
 export const isHarnessAffecting = (p) => isHarness(p) || p === 'scripts/check-agent-harness.mjs' || p === 'scripts/harness-library.mjs' || p === 'tests/unit/agent-harness.test.ts';
-export const isTypeCheckAffecting = (p) => ['package.json', 'package-lock.json', 'tsconfig.json'].includes(p) || /\.(?:[cm]?tsx?|json)$/.test(p) && !LINT_IGNORE.some((x) => p.startsWith(x));
+export const isTypeCheckAffecting = (p) => /\.(?:[cm]?[jt]sx?|json)$/.test(p);
 export const isUnitTestAffecting = (p) => isAppBuildAffecting(p) || isHarnessAffecting(p) || isLintAffecting(p) || p === 'vitest.config.mts' || p === 'docs/THIRD_PARTY_NOTICES.md' || /^(tests\/unit|scripts)\//.test(p);
 export function classifyChanges(files) {
   const list = [...new Set(files.map((f) => f.replace(/\\/g, '/')).filter(Boolean))].sort();

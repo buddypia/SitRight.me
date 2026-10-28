@@ -1,4 +1,6 @@
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, utimesSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -153,6 +155,76 @@ describe('verify-gate and shared agent-scratchpad', () => {
     runVerifyGate({ ...options, full: true });
     rmSync(path.join(rootDir, 'docs/ARCHITECTURE.md'));
     expect(() => runVerifyGate({ ...options, changedFiles: ['docs/ARCHITECTURE.md'] })).toThrow(/ARCHITECTURE/);
+    expect(existsSync(path.join(rootDir, '.tmp/quality-gate-passed'))).toBe(false);
+  });
+
+  it('runs the actual type checker after an imported JavaScript module changes', { timeout: 30_000 }, () => {
+    const rootDir = path.join(sandboxDir, 'repo'), scratchpadDir = path.join(sandboxDir, 'sp');
+    mkdirSync(path.join(rootDir, 'scripts'), { recursive: true });
+    writeFileSync(path.join(rootDir, 'tsconfig.json'), JSON.stringify({ compilerOptions: { allowJs: true, strict: true, noEmit: true, module: 'nodenext', moduleResolution: 'nodenext', target: 'es2022', types: [], skipLibCheck: true }, include: ['consumer.mts', 'scripts/value.mjs'] }));
+    writeFileSync(path.join(rootDir, 'consumer.mts'), 'import { value } from "./scripts/value.mjs";\nconst message: string = value();\n');
+    writeFileSync(path.join(rootDir, 'scripts/value.mjs'), 'export function value() { return "ok"; }\n');
+    const tsc = createRequire(import.meta.url).resolve('typescript/bin/tsc');
+    const options = {
+      rootDir, scratchpadDir, allFiles: ['tsconfig.json', 'consumer.mts', 'scripts/value.mjs'],
+      runner: (c: string, a: string[]) => {
+        if (c === 'npm' && a[1] === 'type-check') {
+          const result = spawnSync(process.execPath, [tsc, '--project', path.join(rootDir, 'tsconfig.json')], { encoding: 'utf8' });
+          if (result.status !== 0) throw new Error(result.stdout + result.stderr);
+        }
+      },
+    };
+    runVerifyGate({ ...options, full: true });
+    writeFileSync(path.join(rootDir, 'scripts/value.mjs'), 'export function value() { return 42; }\n');
+    expect(() => runVerifyGate({ ...options, changedFiles: ['scripts/value.mjs'] })).toThrow(/TS2322/);
+    expect(existsSync(path.join(rootDir, '.tmp/quality-gate-passed'))).toBe(false);
+  });
+
+  it('rejects a skill link retargeted to an existing empty directory', () => {
+    const rootDir = path.join(sandboxDir, 'repo'), scratchpadDir = path.join(sandboxDir, 'sp');
+    const skillFile = '.claude/skills/demo/SKILL.md', link = '.agents/skills/demo';
+    mkdirSync(path.join(rootDir, '.claude/skills/demo'), { recursive: true });
+    mkdirSync(path.join(rootDir, '.agents/skills'), { recursive: true });
+    mkdirSync(path.join(rootDir, 'empty'));
+    writeFileSync(path.join(rootDir, 'AGENTS.md'), '# Rules\nRead `.agents/skills/demo/SKILL.md`.\n');
+    writeFileSync(path.join(rootDir, 'CLAUDE.md'), '@AGENTS.md\n');
+    writeFileSync(path.join(rootDir, skillFile), '---\nname: demo\ndescription: Demo skill\n---\n# Demo\n');
+    symlinkSync('../../.claude/skills/demo', path.join(rootDir, link));
+    const options = {
+      rootDir, scratchpadDir, allFiles: ['AGENTS.md', 'CLAUDE.md', skillFile, link],
+      runner: (c: string, a: string[]) => {
+        if (c === 'npm' && a[1] === 'check:harness') {
+          const errors = validateHarness(rootDir);
+          if (errors.length) throw new Error(errors.join('\n'));
+        }
+      },
+    };
+    runVerifyGate({ ...options, full: true });
+    rmSync(path.join(rootDir, link));
+    symlinkSync('../../empty', path.join(rootDir, link));
+    expect(() => runVerifyGate({ ...options, changedFiles: [link] })).toThrow(/\.agents\/skills\/demo/);
+    expect(existsSync(path.join(rootDir, '.tmp/quality-gate-passed'))).toBe(false);
+  });
+
+  it('detects invalid source restored with the same size and timestamp', () => {
+    const rootDir = path.join(sandboxDir, 'repo'), scratchpadDir = path.join(sandboxDir, 'sp');
+    mkdirSync(path.join(rootDir, 'scripts'), { recursive: true });
+    const source = path.join(rootDir, 'scripts/value.mjs'), timestamp = new Date('2020-01-01T00:00:00Z');
+    writeFileSync(source, 'export const value = 1;');
+    utimesSync(source, timestamp, timestamp);
+    const options = {
+      rootDir, scratchpadDir, allFiles: ['scripts/value.mjs'],
+      runner: (c: string, a: string[]) => {
+        if (c === 'npx' && a[0] === 'vitest') {
+          const result = spawnSync(process.execPath, ['--check', source], { encoding: 'utf8' });
+          if (result.status !== 0) throw new Error(result.stderr);
+        }
+      },
+    };
+    runVerifyGate({ ...options, full: true });
+    writeFileSync(source, 'export const value = ; ');
+    utimesSync(source, timestamp, timestamp);
+    expect(() => runVerifyGate({ ...options, changedFiles: ['scripts/value.mjs'] })).toThrow(/SyntaxError/);
     expect(existsSync(path.join(rootDir, '.tmp/quality-gate-passed'))).toBe(false);
   });
 

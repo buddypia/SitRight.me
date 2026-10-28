@@ -65,3 +65,17 @@
 - 제품 UI·자세 판정 알고리즘·카메라 처리·외부 전송은 변경하지 않았다. e2e는 기존 CI 정책을 따른다. 자동 dreaming 서비스·유료 API·신규 금융 기능은 추가하지 않았다.
 
 최종 실행: `make q.check FULL=1` 종료 0 — lint / type-check / harness / unit 229개(22 files) / build 모두 full pass. `git diff --check` 통과. 변경 9개 파일의 비밀값 패턴 검사 0건. root AGENTS.md는 변경하지 않았고 5,751/8,000자, skill 34개를 유지한다. 독립 리뷰의 HIGH는 회귀 테스트로 수정했으며 기존 입력 고정 조건과 의존성 경고를 위에 명시했다.
+
+## 사용자 요청에 따른 추가 최종 점검 (2026-10-28)
+
+기존 f299919의 전체 검사 통과만으로는 충분하지 않았다. 독립 리뷰 및 실제 도구 재현으로 HIGH 3건을 확인하고 공개 gate 경로의 회귀 테스트를 추가했다.
+
+| 재현한 문제 | 수정 | 근거 |
+| --- | --- | --- |
+| 가져오는 .mjs 모듈이 string 대신 number를 반환하면 실제 tsc는 TS2322지만 gate가 타입 검사를 생략 | JS/JSX/MJS/CJS도 타입 검사 영향으로 분류 | 실제 tsc를 실행하는 회귀 테스트 RED→GREEN |
+| skill 디렉터리 링크를 빈 디렉터리로 바꿔도 harness 성공 캐시 재사용 | 링크 대상 문자열을 fingerprint에 포함 | 실제 validateHarness 회귀 테스트 RED→GREEN |
+| 같은 크기·mtime으로 복원된 다른 내용이 예전 SHA를 재사용 (기존 코드의 문제) | 영속 size/mtime 메모 대신 매번 현재 fd의 바이트를 SHA256으로 해시 | 실제 Node 구문 검사를 실행하는 회귀 테스트 RED→GREEN |
+
+수정 후 집중 검사는 11/11 통과했다. 현재 바이트를 다시 읽으므로 검사 준비 시 파일 읽기 비용이 늘 수 있으며, 속도 향상을 주장하지 않는다. 최신 main 6798e76의 변경 경로와 겹침이 없고 Git merge-tree의 충돌 검사도 통과했다(실제 병합은 하지 않음). `npm audit --omit=dev --audit-level=high`는 0건, 개발 의존성을 포함하면 기존 high 2 / moderate 2가 남는다. 검사 중 입력 고정·동일 worktree 중복 실행 금지의 운영 조건은 유지한다.
+
+추가 수정 후 `make q.check FULL=1` 종료 0: 22개 파일의 232 tests, lint / type-check / harness / build 모두 full pass. 이전 229개 통과 기록은 f299919 시점의 결과이며, 현재 판정에는 이 추가 반례의 RED→GREEN과 232개 결과를 사용한다.
