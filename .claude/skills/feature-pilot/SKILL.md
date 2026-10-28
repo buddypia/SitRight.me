@@ -65,7 +65,7 @@ Pass resolved paths to sub-skills. Never hardcode designs to literal `src/featur
 
 ## Pre-flight Checklist
 
-Only checks a guard or gate backs stay here (PF-009 is backed only by git-ignore, noted in its row); a check nothing verifies was never output in practice (#1492). A named mechanism backs its clause (`brief2dev core:` / `generated project:`) only in a repository where its file exists and is registered; a clause whose mechanism is absent, as in a transplanted copy, is prompt-level there: perform that check yourself. Do not print this table. Before the first edit, print one line instead: `Work Type · feature id · Target Scope · worktree / PLAN path`.
+Only checks a guard or gate backs stay here (PF-009 is backed only by git-ignore, noted in its row); a check nothing verifies was never output in practice (#1492). A named mechanism backs its clause (`brief2dev core:` / `generated project:`), or its whole row when the row has no such label, only in a repository where its file exists and is registered; a clause whose mechanism is absent, as in a transplanted copy, is prompt-level there: perform that check yourself. Do not print this table. Before the first edit, print one line instead: `Work Type · feature id · Target Scope · worktree / PLAN path`.
 
 | ID | Item | Enforced by |
 | :----: | --- | --- |

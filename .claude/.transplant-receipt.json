@@ -1075,9 +1075,9 @@
       "bundle_version": "1.1",
       "source": {
         "repo": "brief2dev",
-        "commit": "1738caf87ac2d5380b4898b89ba33d5a96b31351"
+        "commit": "98cfd82ae17f232d69756232b2253d2e5d9a3dcc"
       },
-      "transplanted_at": "2026-10-28T05:51:17.491Z",
+      "transplanted_at": "2026-10-28T08:42:08.679Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle feature-orchestration --target <this-project-root> --json",
       "files": [
         {
@@ -1148,7 +1148,7 @@
         {
           "path": ".claude/skills/feature-pilot/references/review-deck-contract.md",
           "role": "managed",
-          "sha256": "657b0a56a530a4b1652a201f96d4de28dac89f7ba6425de12e41cf6443142bf5"
+          "sha256": "f0625717f94054681031c08822ff0966c2540d5fc87dcd924969343027b66018"
         },
         {
           "path": ".claude/skills/feature-pilot/scripts/validate_spec.py",
@@ -1158,7 +1158,7 @@
         {
           "path": ".claude/skills/feature-pilot/SKILL.md",
           "role": "managed",
-          "sha256": "a9b5c37c3c6464a0cd100a0a4d8f2c0bdeaa5fb29ed4386b0af73bc97fbda9a1"
+          "sha256": "143d4706995da3f29cb325de56726d00d083bc47041c59a7802c393473823779"
         }
       ],
       "target_notes": [
