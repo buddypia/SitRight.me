@@ -64,37 +64,9 @@ FEATURES_DIR = "lib/features"  →  Glob {FEATURES_DIR}/<feature>/views/
 FEATURES_DIR = "src/features"  →  Identical to legacy behavior
 ```
 
-### Pre-flight Checklist (Mandatory Output Prior to Starting Skill)
+### Pre-flight Checklist
 
-> **CHECKLIST UPDATE RULE (MANDATORY)**:
-> Upon verifying each check item, re-output the entire checklist updating its status.
-> `---` → `✅` (Pass) or `❌` (Fail). Reflect the latest status for each item verified.
-> **Proceeding to the next step without updating = Violation Protocol infraction (severity: HIGH)**
-
-```markdown
-## Pre-flight Checklist (feature-pilot)
-
-|   ID   | Item | Status |
-| :----: | ------------------------------------------- | :--: |
-| PF-000 | Path Resolution completed (read project-config.json) | ---  |
-| PF-001 | Work type determination completed | ---  |
-| PF-002 | CONTEXT.json accessible or ready for creation | ---  |
-| PF-003 | Verify CLAUDE.md rules | ---  |
-| PF-004 | Feature Characteristics determination completed | ---  |
-| PF-005 | Verify Evidence cache | ---  |
-| PF-006 | Verify sub-skill ESP compatibility | ---  |
-| PF-007 | Confirm task ID | ---  |
-| PF-008 | Create worktree and initialize PLAN.md | ---  |
-
-**Work Type**: [NEW_FEATURE | MODIFY_FEATURE | BUG_FIX | DOCS_ONLY]
-**Risk Level**: [high | medium | low]
-**Pipeline**: [List of pipeline steps]
-
----
-
-→ Re-output this table after verifying each item (updating status to ✅/❌)
-→ All ✅: Proceed with execution / Any ❌: Halt immediately + report rationale
-```
+The checklist and the guard enforcing each item live in `SKILL.md` (Pre-flight Checklist). It is not printed; only the one-line summary is.
 
 ### Model Routing Policy (Mandatory Compliance)
 
@@ -108,7 +80,6 @@ FEATURES_DIR = "src/features"  →  Identical to legacy behavior
 
 **Sub-skill ESP Inheritance Rules**:
 
-- Calling ESP v2.0+ skills → Verify their Pre/Post-flight outputs.
 - Calling non-ESP skills → `feature-pilot` performs surrogate validation.
 - **Fallback Chain**: Sonnet → Sonnet → Opus (automatic promotion upon failure).
 
@@ -127,50 +98,19 @@ FEATURES_DIR = "src/features"  →  Identical to legacy behavior
 - Invalidation condition met → Force re-execution.
 - `--force` flag → Ignore cache, force re-execution.
 
-### Post-flight Checklist (Mandatory Output Prior to Ending Skill)
+### Post-flight Checklist
 
-> **CHECKLIST UPDATE RULE (MANDATORY)**:
-> Upon verifying each check item, re-output the entire checklist updating its status.
-> `---` → `✅` (Pass) or `❌` (Fail). Reflect the latest status for each item verified.
-> **Proceeding to the next step without updating = Violation Protocol infraction (severity: HIGH)**
-
-```markdown
-## Post-flight Checklist (feature-pilot)
-
-|   ID    | Item | Status |
-| :-----: | --------------------------------------------------- | :--: |
-| POF-001 | Pipeline completed or explicitly halted | ---  |
-| POF-002 | CONTEXT.json final state update completed | ---  |
-| POF-003 | QA verification passed (pre-quality-gate) | ---  |
-| POF-004 | All sub-skill Post-flights completed | ---  |
-| POF-005 | Evidence caching completed | ---  |
-| POF-006 | DoD verification completed (completion_contract verdict = passed) | ---  |
-| POF-007 | Worktree PLAN.md and CONTEXT.json cleanup completed | ---  |
-
-**Final Status**: [Done | Blocked | AwaitingUser | Failed]
-**Evidence Cache**:
-
-- npm_lint: [CACHED until HH:MM | NOT_CACHED]
-- npm_test: [CACHED until HH:MM | NOT_CACHED]
-- readiness_gate: [CACHED until HH:MM | NOT_CACHED]
-
----
-
-→ Re-output this table after verifying each item (updating status to ✅/❌)
-→ All ✅: Report completion / Any ❌: Fix and re-verify
-```
+The checklist and the gate enforcing each item live in `SKILL.md` (Post-flight Checklist). Report the final status in one line.
 
 ### Violation Protocol
 
 | Violation Type | Severity | Action |
 | ------------------------------------------------ | :------: | -------------------------------------------- |
-| Pre-flight not output | CRITICAL | Halt immediately, restart from the beginning |
-| Post-flight not verified | HIGH | Execute verification before reporting completion |
+| Pre-flight one-line summary not output (prompt-level, no guard) | MEDIUM | Output it before the first edit |
 | Missing Model parameter (Task call) | HIGH | Re-call Task with required parameters |
 | Sub-skill ESP violation | HIGH | Re-execute that skill |
 | Claiming completion without verification | CRITICAL | Halt immediately, execute verification |
 | Ignoring Evidence cache (unnecessary re-run) | LOW | Warn and proceed |
-| Un-updated checklist (leaving as ---/[ ]/⬜) | HIGH | Re-output checklist immediately, update status |
 
 ---
 
