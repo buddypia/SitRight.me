@@ -465,24 +465,15 @@ describe('telemetry', () => {
       expect(isBlockedTelemetryUrl('https://static.cloudflareinsights.com/beacon.min.js')).toBe(false);
     });
 
-    it('resolves RUM site_tag from Pages project and formats RUM visits and Core Web Vitals P75 metrics', async () => {
-      const { resolveRumSiteTag, summarizeRumAnalytics } = await import(
+    it('resolves RUM site_tag from env or default and formats RUM visits and Core Web Vitals P75 metrics', async () => {
+      const { DEFAULT_RUM_SITE_TAG, resolveRumSiteTag, summarizeRumAnalytics } = await import(
         '../../scripts/cf-analytics.mjs'
       );
 
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          result: {
-            build_config: {
-              web_analytics_tag: '879498ce72e148db9d904495ca055bd9',
-            },
-          },
-        }),
-      });
-
-      const tag = await resolveRumSiteTag('test-token', 'test-account', mockFetch);
-      expect(tag).toBe('879498ce72e148db9d904495ca055bd9');
+      expect(resolveRumSiteTag({})).toBe(DEFAULT_RUM_SITE_TAG);
+      expect(resolveRumSiteTag({ CLOUDFLARE_RUM_SITE_TAG: ' custom-tag-123 ' })).toBe(
+        'custom-tag-123'
+      );
 
       const summary = summarizeRumAnalytics({
         data: {

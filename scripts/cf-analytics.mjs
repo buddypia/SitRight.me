@@ -173,46 +173,17 @@ async function queryGraphQL(token, query, variables) {
   }
 }
 
-export async function resolveRumSiteTag(token, accountId, fetchImpl = fetch) {
-  if (process.env.CLOUDFLARE_RUM_SITE_TAG) {
-    return process.env.CLOUDFLARE_RUM_SITE_TAG;
-  }
-  if (!token || !accountId) return null;
+export const DEFAULT_RUM_SITE_TAG = '879498ce72e148db9d904495ca055bd9';
 
-  try {
-    const pagesRes = await fetchImpl(
-      `https://api.cloudflare.com/client/v4/accounts/${accountId}/pages/projects/sitright`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    if (pagesRes.ok) {
-      const pagesData = await pagesRes.json();
-      const tag = pagesData?.result?.build_config?.web_analytics_tag;
-      if (tag) return tag;
-    }
-  } catch {
-    // fallback to rum/site_info
+/**
+ * @param {Record<string, string | undefined>} [env]
+ */
+export function resolveRumSiteTag(env = process.env) {
+  const configured = env?.CLOUDFLARE_RUM_SITE_TAG;
+  if (typeof configured === 'string' && configured.trim().length > 0) {
+    return configured.trim();
   }
-
-  try {
-    const rumRes = await fetchImpl(
-      `https://api.cloudflare.com/client/v4/accounts/${accountId}/rum/site_info`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    if (rumRes.ok) {
-      const rumData = await rumRes.json();
-      const sites = rumData?.result || [];
-      const match = sites.find((s) => /sitright/i.test(s.host || s.ruleset?.zone_name || ''));
-      if (match?.site_tag) return match.site_tag;
-    }
-  } catch {
-    // ignore
-  }
-
-  return null;
+  return DEFAULT_RUM_SITE_TAG;
 }
 
 export function summarizeRumAnalytics(rumResult) {
@@ -310,7 +281,7 @@ async function queryRumAnalytics(token, accountId, siteTag, lookbackDays) {
 
 async function run() {
   const { token, accountId, zoneId, authSource } = await resolveCredentials();
-  const rumSiteTag = await resolveRumSiteTag(token, accountId);
+  const rumSiteTag = resolveRumSiteTag();
 
   const report = {
     generatedAt: new Date().toISOString(),
