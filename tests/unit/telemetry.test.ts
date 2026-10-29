@@ -450,5 +450,92 @@ describe('telemetry', () => {
       }
     });
   });
+
+  describe('Cloudflare Web Analytics (RUM) integration', () => {
+    it('allows Cloudflare Web Analytics RUM beacon and script in postbuild CSP and telemetry blocker', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { resolve } = await import('node:path');
+      const postbuildSrc = readFileSync(
+        resolve(process.cwd(), 'scripts/postbuild.mjs'),
+        'utf8'
+      );
+      expect(postbuildSrc).toContain('https://static.cloudflareinsights.com');
+      expect(postbuildSrc).toContain('https://cloudflareinsights.com');
+      expect(isBlockedTelemetryUrl('https://cloudflareinsights.com/cdn-cgi/rum')).toBe(false);
+      expect(isBlockedTelemetryUrl('https://static.cloudflareinsights.com/beacon.min.js')).toBe(false);
+    });
+
+    it('resolves RUM site_tag from Pages project and formats RUM visits and Core Web Vitals P75 metrics', async () => {
+      const { resolveRumSiteTag, summarizeRumAnalytics } = await import(
+        '../../scripts/cf-analytics.mjs'
+      );
+
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          result: {
+            build_config: {
+              web_analytics_tag: '879498ce72e148db9d904495ca055bd9',
+            },
+          },
+        }),
+      });
+
+      const tag = await resolveRumSiteTag('test-token', 'test-account', mockFetch);
+      expect(tag).toBe('879498ce72e148db9d904495ca055bd9');
+
+      const summary = summarizeRumAnalytics({
+        data: {
+          viewer: {
+            accounts: [
+              {
+                rumPageloadEventsAdaptiveGroups: [
+                  {
+                    count: 30,
+                    sum: { visits: 20 },
+                    dimensions: { date: '2026-10-28', countryName: 'JP' },
+                  },
+                  {
+                    count: 10,
+                    sum: { visits: 10 },
+                    dimensions: { date: '2026-10-29', countryName: 'KR' },
+                  },
+                ],
+                rumWebVitalsEventsAdaptiveGroups: [
+                  {
+                    count: 40,
+                    quantiles: {
+                      largestContentfulPaintP75: 1250000,
+                      interactionToNextPaintP75: 96000,
+                      cumulativeLayoutShiftP75: 0.012,
+                      firstContentfulPaintP75: 640000,
+                      timeToFirstByteP75: 180000,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      });
+
+      expect(summary).toEqual({
+        totalPageViews: 40,
+        totalVisits: 30,
+        byCountry: [
+          { country: 'JP', visits: 20, pageViews: 30 },
+          { country: 'KR', visits: 10, pageViews: 10 },
+        ],
+        webVitals: {
+          sampleCount: 40,
+          lcpMsP75: 1250,
+          inpMsP75: 96,
+          clsP75: 0.012,
+          fcpMsP75: 640,
+          ttfbMsP75: 180,
+        },
+      });
+    });
+  });
 });
 

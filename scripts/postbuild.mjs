@@ -55,16 +55,17 @@ for (const file of htmlFiles(out)) {
 
 const csp = [
   "default-src 'self'",
-  // MediaPipe の wasm をコンパイルするために 'wasm-unsafe-eval' が必要
-  `script-src 'self' 'wasm-unsafe-eval' ${[...hashes].map((h) => `'sha256-${h}'`).join(' ')}`,
+  // MediaPipe の wasm をコンパイルするために 'wasm-unsafe-eval' が必要。
+  // Cloudflare Web Analytics (RUM) のクッキー不要ビーコンスクリプトのみ許可する
+  `script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com ${[...hashes].map((h) => `'sha256-${h}'`).join(' ')}`,
   // React の style 属性（3D シーンのオーバーレイ位置など）に必要
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "media-src 'self' blob:",
   "font-src 'self'",
-  // 外部への通信を一切許可しない（映像や計測値を送れないことをブラウザが保証する）。
+  // 自サイトと Cloudflare Web Analytics (RUM) 以外の外部通信を一切許可しない（映像や計測値を送れないことをブラウザが保証する）。
   // blob: は 3D モデルに埋め込まれたテクスチャを端末内で読み出すため（GLTFLoader が fetch する）
-  "connect-src 'self' blob:",
+  "connect-src 'self' blob: https://cloudflareinsights.com",
   // 非表示タブでも計測を続けるタイマー Worker は Blob URL から作る
   "worker-src 'self' blob:",
   "manifest-src 'self'",

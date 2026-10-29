@@ -15,6 +15,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 // Simple .env parser for convenience if present
 function loadEnv() {
@@ -172,16 +173,154 @@ async function queryGraphQL(token, query, variables) {
   }
 }
 
+export async function resolveRumSiteTag(token, accountId, fetchImpl = fetch) {
+  if (process.env.CLOUDFLARE_RUM_SITE_TAG) {
+    return process.env.CLOUDFLARE_RUM_SITE_TAG;
+  }
+  if (!token || !accountId) return null;
+
+  try {
+    const pagesRes = await fetchImpl(
+      `https://api.cloudflare.com/client/v4/accounts/${accountId}/pages/projects/sitright`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    if (pagesRes.ok) {
+      const pagesData = await pagesRes.json();
+      const tag = pagesData?.result?.build_config?.web_analytics_tag;
+      if (tag) return tag;
+    }
+  } catch {
+    // fallback to rum/site_info
+  }
+
+  try {
+    const rumRes = await fetchImpl(
+      `https://api.cloudflare.com/client/v4/accounts/${accountId}/rum/site_info`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    if (rumRes.ok) {
+      const rumData = await rumRes.json();
+      const sites = rumData?.result || [];
+      const match = sites.find((s) => /sitright/i.test(s.host || s.ruleset?.zone_name || ''));
+      if (match?.site_tag) return match.site_tag;
+    }
+  } catch {
+    // ignore
+  }
+
+  return null;
+}
+
+export function summarizeRumAnalytics(rumResult) {
+  if (!rumResult || rumResult.error) return null;
+  const account = rumResult.data?.viewer?.accounts?.[0];
+  if (!account) return null;
+
+  const pageloads = account.rumPageloadEventsAdaptiveGroups || [];
+  const vitalsGroup = account.rumWebVitalsEventsAdaptiveGroups?.[0] || null;
+
+  let totalPageViews = 0;
+  let totalVisits = 0;
+  const countryMap = new Map();
+
+  for (const row of pageloads) {
+    const pv = Number(row.count ?? 0);
+    const visits = Number(row.sum?.visits ?? 0);
+    const country = row.dimensions?.countryName || '-';
+    totalPageViews += pv;
+    totalVisits += visits;
+    const prev = countryMap.get(country) || { country, visits: 0, pageViews: 0 };
+    prev.visits += visits;
+    prev.pageViews += pv;
+    countryMap.set(country, prev);
+  }
+
+  const byCountry = [...countryMap.values()].sort(
+    (a, b) => b.pageViews - a.pageViews || a.country.localeCompare(b.country)
+  );
+
+  const q = vitalsGroup?.quantiles;
+  const toMs = (us) => (typeof us === 'number' ? Math.round(us / 1000) : null);
+  const webVitals = vitalsGroup
+    ? {
+        sampleCount: Number(vitalsGroup.count ?? 0),
+        lcpMsP75: toMs(q?.largestContentfulPaintP75),
+        inpMsP75: toMs(q?.interactionToNextPaintP75),
+        clsP75:
+          typeof q?.cumulativeLayoutShiftP75 === 'number'
+            ? Number(q.cumulativeLayoutShiftP75.toFixed(3))
+            : null,
+        fcpMsP75: toMs(q?.firstContentfulPaintP75),
+        ttfbMsP75: toMs(q?.timeToFirstByteP75),
+      }
+    : null;
+
+  return {
+    totalPageViews,
+    totalVisits,
+    byCountry,
+    webVitals,
+  };
+}
+
+async function queryRumAnalytics(token, accountId, siteTag, lookbackDays) {
+  if (!token || !accountId || !siteTag) return null;
+  const since = new Date(Date.now() - lookbackDays * 86400000).toISOString();
+  const until = new Date().toISOString();
+  const gql = `
+    query GetRumAnalytics($accountId: string!, $siteTag: string!, $since: Time!, $until: Time!) {
+      viewer {
+        accounts(filter: { accountTag: $accountId }) {
+          rumPageloadEventsAdaptiveGroups(
+            limit: 500
+            filter: { siteTag: $siteTag, datetime_geq: $since, datetime_leq: $until }
+          ) {
+            count
+            sum {
+              visits
+            }
+            dimensions {
+              date
+              countryName
+            }
+          }
+          rumWebVitalsEventsAdaptiveGroups(
+            limit: 10
+            filter: { siteTag: $siteTag, datetime_geq: $since, datetime_leq: $until }
+          ) {
+            count
+            quantiles {
+              largestContentfulPaintP75
+              interactionToNextPaintP75
+              cumulativeLayoutShiftP75
+              firstContentfulPaintP75
+              timeToFirstByteP75
+            }
+          }
+        }
+      }
+    }
+  `;
+  return queryGraphQL(token, gql, { accountId, siteTag, since, until });
+}
+
 async function run() {
   const { token, accountId, zoneId, authSource } = await resolveCredentials();
+  const rumSiteTag = await resolveRumSiteTag(token, accountId);
 
   const report = {
     generatedAt: new Date().toISOString(),
     lookbackDays: days,
     authSource: token ? authSource : 'none',
     accountId: accountId || null,
+    rumSiteTag: rumSiteTag || null,
     summary: null,
     analyticsEngine: null,
+    rumAnalytics: null,
     zoneAnalytics: null,
     warnings: [],
   };
@@ -225,12 +364,14 @@ async function run() {
       GROUP BY event, step, errorCode, country
       ORDER BY count DESC
     `;
-    const [summaryResult, result] = await Promise.all([
+    const [summaryResult, result, rumRaw] = await Promise.all([
       queryAnalyticsEngine(token, accountId, 'sitright_telemetry', summarySql),
       queryAnalyticsEngine(token, accountId, 'sitright_telemetry', sql),
+      rumSiteTag ? queryRumAnalytics(token, accountId, rumSiteTag, days) : Promise.resolve(null),
     ]);
     report.summary = summaryResult?.data?.[0] || null;
     report.analyticsEngine = result;
+    report.rumAnalytics = summarizeRumAnalytics(rumRaw);
   } else if (!accountId && token) {
     report.warnings.push('Cloudflare Account ID could not be resolved automatically.');
   }
@@ -278,6 +419,7 @@ async function run() {
   if (token) {
     console.log(`🔑 Auth: Authenticated via ${authSource}`);
     if (accountId) console.log(`🏢 Account ID: ${accountId}`);
+    if (rumSiteTag) console.log(`📡 Web Analytics (RUM) Site Tag: ${rumSiteTag}`);
   }
   if (report.summary) {
     const totalEvents = Number(report.summary.totalEvents ?? 0);
@@ -323,6 +465,37 @@ async function run() {
     console.log('   (Note: If dataset is freshly bound, first events will activate the table.)\n');
   }
 
+  // Display Cloudflare Web Analytics (RUM)
+  if (report.rumAnalytics) {
+    const { totalVisits, totalPageViews, byCountry, webVitals } = report.rumAnalytics;
+    console.log('⚡ [Cloudflare Web Analytics (RUM) — Visits & Core Web Vitals]');
+    console.log(`   Visits: ${totalVisits} | Page Views: ${totalPageViews}`);
+    if (webVitals && webVitals.sampleCount > 0) {
+      console.table([
+        {
+          Samples: webVitals.sampleCount,
+          'LCP P75 (ms)': webVitals.lcpMsP75 ?? '-',
+          'INP P75 (ms)': webVitals.inpMsP75 ?? '-',
+          'CLS P75': webVitals.clsP75 ?? '-',
+          'FCP P75 (ms)': webVitals.fcpMsP75 ?? '-',
+          'TTFB P75 (ms)': webVitals.ttfbMsP75 ?? '-',
+        },
+      ]);
+    }
+    if (byCountry.length > 0) {
+      console.table(
+        byCountry.map((c) => ({
+          Country: c.country,
+          Visits: c.visits,
+          'Page Views': c.pageViews,
+        }))
+      );
+    } else if (!webVitals || webVitals.sampleCount === 0) {
+      console.log('   No RUM beacon events recorded in this period yet.');
+    }
+    console.log('');
+  }
+
   // Display Zone Analytics
   if (report.zoneAnalytics && !report.zoneAnalytics.error) {
     const groups =
@@ -351,7 +524,11 @@ async function run() {
   console.log('===================================================\n');
 }
 
-run().catch((err) => {
-  console.error('Fatal analytics error:', err);
-  process.exit(1);
-});
+const isMain =
+  process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
+if (isMain) {
+  run().catch((err) => {
+    console.error('Fatal analytics error:', err);
+    process.exit(1);
+  });
+}
