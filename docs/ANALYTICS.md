@@ -148,6 +148,9 @@ export CLOUDFLARE_ACCOUNT_ID="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 # (任意) ドメインを設定している場合の Zone ID
 export CLOUDFLARE_ZONE_ID="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# (任意) Web Analytics (RUM) の Site Tag（未設定時は Pages プロジェクト sitright から自動解決）
+export CLOUDFLARE_RUM_SITE_TAG="879498ce72e148db9d904495ca055bd9"
 ```
 
 > **API Tokenの作成手順:**

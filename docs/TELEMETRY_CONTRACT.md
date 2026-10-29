@@ -31,9 +31,9 @@ To preserve user trust, satisfy global privacy regulations (Korea PIPA, Japan Te
 ## 2. The Four Inviolable Rules (AI Guardrails)
 
 ### Rule 1: Strict Zero Third-Party Trackers (CSP Integrity & Complete Telemetry Elimination)
-- **Do NOT** install third-party analytics libraries (`@vercel/analytics`, `mixpanel-browser`, Google Analytics, Segment, etc.).
-- **Do NOT** add external domains to `connect-src` or `script-src` in `scripts/postbuild.mjs`.
-- All telemetry MUST be first-party (`/api/telemetry`).
+- **Do NOT** install third-party ad/cross-site analytics libraries (`@vercel/analytics`, `mixpanel-browser`, Google Analytics, Segment, etc.).
+- **Do NOT** add external domains to `connect-src` or `script-src` in `scripts/postbuild.mjs` beyond Cloudflare's cookieless Web Analytics RUM (`https://static.cloudflareinsights.com` and `https://cloudflareinsights.com`).
+- Application telemetry MUST be first-party (`/api/telemetry`), complemented only by Cloudflare Pages' built-in cookieless Web Analytics RUM beacon.
 - Any embedded third-party telemetry (e.g. MediaPipe Google ODML logging to `odml.pa.googleapis.com`) MUST be completely eliminated:
   1. **Build-Time Neutralization (`scripts/disable-third-party-telemetry.mjs`)**: MediaPipe distribution bundles are patched so the 60s `setInterval` flush timer is removed, log entries are never buffered, and the endpoint URL is stripped.
   2. **Runtime Blocker Guard (`src/engine/telemetry.ts:installThirdPartyTelemetryBlocker`)**: Any non-first-party telemetry network attempts via `fetch` or `sendBeacon` are intercepted and fail exactly like a CSP block (`fetch` rejects with `TypeError`, `sendBeacon` returns `false`), so nothing is ever reported as delivered.
