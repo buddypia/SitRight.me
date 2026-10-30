@@ -8,7 +8,9 @@
     "trigger_keywords": [
       "parallel agents",
       "dispatch in parallel",
-      "independent failures"
+      "independent failures",
+      "arena",
+      "several versions and pick the best"
     ]
   },
   "dependencies": {
@@ -17,5 +19,8 @@
   },
   "called_by": [],
   "calls": [],
-  "source": "MIT-licensed skills library, Copyright (c) 2025 Jesse Vincent — upstream v7.0.1 (2ce8aa1). See LICENSE.txt and THIRD_PARTY_NOTICES.md"
+  "references": [
+    "references/arena.md"
+  ],
+  "source": "MIT-licensed skills library, Copyright (c) 2025 Jesse Vincent — upstream v7.0.1 (2ce8aa1). See LICENSE.txt and THIRD_PARTY_NOTICES.md; references/arena.md adapted from pstack (cursor/plugins plugin v0.15.36, 4dd1d05), Copyright (c) 2026 Lauren Tan, MIT — license in the file"
 }

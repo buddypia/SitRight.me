@@ -7,7 +7,7 @@ description: Use when executing an implementation plan in the current session as
 
 ## In This Repository
 
-- The plan is `.tmp/worktree-<safeBranch>/PLAN.md`; tick each checkbox only after its verification command passed (R-CM-010).
+- The plan is `.tmp/worktree-<safeBranch>/PLAN.md`; tick each checkbox only after its verification command passed.
 - Commit per task with `git -C <worktree-path> commit`; finish with `finishing-a-development-branch`, which hands off to the repository's ship command.
 - `scripts/...` paths are relative to this skill's directory; from the repository root they are `.agents/skills/executing-plans/scripts/<name>` (and `.agents/skills/subagent-driven-development/scripts/<name>` for the shared ones).
 

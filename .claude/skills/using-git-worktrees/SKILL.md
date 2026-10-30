@@ -8,7 +8,7 @@ description: Use when starting feature work that needs isolation from current wo
 ## In This Repository
 
 - Already isolated when the cwd is under `.worktrees/` (Step 0 detects it). Otherwise create the workspace with `make wt.new BR=feature/<task>` (or `fix/<task>`). It fetches, fast-forwards `main` and branches from `origin/main`. This is the native tool for this repository: it replaces Step 1a and Step 1b.
-- `git worktree add -b`, `git checkout -b` and `git switch -c` are blocked by `commit-guard` (R-CM-008). Do not work around the block.
+- `git worktree add -b`, `git checkout -b` and `git switch -c` are blocked by `commit-guard`. Do not work around the block.
 - Commit with `git -C <worktree-path> commit ...`; `--amend` is always blocked.
 - The plan for the branch lives in `.tmp/worktree-<safeBranch>/PLAN.md`.
 - Run project setup and the baseline check from the worktree cwd: install dependencies when they are missing, then the project's quality gate (`project-config.json#commands.quality_gate`, or the gate `AGENTS.md` names when that file is absent).

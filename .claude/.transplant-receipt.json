@@ -1185,9 +1185,9 @@
       "bundle_version": "1.0",
       "source": {
         "repo": "brief2dev",
-        "commit": "93404760757cf63d86c0478a3cc99244213ee7bf"
+        "commit": "4b84f181abe63539e827a704ce38ea026fa42828"
       },
-      "transplanted_at": "2026-10-27T15:57:57.695Z",
+      "transplanted_at": "2026-10-30T11:39:05.670Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle dev-discipline-workflow --target <this-project-root> --json",
       "files": [
         {
@@ -1248,12 +1248,17 @@
         {
           "path": ".claude/skills/dispatching-parallel-agents/MANIFEST.json",
           "role": "managed",
-          "sha256": "12442b60e779eb975beb2223db73e0a11b928eeb78bae2fef03dd300ac431bbc"
+          "sha256": "49cf4bf200d3628e7869a8da06c72ac462d11248998f57cf58b3dcf2e820e42e"
+        },
+        {
+          "path": ".claude/skills/dispatching-parallel-agents/references/arena.md",
+          "role": "managed",
+          "sha256": "d96ea97a74916de47f2790c756e63d8484c4bb10ca131ac4b7ada02c08ca7f7b"
         },
         {
           "path": ".claude/skills/dispatching-parallel-agents/SKILL.md",
           "role": "managed",
-          "sha256": "29676632e15cf4b2929e986528dc6de6fbff562595e2d19d25b761bab43fa823"
+          "sha256": "daf33507f635ed1ca6f6ec3de7dcc0efa48caad027c5baaf7f116ebeb0abeb52"
         },
         {
           "path": ".claude/skills/executing-plans/LICENSE.txt",
@@ -1278,7 +1283,7 @@
         {
           "path": ".claude/skills/executing-plans/SKILL.md",
           "role": "managed",
-          "sha256": "888c494b407b0db6b0a48d04a8356480ea0be76b42642cae21f14247cfc75bb3"
+          "sha256": "6bece63f0596672dce8b0adcdc1865721c3b91a2dda13acde0fc90e49683b99f"
         },
         {
           "path": ".claude/skills/finishing-a-development-branch/LICENSE.txt",
@@ -1293,7 +1298,7 @@
         {
           "path": ".claude/skills/finishing-a-development-branch/SKILL.md",
           "role": "managed",
-          "sha256": "b2b0f55bec74cb8ee09106147252feff1bd3275eb6e28880f2c12753bb43e94b"
+          "sha256": "979daa5683818e4c19d576ddf86184c3af3aee971baf1feeebaf04abed83ec70"
         },
         {
           "path": ".claude/skills/receiving-code-review/LICENSE.txt",
@@ -1308,7 +1313,7 @@
         {
           "path": ".claude/skills/receiving-code-review/SKILL.md",
           "role": "managed",
-          "sha256": "844146021cd87cb62c48c45850e3272795a965853b46498a08e9bf2c5ff49bd1"
+          "sha256": "6fa0e39d46d7db2d44ba02d5808d7562251db0990eab483a94c9fab9a66c2e22"
         },
         {
           "path": ".claude/skills/requesting-code-review/LICENSE.txt",
@@ -1443,7 +1448,7 @@
         {
           "path": ".claude/skills/using-git-worktrees/SKILL.md",
           "role": "managed",
-          "sha256": "c8323749e5f541837c6484434687a5c9cd617a76fad6d46a267a3faa134e8879"
+          "sha256": "5443abe8e6b8a51b5ce93bd37180745faf8d87e9955415dfda31a50a4388b980"
         },
         {
           "path": ".claude/skills/using-skills/LICENSE.txt",
@@ -1483,12 +1488,12 @@
         {
           "path": ".claude/skills/verification-before-completion/MANIFEST.json",
           "role": "managed",
-          "sha256": "fbcf5e86b9de7c1c169516ff9c33bfd31b771ca2fcae527f9f412969ddeecfc6"
+          "sha256": "f9b96d14e48447585c64f8d959bbf0cfb0089f3c5ce971f90ca0da7cb64f76c9"
         },
         {
           "path": ".claude/skills/verification-before-completion/SKILL.md",
           "role": "managed",
-          "sha256": "db8a49be63279af18df8c096ad5493d60140ad0ce66afa84eeb1e7da063a73fb"
+          "sha256": "71d8e8272740535251e8b4258418d2718dc03c459e44c3dfdc2eff567ccebcb1"
         },
         {
           "path": ".claude/skills/writing-plans/LICENSE.txt",

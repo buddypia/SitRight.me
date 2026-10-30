@@ -7,7 +7,7 @@ description: Use when about to claim work is complete, fixed, or passing, before
 
 ## In This Repository
 
-- R-CM-010 is the repository rule; for large changes, use the multi-phase verification loop when `AGENTS.md` lists one among its review or ship skills.
+- For large changes, use the multi-phase verification loop when `AGENTS.md` lists one among its review or ship skills.
 - Gates: the project's quality gate (`project-config.json#commands.quality_gate`, or the gate `AGENTS.md` names when that file is absent) and any pre-push hook the repository runs. Run them in the worktree cwd and quote their output.
 
 ## Overview
