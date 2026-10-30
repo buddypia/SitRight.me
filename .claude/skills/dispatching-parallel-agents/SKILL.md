@@ -1,6 +1,6 @@
 ---
 name: dispatching-parallel-agents
-description: Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies
+description: Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies, or (arena mode) when one artifact deserves several independent attempts before picking the best
 ---
 
 # Dispatching Parallel Agents
@@ -8,6 +8,7 @@ description: Use when facing 2+ independent tasks that can be worked on without 
 ## In This Repository
 
 - Give each agent absolute paths. Agents that drive a browser each get their own browser session and close it when done.
+- Several independent attempts at one artifact (a headline, an offer, an interview script, an API), then keep the best and graft the rest: arena mode, `references/arena.md`. It inverts this skill: every agent gets the same problem.
 
 ## Overview
 

@@ -10,7 +10,7 @@ description: Use when implementation is complete, all tests pass, and you need t
 - Step 1 verification is the project's quality gate (`project-config.json#commands.quality_gate`, or the gate `AGENTS.md` names when that file is absent) plus any pre-push hook the repository runs, in the worktree cwd.
 - When `AGENTS.md` names a ship command (worktree → PR → squash merge → cleanup), that is the integration path. Commit your work first; it then checks `PLAN.md` and a clean worktree, pushes, opens the PR, squash-merges into `main` and removes the worktree. It replaces Options 1–2 and the manual cleanup in Step 6; local `git merge` into `main` and manual `git push` are not used. Without one, the options below apply.
 - Option 3 (keep the branch as is) still applies. Discarding work needs the user's explicit confirmation; `git branch -D` and forced worktree removal are destructive.
-- Surface every `warnings[]` entry the ship command prints (R-CM-008 Rule 9).
+- Surface every `warnings[]` entry the ship command prints.
 
 ## Overview
 

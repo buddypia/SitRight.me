@@ -7,7 +7,7 @@ description: Use when receiving code review feedback, before implementing sugges
 
 ## In This Repository
 
-- Critical-advisor rule (R-CM-016): when feedback is wrong, say so with evidence; when the user insists, record the warning and comply.
+- Critical-advisor rule: when feedback is wrong, say so with evidence; when the user insists, record the warning and comply.
 
 ## Overview
 
