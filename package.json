@@ -24,27 +24,27 @@
     "harness:index": "node scripts/harness-library.mjs"
   },
   "dependencies": {
-    "@mediapipe/tasks-vision": "^1.1.1",
-    "next": "^16.4.2",
+    "@mediapipe/tasks-vision": "^1.2.0",
+    "next": "^16.4.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "three": "^0.186.1",
-    "zustand": "^5.0.15"
+    "three": "^0.187.0",
+    "zustand": "^5.0.16"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
-    "@tailwindcss/postcss": "^4.3.3",
-    "@types/node": "^26.6.5",
+    "@tailwindcss/postcss": "^4.3.4",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@types/three": "^0.186.0",
-    "eslint": "^10.13.0",
-    "eslint-config-next": "^16.4.2",
-    "postcss": "^8.5.31",
+    "@types/three": "^0.187.0",
+    "eslint": "^10.14.0",
+    "eslint-config-next": "^16.4.4",
+    "postcss": "^8.5.32",
     "prettier": "^3.9.10",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.5",
-    "wrangler": "^4.151.3"
+    "vitest": "^5.1.0",
+    "wrangler": "^4.157.0"
   }
 }
