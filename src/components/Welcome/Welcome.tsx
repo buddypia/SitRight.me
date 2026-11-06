@@ -20,29 +20,20 @@ interface IdleSchedulerHost {
   cancelIdleCallback?: (id: number) => void;
 }
 
-/**
- * ブラウザのアイドル時間（またはフォールバックの遅延）を利用して
- * MediaPipe の WASM / 姿勢推定モデルを裏で事前読み込みする。
- */
+/** アイドル時間を利用して MediaPipe の WASM / 姿勢推定モデルを裏で事前読み込みする */
 export function scheduleEnginePrewarm(
   ensureEngine: () => Promise<void>,
   host: IdleSchedulerHost = typeof window !== 'undefined'
     ? (window as unknown as IdleSchedulerHost)
     : {}
 ): () => void {
-  const run = () => {
-    void ensureEngine().catch(() => undefined);
-  };
+  const run = () => void ensureEngine().catch(() => undefined);
   if (typeof host.requestIdleCallback === 'function') {
     const id = host.requestIdleCallback(run, { timeout: 2000 });
-    return () => {
-      host.cancelIdleCallback?.(id);
-    };
+    return () => host.cancelIdleCallback?.(id);
   }
   const timer = setTimeout(run, 600);
-  return () => {
-    clearTimeout(timer);
-  };
+  return () => clearTimeout(timer);
 }
 
 export function Welcome() {
@@ -73,12 +64,8 @@ export function Welcome() {
     activeDemo === 'ideal' ? t.alignmentBalanced : t.pattern[activeDemo].fix;
 
   const selectPattern = (pattern: DemoPattern) => {
-    if (pinnedDemo === pattern) {
-      setPinnedDemo(null);
-    } else {
-      setPinnedDemo(pattern);
-      setDemo(pattern);
-    }
+    setPinnedDemo((prev) => (prev === pattern ? null : pattern));
+    setDemo(pattern);
   };
 
   return (

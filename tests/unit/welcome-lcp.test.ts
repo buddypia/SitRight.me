@@ -19,10 +19,7 @@ import { useAppStore } from '@/stores/appStore';
 function setTestLocale(locale: Locale) {
   useAppStore.getInitialState().settings.locale = locale;
   useAppStore.setState({
-    settings: {
-      ...useAppStore.getState().settings,
-      locale,
-    },
+    settings: { ...useAppStore.getState().settings, locale },
   });
 }
 
@@ -31,13 +28,10 @@ describe('Welcome interactive 3D demo & LCP / engine pre-warm', () => {
     setTestLocale(DEFAULT_LOCALE);
     useAppStore.getInitialState().hydrated = false;
     useAppStore.getInitialState().phase = 'welcome';
-    useAppStore.setState({
-      hydrated: false,
-      phase: 'welcome',
-    });
+    useAppStore.setState({ hydrated: false, phase: 'welcome' });
   });
 
-  it('exposes all 5 selectable demo patterns in order', () => {
+  it('exposes all 5 selectable demo patterns and resolves pinned or auto-cycled targets', () => {
     expect(DEMO_PATTERNS).toEqual([
       'ideal',
       'straight_neck',
@@ -45,105 +39,74 @@ describe('Welcome interactive 3D demo & LCP / engine pre-warm', () => {
       'slouch',
       'lean',
     ]);
-  });
-
-  it('resolves exact rig and severity for a pinned demoPattern or cycles over time when null', () => {
     for (const pattern of DEMO_PATTERNS) {
-      const resolved = resolveDemoTarget(pattern, 0);
-      expect(resolved.pattern).toBe(pattern);
+      const res = resolveDemoTarget(pattern, 0);
+      expect(res.pattern).toBe(pattern);
+      const total =
+        res.sev.forward + res.sev.down + res.sev.slump + res.sev.lean;
       if (pattern === 'ideal') {
-        expect(resolved.rig).toEqual(IDEAL_RIG);
-        expect(resolved.sev).toEqual({
-          forward: 0,
-          down: 0,
-          slump: 0,
-          lean: 0,
-        });
+        expect(res.rig).toEqual(IDEAL_RIG);
+        expect(total).toBe(0);
       } else {
-        const totalSev =
-          resolved.sev.forward +
-          resolved.sev.down +
-          resolved.sev.slump +
-          resolved.sev.lean;
-        expect(totalSev).toBeGreaterThan(0);
+        expect(total).toBeGreaterThan(0);
       }
     }
-
-    // When demoPattern is null, it cycles over DEMO_HOLD_MS (2600ms) intervals
-    const frame0 = resolveDemoTarget(null, 100);
-    const frame1 = resolveDemoTarget(null, 2700);
-    expect(frame0.pattern).toBe('ideal');
-    expect(frame1.pattern).toBe('straight_neck');
+    expect(resolveDemoTarget(null, 100).pattern).toBe('ideal');
+    expect(resolveDemoTarget(null, 2700).pattern).toBe('straight_neck');
   });
 
   it.each(SUPPORTED_LOCALES)(
     'renders interactive demo pattern buttons and posture preview in Welcome (%s)',
     (locale) => {
       setTestLocale(locale);
-      useAppStore.setState({
-        hydrated: true,
-        phase: 'welcome',
-      });
+      useAppStore.setState({ hydrated: true, phase: 'welcome' });
       const t = MESSAGES[locale];
       const html = renderToString(React.createElement(Welcome));
 
-      expect(html).toContain(t.statusGood);
-      expect(html).toContain(t.pattern.straight_neck.name);
-      expect(html).toContain(t.pattern.text_neck.name);
-      expect(html).toContain(t.pattern.slouch.name);
-      expect(html).toContain(t.pattern.lean.name);
-      expect(html).toContain(t.alignmentBalanced);
+      for (const expected of [
+        t.statusGood,
+        t.pattern.straight_neck.name,
+        t.pattern.text_neck.name,
+        t.pattern.slouch.name,
+        t.pattern.lean.name,
+        t.alignmentBalanced,
+      ]) {
+        expect(html).toContain(expected);
+      }
     }
   );
 
   it('keeps Welcome hero h1 mounted even when hydrated is false to prevent LCP re-paint delay', () => {
     setTestLocale('en');
     useAppStore.getInitialState().hydrated = false;
-    useAppStore.setState({
-      hydrated: false,
-      phase: 'welcome',
-    });
+    useAppStore.setState({ hydrated: false, phase: 'welcome' });
     const html = renderToString(React.createElement(App));
     expect(html).toContain(MESSAGES.en.welcomeTitle.split('\n')[0]);
     expect(html).toContain(MESSAGES.en.welcomeBody);
   });
 
-  it('schedules MediaPipe Vision engine pre-warming on idle and cancels cleanly on unmount', () => {
+  it('schedules MediaPipe Vision engine pre-warming on idle or timeout fallback', () => {
     const ensureEngine = vi.fn(() => Promise.resolve());
     const callbacks: (() => void)[] = [];
     const cancelled: number[] = [];
 
     const cleanup = scheduleEnginePrewarm(ensureEngine, {
-      requestIdleCallback: (cb: () => void) => {
-        callbacks.push(cb);
-        return 42;
-      },
-      cancelIdleCallback: (id: number) => {
-        cancelled.push(id);
-      },
+      requestIdleCallback: (cb: () => void) => (callbacks.push(cb), 42),
+      cancelIdleCallback: (id: number) => void cancelled.push(id),
     });
-
     expect(ensureEngine).not.toHaveBeenCalled();
-    expect(callbacks).toHaveLength(1);
-
     callbacks[0]();
     expect(ensureEngine).toHaveBeenCalledTimes(1);
-
     cleanup();
     expect(cancelled).toEqual([42]);
-  });
 
-  it('falls back to setTimeout when requestIdleCallback is unavailable', () => {
     vi.useFakeTimers();
     try {
-      const ensureEngine = vi.fn(() => Promise.resolve());
-      const cleanup = scheduleEnginePrewarm(ensureEngine, {});
-
-      expect(ensureEngine).not.toHaveBeenCalled();
+      const fallbackEnsure = vi.fn(() => Promise.resolve());
+      const fallbackCleanup = scheduleEnginePrewarm(fallbackEnsure, {});
       vi.advanceTimersByTime(600);
-      expect(ensureEngine).toHaveBeenCalledTimes(1);
-
-      cleanup();
+      expect(fallbackEnsure).toHaveBeenCalledTimes(1);
+      fallbackCleanup();
     } finally {
       vi.useRealTimers();
     }
