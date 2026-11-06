@@ -11,13 +11,12 @@ import { Calibrate } from '../Calibrate';
 import { LanguageSelector } from '../LanguageSelector';
 import { Monitor, STATUS_COLOR, displayStatus, statusLabel } from '../Monitor';
 import { SettingsSheet } from '../Settings';
-import { Setup, Spinner } from '../Setup';
+import { Setup } from '../Setup';
 import { Toasts } from '../Toasts';
 import { Welcome } from '../Welcome';
 import { Button, Logo } from '../ui';
 
 export function App() {
-  const t = useT();
   const hydrated = useAppStore((s) => s.hydrated);
   const phase = useAppStore((s) => s.phase);
   const locale = useAppStore((s) => s.settings.locale);
@@ -74,18 +73,6 @@ export function App() {
 
   const closeSettings = useCallback(() => setSettingsOpen(false), []);
 
-  if (!hydrated) {
-    return (
-      <div className="grid min-h-dvh place-items-center text-sm text-ink-3">
-        <span className="flex items-center gap-2.5">
-          <Logo size={28} />
-          <Spinner />
-          {t.loading}
-        </span>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-dvh">
       <Header onOpenSettings={() => setSettingsOpen(true)} />
@@ -118,7 +105,7 @@ function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
           className="flex items-center gap-2.5"
           aria-label="SitRight"
         >
-          <Logo />
+          <Logo size={28} />
           <span
             className={`text-[15px] font-semibold tracking-tight ${
               phase === 'monitor' ? 'hidden sm:inline' : ''

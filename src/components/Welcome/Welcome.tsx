@@ -1,15 +1,49 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IDEAL_RIG } from '@/core/rig';
+import { getController } from '@/engine/controller';
 import { unlockAudio } from '@/engine/notifier';
 import { useT } from '@/hooks/useT';
 import { guidePath } from '@/i18n/messages';
 import { useAppStore } from '@/stores/appStore';
-import { PostureScene } from '../PostureScene';
-import type { DemoPattern } from '../PostureScene/PostureScene';
+import {
+  DEMO_PATTERNS,
+  PostureScene,
+  type DemoPattern,
+} from '../PostureScene/PostureScene';
 import { Button } from '../ui';
 import { PrivacyModal } from '../Privacy';
+
+interface IdleSchedulerHost {
+  requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+  cancelIdleCallback?: (id: number) => void;
+}
+
+/**
+ * ブラウザのアイドル時間（またはフォールバックの遅延）を利用して
+ * MediaPipe の WASM / 姿勢推定モデルを裏で事前読み込みする。
+ */
+export function scheduleEnginePrewarm(
+  ensureEngine: () => Promise<void>,
+  host: IdleSchedulerHost = typeof window !== 'undefined'
+    ? (window as unknown as IdleSchedulerHost)
+    : {}
+): () => void {
+  const run = () => {
+    void ensureEngine().catch(() => undefined);
+  };
+  if (typeof host.requestIdleCallback === 'function') {
+    const id = host.requestIdleCallback(run, { timeout: 2000 });
+    return () => {
+      host.cancelIdleCallback?.(id);
+    };
+  }
+  const timer = setTimeout(run, 600);
+  return () => {
+    clearTimeout(timer);
+  };
+}
 
 export function Welcome() {
   const t = useT();
@@ -18,15 +52,34 @@ export function Welcome() {
   const avatar = useAppStore((s) => s.settings.avatar);
   const locale = useAppStore((s) => s.settings.locale);
   const [demo, setDemo] = useState<DemoPattern>('ideal');
+  const [pinnedDemo, setPinnedDemo] = useState<DemoPattern | null>(null);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+
+  useEffect(
+    () => scheduleEnginePrewarm(() => getController().ensureEngine()),
+    []
+  );
 
   const go = (phase: 'setup' | 'monitor') => {
     unlockAudio();
     setPhase(phase);
   };
 
-  const demoLabel = demo === 'ideal' ? t.statusGood : t.pattern[demo].name;
-  const demoTone = demo === 'ideal' ? 'text-good' : 'text-fair';
+  const activeDemo = pinnedDemo ?? demo;
+  const demoLabel =
+    activeDemo === 'ideal' ? t.statusGood : t.pattern[activeDemo].name;
+  const demoTone = activeDemo === 'ideal' ? 'text-good' : 'text-fair';
+  const demoDetail =
+    activeDemo === 'ideal' ? t.alignmentBalanced : t.pattern[activeDemo].fix;
+
+  const selectPattern = (pattern: DemoPattern) => {
+    if (pinnedDemo === pattern) {
+      setPinnedDemo(null);
+    } else {
+      setPinnedDemo(pattern);
+      setDemo(pattern);
+    }
+  };
 
   return (
     <div className="mx-auto grid min-h-[calc(100dvh-64px)] max-w-[1280px] items-center gap-10 px-6 pb-10 pt-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-14">
@@ -106,21 +159,56 @@ export function Welcome() {
           avatar={avatar}
           t={t}
           demo
+          demoPattern={pinnedDemo}
           loadWeights
           onDemoPattern={setDemo}
           className="h-full w-full"
         />
-        <div className="pointer-events-none absolute bottom-3 left-3 flex items-center sm:bottom-auto sm:left-5 sm:top-5 gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 text-xs backdrop-blur-sm">
-          <span className="text-ink-3">{t.demoLabel}</span>
-          <span className={`font-medium transition-colors ${demoTone}`}>
-            {demoLabel}
-          </span>
+        <div className="pointer-events-none absolute left-3 right-14 top-3 flex flex-col items-start gap-2 sm:left-5 sm:right-5 sm:top-5">
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-black/50 px-3 py-1.5 text-xs backdrop-blur-sm">
+            <span className="text-ink-3">{t.demoLabel}</span>
+            <span className={`font-medium transition-colors ${demoTone}`}>
+              {demoLabel}
+            </span>
+            <span className="hidden text-white/25 sm:inline" aria-hidden>
+              ·
+            </span>
+            <span className="hidden text-[11px] text-ink-2 sm:inline">
+              {demoDetail}
+            </span>
+          </div>
+          <div
+            role="group"
+            aria-label={t.demoLabel}
+            className="pointer-events-auto flex flex-wrap items-center gap-1.5"
+          >
+            {DEMO_PATTERNS.map((pattern) => {
+              const isSelected = activeDemo === pattern;
+              const isPinned = pinnedDemo === pattern;
+              const label =
+                pattern === 'ideal' ? t.statusGood : t.pattern[pattern].name;
+              return (
+                <button
+                  key={pattern}
+                  type="button"
+                  aria-pressed={isPinned}
+                  onClick={() => selectPattern(pattern)}
+                  className={`cursor-pointer rounded-full border px-2.5 py-1 text-[11px] font-medium backdrop-blur-sm transition ${
+                    isSelected
+                      ? pattern === 'ideal'
+                        ? 'border-good/50 bg-good/20 text-good'
+                        : 'border-fair/50 bg-fair/20 text-fair'
+                      : 'border-white/10 bg-black/40 text-white/70 hover:border-white/25 hover:text-white'
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
-      <PrivacyModal
-        open={privacyOpen}
-        onClose={() => setPrivacyOpen(false)}
-      />
+      <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
     </div>
   );
 }

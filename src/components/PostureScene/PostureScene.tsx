@@ -25,6 +25,8 @@ export interface PostureSceneProps {
   guides?: boolean;
   /** 姿勢を自動で切り替えるデモ表示 */
   demo?: boolean;
+  /** デモ表示で特定の姿勢パターンに固定する（null/未指定なら自動巡回） */
+  demoPattern?: DemoPattern | null;
   /** 低フレームレートで描画（省電力） */
   lowPower?: boolean;
   /** 初期の視点（確認用ページで近景を見るときなど） */
@@ -50,8 +52,15 @@ const RIG_KEYS: (keyof RigParams)[] = [
   'headRollDeg',
 ];
 
-export type DemoPattern =
-  'ideal' | 'straight_neck' | 'text_neck' | 'slouch' | 'lean';
+export const DEMO_PATTERNS = [
+  'ideal',
+  'straight_neck',
+  'text_neck',
+  'slouch',
+  'lean',
+] as const;
+
+export type DemoPattern = (typeof DEMO_PATTERNS)[number];
 
 const IDEAL_SEV: Severities = { forward: 0, down: 0, slump: 0, lean: 0 };
 const DEMO_FRAMES: { pattern: DemoPattern; rig: RigParams; sev: Severities }[] =
@@ -107,6 +116,20 @@ const DEMO_FRAMES: { pattern: DemoPattern; rig: RigParams; sev: Severities }[] =
     },
   ];
 const DEMO_HOLD_MS = 2600;
+
+export function resolveDemoTarget(
+  demoPattern: DemoPattern | null | undefined,
+  elapsedMs: number
+): { pattern: DemoPattern; rig: RigParams; sev: Severities; frameKey: string } {
+  if (demoPattern) {
+    const match =
+      DEMO_FRAMES.find((f) => f.pattern === demoPattern) ?? DEMO_FRAMES[0];
+    return { ...match, frameKey: `pinned:${match.pattern}` };
+  }
+  const idx =
+    Math.floor(Math.max(0, elapsedMs) / DEMO_HOLD_MS) % DEMO_FRAMES.length;
+  return { ...DEMO_FRAMES[idx], frameKey: `auto:${idx}` };
+}
 const PIXEL_BUDGET = 700_000;
 // 左右の傾きメーター: 端が ±20°
 const LEAN_RANGE_DEG = 20;
@@ -124,6 +147,7 @@ export function PostureScene({
   avatar = DEFAULT_AVATAR,
   guides = true,
   demo = false,
+  demoPattern = null,
   loadWeights = false,
   neckLoadKg: measuredLoadKg = null,
   lowPower = false,
@@ -154,6 +178,7 @@ export function PostureScene({
     avatar,
     loadWeights,
     measuredLoadKg,
+    demoPattern,
   });
   const homeCamera = { ...DEFAULT_CAMERA, ...initialCamera };
   const cam = useRef<OrbitCamera>(homeCamera);
@@ -173,6 +198,7 @@ export function PostureScene({
       avatar,
       loadWeights,
       measuredLoadKg,
+      demoPattern,
     };
     tRef.current = t;
     demoCallback.current = onDemoPattern;
@@ -217,7 +243,7 @@ export function PostureScene({
     const quality = software ? 0.5 : 1;
     let cssW = 0;
     let cssH = 0;
-    let demoIdx = -1;
+    let demoFrameKey = '';
     const start = win.performance.now();
 
     const resize = () => {
@@ -366,14 +392,12 @@ export function PostureScene({
       let goalRig = tgt.rig;
       let goalSev = tgt.severity ?? { forward: 0, down: 0, slump: 0, lean: 0 };
       if (demo) {
-        const idx =
-          Math.floor(Math.max(0, now - start) / DEMO_HOLD_MS) %
-          DEMO_FRAMES.length;
-        goalRig = DEMO_FRAMES[idx].rig;
-        goalSev = DEMO_FRAMES[idx].sev;
-        if (idx !== demoIdx) {
-          demoIdx = idx;
-          demoCallback.current?.(DEMO_FRAMES[idx].pattern);
+        const resolved = resolveDemoTarget(tgt.demoPattern, now - start);
+        goalRig = resolved.rig;
+        goalSev = resolved.sev;
+        if (resolved.frameKey !== demoFrameKey) {
+          demoFrameKey = resolved.frameKey;
+          demoCallback.current?.(resolved.pattern);
         }
       }
 
