@@ -13,7 +13,6 @@ import {
   type DemoPattern,
 } from '../PostureScene/PostureScene';
 import { Button } from '../ui';
-import { PrivacyModal } from '../Privacy';
 
 interface IdleSchedulerHost {
   requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
@@ -44,7 +43,6 @@ export function Welcome() {
   const locale = useAppStore((s) => s.settings.locale);
   const [demo, setDemo] = useState<DemoPattern>('ideal');
   const [pinnedDemo, setPinnedDemo] = useState<DemoPattern | null>(null);
-  const [privacyOpen, setPrivacyOpen] = useState(false);
 
   useEffect(
     () => scheduleEnginePrewarm(() => getController().ensureEngine()),
@@ -114,23 +112,7 @@ export function Welcome() {
           ))}
         </ul>
 
-        <div className="mt-10 flex items-start gap-3 rounded-2xl border border-line bg-s1/60 p-4">
-          <LockIcon />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-ink-1">{t.privacyTitle}</p>
-            <p className="mt-0.5 text-[13px] leading-relaxed text-ink-3">
-              {t.privacyBody}
-            </p>
-            <button
-              type="button"
-              onClick={() => setPrivacyOpen(true)}
-              className="mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-good hover:underline transition-colors cursor-pointer"
-            >
-              {t.privacyLearnMore} <span aria-hidden>→</span>
-            </button>
-          </div>
-        </div>
-        <p className="mt-4 text-[11px] leading-relaxed text-ink-3">
+        <p className="mt-6 text-[11px] leading-relaxed text-ink-3">
           {t.disclaimer}{' '}
           <a href={guidePath(locale)} className="text-good hover:underline">
             {t.guideLink}
@@ -195,35 +177,6 @@ export function Welcome() {
           </div>
         </div>
       </section>
-      <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
     </div>
-  );
-}
-
-function LockIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      className="mt-0.5 shrink-0 text-good"
-      aria-hidden
-    >
-      <rect
-        x="4.5"
-        y="10.5"
-        width="15"
-        height="10"
-        rx="2.5"
-        stroke="currentColor"
-        strokeWidth="1.6"
-      />
-      <path
-        d="M8 10.5V8a4 4 0 1 1 8 0v2.5"
-        stroke="currentColor"
-        strokeWidth="1.6"
-      />
-    </svg>
   );
 }

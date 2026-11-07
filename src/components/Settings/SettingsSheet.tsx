@@ -301,6 +301,19 @@ export function SettingsSheet({
           </Section>
 
           <Section title={t.privacySectionTitle}>
+            <div className="rounded-xl border border-line bg-s2/50 p-3.5">
+              <p className="text-xs font-medium text-ink-1">{t.privacyTitle}</p>
+              <p className="mt-1 text-xs leading-relaxed text-ink-3">
+                {t.privacyBody}
+              </p>
+              <button
+                type="button"
+                onClick={() => setPrivacyOpen(true)}
+                className="mt-2 inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-good hover:underline"
+              >
+                {t.privacyNoticeButton} <span aria-hidden>→</span>
+              </button>
+            </div>
             <Row label={t.telemetryLabel} hint={t.telemetryHint}>
               <Toggle
                 checked={settings.telemetry}
@@ -309,13 +322,6 @@ export function SettingsSheet({
               />
             </Row>
             <div className="flex flex-col items-start gap-2">
-              <button
-                type="button"
-                onClick={() => setPrivacyOpen(true)}
-                className="cursor-pointer text-xs text-good hover:underline"
-              >
-                {t.privacyNoticeButton} <span aria-hidden>→</span>
-              </button>
               <button
                 type="button"
                 onClick={() => setLicensesOpen(true)}
