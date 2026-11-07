@@ -130,7 +130,8 @@ export function buildIndex(root) {
     '',
     '`npm run harness:index` が `docs/harness/experience/` から作り直す。手で編集しない。',
     '',
-    'harness（AGENTS.md・skill・スクリプト・hook）を変える前に、同じ領域のエントリを開いて教訓を読む。' +
+    'ここは、次に同じ形の場面に出会ったエージェントが判断を誤らないための予測（確かめた規則・根拠・確かめていない範囲）を置く場所。' +
+      'harness（AGENTS.md・skill・スクリプト・hook）を変える前に、同じ領域のエントリを開いて教訓を読む。' +
       '前の作業で確かめた事実も、ここでは仮説として確かめ直す。書き方は `.agents/skills/agent-harness/SKILL.md`。',
     '',
   ];
