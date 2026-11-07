@@ -403,6 +403,7 @@ const ja = {
   privacySectionTitle: 'データとプライバシー',
   privacyNoticeButton: 'プライバシーと外部送信について',
   licensesNoticeButton: 'オープンソースライセンス',
+  githubRepoButton: 'GitHub リポジトリ',
   contactNoticeButton: 'お問い合わせ・フィードバック',
   licensesModalTitle: 'オープンソースライセンス・権利表記',
   licensesIntro:
@@ -783,6 +784,7 @@ const en: Messages = {
   privacySectionTitle: 'Data & privacy',
   privacyNoticeButton: 'Privacy & data use',
   licensesNoticeButton: 'Open source licenses',
+  githubRepoButton: 'GitHub repository',
   contactNoticeButton: 'Contact & feedback',
   licensesModalTitle: 'Open source licenses',
   licensesIntro:
@@ -1165,6 +1167,7 @@ const ko: Messages = {
   privacySectionTitle: '데이터 및 개인정보',
   privacyNoticeButton: '개인정보 처리 및 데이터 수집 안내',
   licensesNoticeButton: '오픈소스 라이선스',
+  githubRepoButton: 'GitHub 저장소',
   contactNoticeButton: '문의 및 피드백',
   licensesModalTitle: '오픈소스 라이선스 및 권리 표기',
   licensesIntro:

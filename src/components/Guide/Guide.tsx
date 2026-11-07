@@ -6,7 +6,7 @@ import {
   localePath,
   type Locale,
 } from '@/i18n/messages';
-import { Logo } from '../ui';
+import { GitHubLink, Logo } from '../ui';
 import { GUIDE, GUIDE_UPDATED, SOURCES, type SourceId } from './content';
 
 /**
@@ -46,6 +46,7 @@ export function Guide({ locale }: { locale: Locale }) {
                 {LOCALE_REGISTRY[l].nativeName}
               </a>
             ))}
+            <GitHubLink label={MESSAGES[locale].githubRepoButton} />
           </nav>
         </div>
       </header>
