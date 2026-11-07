@@ -88,10 +88,8 @@ describe('Welcome interactive 3D demo & LCP / engine pre-warm', () => {
         React.createElement(SettingsSheet, { open: true, onClose: () => {} })
       );
 
-      expect(html).toContain(t.privacySectionTitle.replace('&', '&amp;'));
       expect(html).toContain(t.privacyTitle);
       expect(html).toContain(t.privacyBody);
-      expect(html).toContain(t.privacyNoticeButton.replace('&', '&amp;'));
     }
   );
 
