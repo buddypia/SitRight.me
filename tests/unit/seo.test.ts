@@ -203,7 +203,7 @@ describe('SEO & OGP metadata, images, and static content', () => {
       expect(html).toContain(t.welcomeTitle.split('\n')[0]);
       expect(html).toContain(t.welcomeBody);
       expect(html).toContain(t.featureMeasure);
-      expect(html).toContain(t.privacyTitle);
+      expect(html).not.toContain(t.privacyTitle);
       expect(html).toContain('application/ld+json');
       expect(html).toContain('href="/ja"');
       expect(html).toContain('href="/ko"');

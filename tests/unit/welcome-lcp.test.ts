@@ -6,6 +6,7 @@ import {
   DEMO_PATTERNS,
   resolveDemoTarget,
 } from '@/components/PostureScene/PostureScene';
+import { SettingsSheet } from '@/components/Settings/SettingsSheet';
 import { scheduleEnginePrewarm, Welcome } from '@/components/Welcome/Welcome';
 import { IDEAL_RIG } from '@/core/rig';
 import {
@@ -73,6 +74,22 @@ describe('Welcome interactive 3D demo & LCP / engine pre-warm', () => {
       ]) {
         expect(html).toContain(expected);
       }
+      expect(html).not.toContain(t.privacyTitle);
+      expect(html).not.toContain(t.privacyBody);
+    }
+  );
+
+  it.each(SUPPORTED_LOCALES)(
+    'renders the local-processing privacy summary inside SettingsSheet instead of Welcome (%s)',
+    (locale) => {
+      setTestLocale(locale);
+      const t = MESSAGES[locale];
+      const html = renderToString(
+        React.createElement(SettingsSheet, { open: true, onClose: () => {} })
+      );
+
+      expect(html).toContain(t.privacyTitle);
+      expect(html).toContain(t.privacyBody);
     }
   );
 

@@ -108,17 +108,7 @@ function SeoWelcomeShell({ locale }: { locale: Locale }) {
               ))}
             </ul>
 
-            <div className="mt-10 flex items-start gap-3 rounded-2xl border border-line bg-s1/60 p-4">
-              <div className="flex-1">
-                <h2 className="text-sm font-medium text-ink-1">
-                  {t.privacyTitle}
-                </h2>
-                <p className="mt-0.5 text-[13px] leading-relaxed text-ink-3">
-                  {t.privacyBody}
-                </p>
-              </div>
-            </div>
-            <p className="mt-4 text-[11px] leading-relaxed text-ink-3">
+            <p className="mt-6 text-[11px] leading-relaxed text-ink-3">
               {t.disclaimer}{' '}
               <a href={guidePath(locale)} className="text-good hover:underline">
                 {t.guideLink}
