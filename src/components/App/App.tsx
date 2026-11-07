@@ -14,7 +14,7 @@ import { SettingsSheet } from '../Settings';
 import { Setup } from '../Setup';
 import { Toasts } from '../Toasts';
 import { Welcome } from '../Welcome';
-import { Button, Logo } from '../ui';
+import { Button, GitHubLink, Logo } from '../ui';
 
 export function App() {
   const hydrated = useAppStore((s) => s.hydrated);
@@ -183,6 +183,7 @@ function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
             </>
           )}
           <LanguageSelector />
+          <GitHubLink label={t.githubRepoButton} />
           <Button
             size="sm"
             variant="ghost"

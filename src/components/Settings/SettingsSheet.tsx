@@ -20,7 +20,7 @@ import { localDateKey } from '@/core/stats';
 import { useT } from '@/hooks/useT';
 import { format } from '@/i18n/messages';
 import { useAppStore, type SoundTheme } from '@/stores/appStore';
-import { Button, Segmented, Toggle } from '../ui';
+import { Button, GITHUB_REPO_URL, Segmented, Toggle } from '../ui';
 import { AvatarPicker } from './AvatarPicker';
 import { PrivacyModal } from '../Privacy';
 import { LicensesModal } from '../Licenses';
@@ -323,6 +323,14 @@ export function SettingsSheet({
               >
                 {t.licensesNoticeButton} <span aria-hidden>→</span>
               </button>
+              <a
+                href={GITHUB_REPO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-good hover:underline"
+              >
+                {t.githubRepoButton} <span aria-hidden>↗</span>
+              </a>
               <a
                 href="mailto:contact@buddypia.com"
                 className="text-xs text-good hover:underline"
