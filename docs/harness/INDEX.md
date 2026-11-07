@@ -2,7 +2,7 @@
 
 `npm run harness:index` が `docs/harness/experience/` から作り直す。手で編集しない。
 
-harness（AGENTS.md・skill・スクリプト・hook）を変える前に、同じ領域のエントリを開いて教訓を読む。前の作業で確かめた事実も、ここでは仮説として確かめ直す。書き方は `.agents/skills/agent-harness/SKILL.md`。
+ここは、次に同じ形の場面に出会ったエージェントが判断を誤らないための予測（確かめた規則・根拠・確かめていない範囲）を置く場所。harness（AGENTS.md・skill・スクリプト・hook）を変える前に、同じ領域のエントリを開いて教訓を読む。前の作業で確かめた事実も、ここでは仮説として確かめ直す。書き方は `.agents/skills/agent-harness/SKILL.md`。
 
 ## e2e
 
@@ -13,6 +13,11 @@ harness（AGENTS.md・skill・スクリプト・hook）を変える前に、同�
 
 - [feature-pilot の指示の食い違いを、複数プロジェクトの実行記録と静的な検査で見つけて揃える](experience/2026-10-25-feature-pilot-audit.md) — 2026-10-25 · 確度 低 · 部品: `feature-pilot`（SKILL.md・`references/feature-pilot-protocol-details.md`）, `feature-pilot`（`references/feature-pilot-protocol-details.md`）
   - きっかけ: brief2dev から移植した skill を監査したいが、このリポジトリでその skill を読んだセッションが少ない
+
+## memory
+
+- [経験ライブラリに記憶の目的と常駐への昇格基準を書き、照合は手で行う](experience/2026-11-07-agent-memory-components.md) — 2026-11-07 · 確度 低 · 部品: `agent-harness` SKILL.md「変えたあとに」, `scripts/harness-library.mjs` の INDEX 冒頭, `memory-curation.md`「点検で見るもの」, 参照切れの機械検査（試作のみで、入れていない）
+  - きっかけ: 外部の記事やベンチマークの結果をもとに、記憶（経験ライブラリ・常駐の規則）の書き方を変えたくなる
 
 ## scene
 
