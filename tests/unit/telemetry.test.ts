@@ -461,19 +461,61 @@ describe('telemetry', () => {
       );
       expect(postbuildSrc).toContain('https://static.cloudflareinsights.com');
       expect(postbuildSrc).toContain('https://cloudflareinsights.com');
+      expect(postbuildSrc).toContain('/mediapipe/*');
+      expect(postbuildSrc).toContain('/avatars/*');
+      expect(postbuildSrc).toContain(
+        'Cache-Control: public, max-age=31536000, immutable'
+      );
       expect(isBlockedTelemetryUrl('https://cloudflareinsights.com/cdn-cgi/rum')).toBe(false);
       expect(isBlockedTelemetryUrl('https://static.cloudflareinsights.com/beacon.min.js')).toBe(false);
     });
 
-    it('resolves RUM site_tag from env or default and formats RUM visits and Core Web Vitals P75 metrics', async () => {
-      const { DEFAULT_RUM_SITE_TAG, resolveRumSiteTag, summarizeRumAnalytics } = await import(
-        '../../scripts/cf-analytics.mjs'
-      );
+    it('resolves RUM site_tag from env or default, clamps pageload window to 7 days, and normalizes -0 quantiles', async () => {
+      const {
+        DEFAULT_RUM_SITE_TAG,
+        resolveRumPageloadWindow,
+        resolveRumSiteTag,
+        summarizeRumAnalytics,
+      } = await import('../../scripts/cf-analytics.mjs');
 
       expect(resolveRumSiteTag({})).toBe(DEFAULT_RUM_SITE_TAG);
       expect(resolveRumSiteTag({ CLOUDFLARE_RUM_SITE_TAG: ' custom-tag-123 ' })).toBe(
         'custom-tag-123'
       );
+
+      const nowMs = Date.parse('2026-11-09T00:00:00.000Z');
+      const win30 = resolveRumPageloadWindow(30, nowMs);
+      expect((Date.parse(win30.until) - Date.parse(win30.pageloadSince)) / 86400000).toBe(7);
+      expect((Date.parse(win30.until) - Date.parse(win30.since)) / 86400000).toBe(30);
+
+      const win3 = resolveRumPageloadWindow(3, nowMs);
+      expect((Date.parse(win3.until) - Date.parse(win3.pageloadSince)) / 86400000).toBe(3);
+
+      const negZeroSummary = summarizeRumAnalytics({
+        data: {
+          viewer: {
+            accounts: [
+              {
+                rumPageloadEventsAdaptiveGroups: [],
+                rumWebVitalsEventsAdaptiveGroups: [
+                  {
+                    count: 20,
+                    quantiles: {
+                      largestContentfulPaintP75: 2700000,
+                      interactionToNextPaintP75: -0.1,
+                      cumulativeLayoutShiftP75: 0,
+                      firstContentfulPaintP75: 848000,
+                      timeToFirstByteP75: 432000,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      });
+      expect(Object.is(negZeroSummary?.webVitals?.inpMsP75, -0)).toBe(false);
+      expect(negZeroSummary?.webVitals?.inpMsP75).toBe(0);
 
       const summary = summarizeRumAnalytics({
         data: {

@@ -59,6 +59,41 @@ export async function cameraPermission(): Promise<PermissionState | 'unknown'> {
   }
 }
 
+/**
+ * ブラウザのアドレスバー等でカメラ権限が「許可（granted）」に変更された瞬間を検知し、
+ * 再読み込みや手動の再試行なしでカメラを起動できるようにする。
+ */
+export function watchCameraPermission(
+  onGranted: () => void,
+  nav: { permissions?: Permissions } = typeof navigator !== 'undefined'
+    ? navigator
+    : {}
+): () => void {
+  let disposed = false;
+  let activeStatus: Pick<PermissionStatus, 'onchange'> | null = null;
+  if (!nav.permissions?.query) return () => undefined;
+
+  void nav.permissions
+    .query({ name: 'camera' as PermissionName })
+    .then((status) => {
+      if (disposed) return;
+      activeStatus = status;
+      status.onchange = () => {
+        if (!disposed && status.state === 'granted') {
+          onGranted();
+        }
+      };
+    })
+    .catch(() => undefined);
+
+  return () => {
+    disposed = true;
+    if (activeStatus) {
+      activeStatus.onchange = null;
+    }
+  };
+}
+
 export function stopStream(stream: MediaStream | null): void {
   stream?.getTracks().forEach((t) => t.stop());
 }

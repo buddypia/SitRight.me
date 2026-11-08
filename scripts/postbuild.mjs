@@ -84,6 +84,15 @@ const headers = `/*
   X-Frame-Options: DENY
   Cross-Origin-Opener-Policy: same-origin
   Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+/mediapipe/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/avatars/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/sounds/*
+  Cache-Control: public, max-age=31536000, immutable
 `;
 
 writeFileSync(path.join(out, '_headers'), headers);
