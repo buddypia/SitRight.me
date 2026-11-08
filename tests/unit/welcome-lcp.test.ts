@@ -7,7 +7,13 @@ import {
   resolveDemoTarget,
 } from '@/components/PostureScene/PostureScene';
 import { SettingsSheet } from '@/components/Settings/SettingsSheet';
-import { scheduleEnginePrewarm, Welcome } from '@/components/Welcome/Welcome';
+import {
+  runWelcomeTransition,
+  scheduleEnginePrewarm,
+  Welcome,
+} from '@/components/Welcome/Welcome';
+import { watchCameraPermission } from '@/engine/camera';
+import { yieldToMain } from '@/engine/vision';
 import { IDEAL_RIG } from '@/core/rig';
 import {
   DEFAULT_LOCALE,
@@ -127,5 +133,60 @@ describe('Welcome interactive 3D demo & LCP / engine pre-warm', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('starts camera immediately on Welcome -> Setup transition to eliminate double-click friction', () => {
+    const startCamera = vi.fn(() => Promise.resolve());
+    const setPhase = vi.fn();
+    const unlock = vi.fn();
+
+    runWelcomeTransition('setup', { setPhase, startCamera, unlock });
+    expect(unlock).toHaveBeenCalledTimes(1);
+    expect(setPhase).toHaveBeenCalledWith('setup');
+    expect(startCamera).toHaveBeenCalledTimes(1);
+
+    startCamera.mockClear();
+    setPhase.mockClear();
+    unlock.mockClear();
+
+    runWelcomeTransition('monitor', { setPhase, startCamera, unlock });
+    expect(unlock).toHaveBeenCalledTimes(1);
+    expect(setPhase).toHaveBeenCalledWith('monitor');
+    expect(startCamera).not.toHaveBeenCalled();
+  });
+
+  it('watches camera permission changes and triggers recovery callback when granted', async () => {
+    const statusMock: {
+      state: PermissionState;
+      onchange: (() => void) | null;
+    } = {
+      state: 'denied',
+      onchange: null,
+    };
+    const query = vi.fn(() => Promise.resolve(statusMock));
+    const onGranted = vi.fn();
+
+    const cleanup = watchCameraPermission(onGranted, {
+      permissions: { query } as unknown as Permissions,
+    });
+    await Promise.resolve();
+
+    expect(query).toHaveBeenCalledWith({ name: 'camera' });
+    expect(onGranted).not.toHaveBeenCalled();
+
+    statusMock.state = 'granted';
+    statusMock.onchange?.();
+    expect(onGranted).toHaveBeenCalledTimes(1);
+
+    cleanup();
+    expect(statusMock.onchange).toBeNull();
+  });
+
+  it('yields to the main thread via scheduler.yield or setTimeout fallback for INP responsiveness', async () => {
+    const yieldFn = vi.fn(() => Promise.resolve());
+    await yieldToMain({ scheduler: { yield: yieldFn } });
+    expect(yieldFn).toHaveBeenCalledTimes(1);
+
+    await expect(yieldToMain({})).resolves.toBeUndefined();
   });
 });

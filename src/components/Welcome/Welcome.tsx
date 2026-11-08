@@ -35,6 +35,26 @@ export function scheduleEnginePrewarm(
   return () => clearTimeout(timer);
 }
 
+/**
+ * Welcome の開始ボタンから次画面へ進む。
+ * Setup へ進むときはユーザー操作の延長でカメラ起動も同時に始め、
+ * 2回ボタンを押す手間と途中離脱を防ぐ。
+ */
+export function runWelcomeTransition(
+  phase: 'setup' | 'monitor',
+  deps: {
+    setPhase: (p: 'setup' | 'monitor') => void;
+    startCamera: () => Promise<void>;
+    unlock: () => void;
+  }
+): void {
+  deps.unlock();
+  deps.setPhase(phase);
+  if (phase === 'setup') {
+    void deps.startCamera().catch(() => undefined);
+  }
+}
+
 export function Welcome() {
   const t = useT();
   const hasBaseline = useAppStore((s) => s.baseline !== null);
@@ -50,8 +70,11 @@ export function Welcome() {
   );
 
   const go = (phase: 'setup' | 'monitor') => {
-    unlockAudio();
-    setPhase(phase);
+    runWelcomeTransition(phase, {
+      setPhase,
+      startCamera: () => getController().startCamera(),
+      unlock: unlockAudio,
+    });
   };
 
   const activeDemo = pinnedDemo ?? demo;

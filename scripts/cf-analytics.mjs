@@ -215,7 +215,8 @@ export function summarizeRumAnalytics(rumResult) {
   );
 
   const q = vitalsGroup?.quantiles;
-  const toMs = (us) => (typeof us === 'number' ? Math.round(us / 1000) : null);
+  const toMs = (us) =>
+    typeof us === 'number' ? Math.max(0, Math.round(us / 1000)) : null;
   const webVitals = vitalsGroup
     ? {
         sampleCount: Number(vitalsGroup.count ?? 0),
@@ -238,17 +239,34 @@ export function summarizeRumAnalytics(rumResult) {
   };
 }
 
+export const MAX_RUM_PAGELOAD_DAYS = 7;
+
+/**
+ * Cloudflare GraphQL `rumPageloadEventsAdaptiveGroups` returns empty results when the query window exceeds 7 days,
+ * whereas `rumWebVitalsEventsAdaptiveGroups` supports up to 30 days.
+ * Clamp `pageloadSince` to at most 7 days in a single GraphQL request to avoid both empty rows and rate-limit depletion.
+ */
+export function resolveRumPageloadWindow(lookbackDays, nowMs = Date.now()) {
+  const totalDays = Math.max(1, Number(lookbackDays) || 7);
+  const pageloadDays = Math.min(totalDays, MAX_RUM_PAGELOAD_DAYS);
+  return {
+    since: new Date(nowMs - totalDays * 86400000).toISOString(),
+    pageloadSince: new Date(nowMs - pageloadDays * 86400000).toISOString(),
+    until: new Date(nowMs).toISOString(),
+    pageloadDays,
+  };
+}
+
 async function queryRumAnalytics(token, accountId, siteTag, lookbackDays) {
   if (!token || !accountId || !siteTag) return null;
-  const since = new Date(Date.now() - lookbackDays * 86400000).toISOString();
-  const until = new Date().toISOString();
+  const { since, pageloadSince, until } = resolveRumPageloadWindow(lookbackDays);
   const gql = `
-    query GetRumAnalytics($accountId: string!, $siteTag: string!, $since: Time!, $until: Time!) {
+    query GetRumAnalytics($accountId: string!, $siteTag: string!, $since: Time!, $pageloadSince: Time!, $until: Time!) {
       viewer {
         accounts(filter: { accountTag: $accountId }) {
           rumPageloadEventsAdaptiveGroups(
             limit: 500
-            filter: { siteTag: $siteTag, datetime_geq: $since, datetime_leq: $until }
+            filter: { siteTag: $siteTag, datetime_geq: $pageloadSince, datetime_leq: $until }
           ) {
             count
             sum {
@@ -276,7 +294,13 @@ async function queryRumAnalytics(token, accountId, siteTag, lookbackDays) {
       }
     }
   `;
-  return queryGraphQL(token, gql, { accountId, siteTag, since, until });
+  return queryGraphQL(token, gql, {
+    accountId,
+    siteTag,
+    since,
+    pageloadSince,
+    until,
+  });
 }
 
 async function run() {

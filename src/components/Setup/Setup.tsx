@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { cameraPermission, listCameras } from '@/engine/camera';
+import {
+  cameraPermission,
+  listCameras,
+  watchCameraPermission,
+} from '@/engine/camera';
 import { getController } from '@/engine/controller';
 import { useT } from '@/hooks/useT';
 import { format } from '@/i18n/messages';
@@ -32,6 +36,9 @@ export function Setup() {
     void controller.ensureEngine().catch(() => undefined);
     void cameraPermission().then((state) => {
       if (state === 'granted') void controller.startCamera();
+    });
+    return watchCameraPermission(() => {
+      void controller.startCamera();
     });
   }, [controller]);
 

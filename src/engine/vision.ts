@@ -53,6 +53,28 @@ export function resetMediapipeConsoleFilterForTesting(): void {
   consoleFiltered = false;
 }
 
+interface YieldSchedulerHost {
+  scheduler?: {
+    yield?: () => Promise<void>;
+  };
+}
+
+/**
+ * MediaPipe の WASM コンパイルと TFLite グラフ構築が連続してメインスレッドを占有し、
+ * ボタン操作の応答（INP）をブロックしないよう、処理の区切りでメインスレッドを譲る。
+ */
+export async function yieldToMain(
+  host: YieldSchedulerHost = typeof globalThis !== 'undefined'
+    ? (globalThis as unknown as YieldSchedulerHost)
+    : {}
+): Promise<void> {
+  if (typeof host.scheduler?.yield === 'function') {
+    await host.scheduler.yield();
+    return;
+  }
+  await new Promise<void>((resolve) => setTimeout(resolve, 0));
+}
+
 /**
  * MediaPipe の Pose / Face Landmarker をまとめたラッパー。
  * GPU で初期化できない環境（WebGL 不可・一部の仮想環境）では CPU にフォールバックする。
@@ -89,20 +111,20 @@ export class VisionEngine {
     const { FilesetResolver, FaceLandmarker } =
       await import('@mediapipe/tasks-vision');
     const fileset = await FilesetResolver.forVisionTasks(WASM_PATH);
+    await yieldToMain();
 
     const create = async (delegate: Delegate) => {
-      const [pose, face] = await Promise.all([
-        this.createPose(fileset, delegate, poseModel),
-        FaceLandmarker.createFromOptions(fileset, {
-          baseOptions: { modelAssetPath: FACE_MODEL, delegate },
-          runningMode: 'VIDEO',
-          numFaces: 1,
-          minFaceDetectionConfidence: 0.5,
-          minFacePresenceConfidence: 0.5,
-          minTrackingConfidence: 0.5,
-          outputFacialTransformationMatrixes: true,
-        }),
-      ]);
+      const pose = await this.createPose(fileset, delegate, poseModel);
+      await yieldToMain();
+      const face = await FaceLandmarker.createFromOptions(fileset, {
+        baseOptions: { modelAssetPath: FACE_MODEL, delegate },
+        runningMode: 'VIDEO',
+        numFaces: 1,
+        minFaceDetectionConfidence: 0.5,
+        minFacePresenceConfidence: 0.5,
+        minTrackingConfidence: 0.5,
+        outputFacialTransformationMatrixes: true,
+      });
       return { pose, face };
     };
 
