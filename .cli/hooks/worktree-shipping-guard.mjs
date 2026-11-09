@@ -795,13 +795,13 @@ export function buildBlockMessage(projectDir, candidates) {
       );
       lines.push(`  3. node .claude/scripts/mark-pre-ship-confirmed.mjs "${c.branch}" --quality <label>`);
       lines.push(
-        `     label: agent_go / skill_review_pass — run ${formatReviewRemedy()} /`,
+        `     label: verified — ${formatReviewRemedy()} /`,
       );
       lines.push(
-        '            self_review_pass (no secondary review tools available) / trivial_skip (≤2 files + ≤20 LOC + non-substantive).',
+        '            self_review_pass (no verification gates recorded) / trivial_skip (≤2 files + ≤20 LOC + non-substantive).',
       );
       lines.push(
-        '     → Select the one actually executed. The first two require execution records in PROOF gates[] for marker creation.',
+        '     → Select the one actually earned. verified is re-run at HEAD before the marker is written.',
       );
       lines.push('     → Rejected before completing every step (exit 1). Approval is recorded in step 2.');
       lines.push(`  4. $OPS ship-worktree --worktree "${rel}" --title "<Conventional Commits>" --body "<Summary>"`);

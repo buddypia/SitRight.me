@@ -1,78 +1,164 @@
 /**
  * quality-gate-labels.mjs — Single SSOT for Quality Gate label enum + per-label PROOF evidence contracts
  *
- * Enum for marker JSON `quality_gate` field representing R-CM-030 Rule 8 (Pre-Ship Quality Gate)
- * environment branching + self-check fallback. Imported by both mark-pre-ship-confirmed.mjs (CLI emitter)
- * and pre-ship-review-guard.mjs (hook verifier).
+ * Enum for marker JSON `quality_gate` field representing R-CM-030 Rule 8 (Pre-Ship Quality Gate).
+ * Imported by mark-pre-ship-confirmed.mjs (CLI emitter, re-runs the obligations), pre-ship-steps.mjs
+ * and pre-ship-review-guard.mjs (verifiers).
  *
  * Label meanings:
- * - `agent_go`         : Both `/code-review --fix` + `code-reviewer` **agent** evaluated as Go (highest path).
- *                        Single entry point via `/code-review` after `/simplify` removal and `simplifit` skill deprecation on 2026-05-27  retired-ref-ok: simplifit deprecation records historical context — not an invocation instruction
- * - `skill_review_pass`: Agent not used. Independent 2nd review performed via a review **skill** + Go.
- *                        What to run is `REPO_REVIEW_ASSETS` (repo-shipped); what *counts* once run is
- *                        `LABEL_EVIDENCE_MARKERS` (wider — includes `/code-review` for environments that have it, and the
- *                        `final-review` skill that create-pr SKILL.md advises and R-CM-030 Rule 8 names for Perspective 2).
- * - `self_review_pass` : Pure self-review where 2nd review tools could not be run (Panel Decisions reason specified)
+ * - `verified`         : The PROOF carries verification obligations of both methods — at least one
+ *                        `empirical` gate (a command that runs the changed code and names a changed
+ *                        path) and one `formal` gate (a machine checker from `FORMAL_CHECKERS`) — and
+ *                        the ship gate re-ran every one of them green at the shipped HEAD.
+ * - `self_review_pass` : No verification obligations recorded (Panel Decisions reason specified)
  * - `trivial_skip`     : R-CM-030 Rule 10 trivial exemption (≤2 files + ≤20 LOC + non-substantive)
  *
- * Rationale for creating `skill_review_pass` (empirical): Previous vocabulary recognized "cross-reviewed"
- *   only when agents were used (`ship-quality-ledger.mjs#CROSS_REVIEWED_LABELS = {agent_go}`).
- *   However, hooks cannot invoke subagents (prompt-type hooks are *instruction injections*, and prompt-type SubagentStop
- *   is prohibited by R-CM-006 Rule 1 to avoid output pollution), and some sessions lack Agent invocation permissions.
- *   When such sessions ran proper 2nd reviews via skills, labels were downgraded to `self_review_pass`, recording the **same
- *   value** in ledgers as doing nothing — measuring tool types rather than whether 2nd reviews were performed.
- *   Empirical: #1064–#1068 were all recorded as `self_review_pass`.
+ * Why `verified` replaced `agent_go` / `skill_review_pass` (2026-11-04, ADR
+ *   docs/architecture/adr/empirical-formal-verification.md): both labels were earned by a gate *name* —
+ *   `checkLabelEvidence` matched `code-reviewer` / `adversarial-review` substrings in `gates[].name`, and
+ *   no code ever re-ran `gates[].command`. A review that reads well sounds equally convincing whether it
+ *   is right or wrong (final-review/references/proof-ladder.md rung 1 "Said"), so the label measured
+ *   that a reviewer spoke, not that the change holds. Evidence is now what the gate itself re-executes.
+ *   Reviews (agent, skill, multi-model, adversarial) stay useful as *hypothesis generators*: record
+ *   them as `method: "review"`, and turn each finding that matters into an empirical or formal gate.
  *
  * Updating only this file when adding new labels reflects changes in both emitter / verifier — preventing mismatch regressions.
  */
 import { existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const VALID_QUALITY_LABELS = new Set([
-  'agent_go',
-  'skill_review_pass',
-  'self_review_pass',
-  'trivial_skip',
+export const VALID_QUALITY_LABELS = new Set(['verified', 'self_review_pass', 'trivial_skip']);
+
+/**
+ * Labels that only historic ledger rows and PROOFs carry. They are read (the ledger counted them as
+ * reviewed, and rewriting history would falsify it) but never accepted for a new marker or PROOF:
+ * their evidence was a gate name, which is exactly what this module stopped trusting.
+ */
+export const LEGACY_QUALITY_LABELS = new Set(['agent_go', 'skill_review_pass']);
+
+/** Labels the ledger and auto-approval treat as verified — `verified` plus legacy history rows. */
+export const VERIFIED_LABELS = new Set(['verified', ...LEGACY_QUALITY_LABELS]);
+
+/**
+ * Verification methods a PROOF gate may claim with `method`.
+ * - `empirical`: run the changed code and observe it (a test, a script calling the real function, a
+ *   real-tree sweep). Must name a path the branch changed, so the evidence is about this change.
+ * - `formal`: a machine checker that decides a property for every input it covers (type checker,
+ *   JSON Schema validation, rules-as-code predicates with fixture pairs, architecture constraints).
+ */
+export const VERIFICATION_METHODS = Object.freeze(['empirical', 'formal']);
+
+/** Every `gates[].method` value. `review` = a hypothesis source (never evidence on its own). */
+export const GATE_METHODS = Object.freeze([...VERIFICATION_METHODS, 'review']);
+
+/**
+ * Commands accepted as formal checkers. A command is formal because of *what decides the outcome* (a
+ * checker over a declared spec), not because the author says so — hence a registry, not a free label.
+ * Composite targets (`q.critical`, `q.check`) qualify because they run the type check and the
+ * contract validators; they still cannot double as the empirical gate (see checkVerificationObligations).
+ */
+// No contract checker: `q.contract-test`, `q.ai-contracts` and `npm run test:contract` exit 0 with
+// "not applicable" when their inputs are absent (true in this repo) — a checker that decides nothing is
+// not formal evidence. Re-add one only with a pattern that cannot pass on an empty input set.
+export const FORMAL_CHECKERS = Object.freeze([
+  Object.freeze({ id: 'typecheck', pattern: /\btsc\b|\bq\.typecheck\b/ }),
+  Object.freeze({ id: 'schema', pattern: /\bnpm run validate(?::[\w-]+)?\b|\bvalidate-ecosystem\.mjs\b|\bajv\b/ }),
+  Object.freeze({ id: 'rules-as-code', pattern: /\bdata\/rules-as-code\/_runner\.mjs\b|rules-as-code-fixtures\.test\.mjs/ }),
+  Object.freeze({ id: 'architecture', pattern: /\bq\.check-architecture\b|\bdepcruise\b/ }),
+  Object.freeze({ id: 'quality-gate', pattern: /^make\b.*\sq\.(?:critical|check)\b/ }),
 ]);
 
 /**
- * Tool-agnostic marker — names the *act* (an independent adversarial review), not a tool.
- *
- * Why: every other marker is a tool name, so a review run by any other agent could not be recorded.
- *   Observed 2026-09-24 in a transplant target (lottie-motion-studio): the `git-worktree-isolation`
- *   bundle does not ship `code-reviewer.md`, the session ran a real adversarial review through a
- *   general-purpose subagent, and no gate name it could honestly write satisfied `agent_go`. The ledger
- *   then reported that ship as the 35th consecutive skip. Accepted for both labels (the ledger counts
- *   them identically); the forgery bar is unchanged — a `pass`/`warn` gate in `name`/`command`.
+ * Programs whose run decides a gate. A gate's evidence must come from an `&&` segment that starts with
+ * one of these: `echo tsc`, `true # q.typecheck` or `printf <changed path>` mention a checker or a path
+ * without running it (code-reviewer hypothesis #1, reproduced 2026-11-04).
  */
-export const ADVERSARIAL_REVIEW_MARKER = 'adversarial-review';
+const RUNNERS = new Set([
+  'npx', 'node', 'npm', 'pnpm', 'yarn', 'make', 'python', 'python3', 'pytest', 'vitest', 'bash', 'sh',
+  'go', 'cargo', 'deno', 'bun', 'tsc', 'ajv', 'depcruise',
+]);
+// Inline code (`node -e`, `bash -c`) can print a path and exit 0 without touching the change.
+const INLINE_CODE_FLAGS = new Set(['-e', '-p', '-c', '--eval', '--print']);
+// Flags that make a runner exit 0 without executing what the command names.
+const NON_EXECUTING_FLAGS = new Set([
+  '--version', '-v', '-V', '--help', '-h', '--dry-run', '--just-print', '--recon', '--list', '--passWithNoTests',
+  '--ignore-errors', '--touch', '--question',
+]);
+// make: -n dry run, -i ignore errors, -t touch, -q question — each exits 0 without the recipe deciding.
+const MAKE_NON_EXECUTING = /^-[A-Za-z]*[nitq][A-Za-z]*$/;
+// make VAR=value overrides a recipe's command (`make q.typecheck TSC=true`).
+const MAKE_OVERRIDE = /^[A-Za-z_][A-Za-z0-9_]*[:+?]?=/;
+// Anything but `&&` lets a later or earlier part decide the exit code (`|| true`, `; true`, `| tee`),
+// hides text from the shell (`#`), or runs code the gate never sees (backticks, `$(`).
+const SHELL_ESCAPES = /\|\||[|;`\n#]|\$\(|(?<![&>])&(?!&)/;
+
+const ENV_ASSIGNMENT = /^[A-Za-z_][A-Za-z0-9_]*=\S*$/;
+
+function segmentTokens(command) {
+  return String(command)
+    .replace(/\d?>&\d/g, ' ')
+    .split('&&')
+    .map((segment) => {
+      const tokens = segment.trim().split(/\s+/).filter(Boolean);
+      while (tokens.length > 0 && ENV_ASSIGNMENT.test(tokens[0])) tokens.shift();
+      return tokens;
+    });
+}
+
+const isRunnerSegment = (tokens) =>
+  tokens.length > 0 &&
+  (RUNNERS.has(tokens[0]) || tokens[0].startsWith('./')) &&
+  !tokens.slice(1).some((t) => INLINE_CODE_FLAGS.has(t));
 
 /**
- * Per-label PROOF evidence markers — to claim a label, `name` or `command` in one of `gates[]`
- * must contain at least one of the markers below (case-insensitive; spaces/underscores read as `-`).
- *
- * Why: Adding labels without requiring evidence creates an additional escape hatch. Since declaring
- *   "reviewed via skill" breaks consecutive skip counts in the ledger, that declaration must be supported
- *   by execution records (isomorphic to R-CM-030 Rule 9 label inflation prevention).
- *
- * `agent_go` is required symmetrically — requiring evidence only for `skill_review_pass` creates a perverse incentive
- *   to declare a *stronger* label to avoid providing evidence. In practice, this imposes no extra burden:
- *   past `agent_go` PROOFs already recorded gate names as `code-reviewer agent` / `code-reviewer agent (verdict)`.
- *
- * `code-reviewer` ⊃ `code-review` (substring) — agent evidence automatically satisfies skill evidence.
- * Semantically sound (agent is a stronger 2nd review). The reverse does not hold: `code-review --fix` does not contain `code-reviewer`.
- *
- * Unlisted labels (`self_review_pass` / `trivial_skip`) require no evidence — they represent declarations that 2nd review
- *   was not performed, which the ledger aggregates as skips.
- *
- * Naming note: Using `TOKENS` in constant names triggers false positives in `secret-patterns.mjs#Env Secret Assignment`
- *   (`[A-Z0-9_]*TOKEN[A-Z0-9_]*\s*=\s*...`), blocking writes — use `MARKERS`.
+ * Why a command cannot be trusted to decide its gate, or null. Strict on purpose: a false rejection
+ * costs one rewritten command; a false acceptance is a `verified` label nothing verified.
  */
-export const LABEL_EVIDENCE_MARKERS = Object.freeze({
-  agent_go: Object.freeze(['code-reviewer', ADVERSARIAL_REVIEW_MARKER]),
-  skill_review_pass: Object.freeze(['code-review', 'final-review', 'code-standards-aligner', ADVERSARIAL_REVIEW_MARKER]),
-});
+export function commandHonestyProblem(command) {
+  if (typeof command !== 'string' || command.trim() === '') return 'no command';
+  if (SHELL_ESCAPES.test(command.replace(/\d?>&\d/g, ' '))) {
+    return 'uses a shell operator other than && (|, ||, ;, &, #, `, $( or a newline) — another part could decide the exit code';
+  }
+  for (const tokens of segmentTokens(command)) {
+    const flag = tokens.find((t) => NON_EXECUTING_FLAGS.has(t.split('=')[0]));
+    if (flag) return `passes ${flag}, which exits without running the check`;
+    if (tokens[0] === 'make' && tokens.slice(1).some((t) => MAKE_NON_EXECUTING.test(t) || MAKE_OVERRIDE.test(t))) {
+      return 'runs make with -n/-i/-t/-q or a VAR=value override — the recipe no longer decides the exit code';
+    }
+  }
+  return null;
+}
+
+/** The `&&` segments of a command that start with a runner — the parts that actually execute. */
+export function runnerSegments(command) {
+  if (typeof command !== 'string') return [];
+  return segmentTokens(command).filter(isRunnerSegment).map((tokens) => tokens.join(' '));
+}
+
+/** The formal checker id a command runs (in a runner segment, honestly), or null. */
+export function matchFormalChecker(command) {
+  if (commandHonestyProblem(command)) return null;
+  const segments = runnerSegments(command);
+  return FORMAL_CHECKERS.find((c) => segments.some((segment) => c.pattern.test(segment)))?.id ?? null;
+}
+
+/**
+ * Whether an empirical command is about this change: it names a changed path, or the file name
+ * (without extension, ≥ 6 chars) of a changed file — `vitest run quality-gate-labels` filters by name.
+ * `changedFiles=null` means the diff could not be measured: fail-open (R-CM-006 Rule 2).
+ */
+export function namesChangedPath(command, changedFiles) {
+  if (changedFiles === null || changedFiles === undefined) return true;
+  if (typeof command !== 'string') return false;
+  // Only a runner segment counts: `echo <changed path> && npx vitest run other` names nothing it runs.
+  const executed = runnerSegments(command).join(' ');
+  return changedFiles.some((file) => {
+    if (executed.includes(file)) return true;
+    const stem = basename(file).replace(/\.[^.]+(?:\.[^.]+)?$/, '');
+    return stem.length >= 6 && executed.includes(stem);
+  });
+}
 
 /**
  * `trivial_skip` limits — R-CM-030 Rule 10 (≤2 files + ≤20 LOC). The only label whose claim is a
@@ -96,53 +182,27 @@ export function checkTrivialClaim(label, measured) {
 }
 
 /**
- * Review assets **this repo ships** — the only tools operator-facing advice may tell someone to run.
+ * Review assets **this repo ships** — hypothesis sources operator-facing advice may name.
  *
- * Deliberately narrower than `LABEL_EVIDENCE_MARKERS`, because the two answer different questions.
- * Markers answer *what counts as evidence*, and may legitimately name tools the repo does not own: a
- * session that has `/code-review` installed and runs it did perform a secondary review, so the record
- * should count. This list answers *what do we tell the operator to run* — and an answer the repo does
- * not ship is not an answer.
+ * A review no longer earns a label (see the header): it finds *where to look*, and its findings count
+ * once they become an empirical or formal gate. Advice still names only assets this repository ships:
+ * on 2026-08-26 advice named `/code-review`, absent from `enabledPlugins`, and the operator read the
+ * rejection as "every path is closed" (#1221). An answer the repo does not ship is not an answer.
  *
- * Conflating the two cost a ship cycle on 2026-08-26. Every advice site named `/code-review --fix` as a
- * primary path; `code-review@claude-plugins-official` was absent from `enabledPlugins`, so the command
- * did not exist for anyone in that environment. The operator read the marker rejection plus that advice
- * as "both admitted paths are closed" and downgraded #1221 to `self_review_pass` — while
- * `code-standards-aligner` sat in this repo, reachable, and had already earned the label on a two-file
- * change in #1212 and again in #1218. The advice was wrong, not the label rules.
- *
- * This is the same defect #1070 fixed one level down. That PR stopped the ledger from measuring *which
- * tool* instead of *whether review happened*; the `/code-review` reference it left in the prose
- * reintroduced the failure at the advice layer, where nothing checked it.
- *
- * Named `REPO_` and not `LOCAL_` on purpose: `local` already means *worktree-scoped* in this codebase
- * (`brief2dev-layout.json` lifecycles `worktree_local` vs `system_persistent`), and "is it available on
- * this machine" is precisely the question this list refuses to answer. What it asserts is narrower and
- * checkable — this repository ships it.
- *
- * `path` is repo-relative and asserted to exist by `tests/unit/quality-gate-labels.test.mjs`. Advice
- * that names a vanished asset is this bug again, so it fails the suite rather than the next ship.
- *
- * `surfaces` declares which CLIs can run the asset (subset of `REVIEW_SURFACES`). The guards that print
- * this advice are registered for every CLI, so a Claude-only asset (subagents) must not be advertised
- * to a Codex or Antigravity session as if it could run it. Declared rather than detected: guessing the
- * current CLI would be a new way to be wrong, while an accurate annotation is right in every session.
- * An asset without `surfaces` is treated as reachable from every surface.
- *
- * "This repository" is wherever this file is running. Transplant bundles copy this module into
- * projects that do not receive the assets (`git-worktree-isolation` ships neither), so
- * `formatReviewRemedy` checks each path against the project it runs in rather than trusting the list.
+ * `path` is repo-relative and asserted to exist by `tests/unit/quality-gate-labels.test.mjs`.
+ * `surfaces` declares which CLIs can run the asset (subset of `REVIEW_SURFACES`): the guards printing
+ * this advice run in every CLI, so a Claude-only subagent must not be advertised to Codex/Antigravity.
+ * Transplant bundles copy this module into projects without the assets, so `formatReviewRemedy`
+ * checks each path against the project it runs in rather than trusting the list.
  */
 export const REPO_REVIEW_ASSETS = Object.freeze([
   Object.freeze({
-    label: 'agent_go',
     tool: 'code-reviewer agent',
     path: '.claude/agents/code-reviewer.md',
     // Subagents are a Claude Code capability.
     surfaces: Object.freeze(['claude']),
   }),
   Object.freeze({
-    label: 'skill_review_pass',
     tool: 'code-standards-aligner skill',
     path: '.claude/skills/code-standards-aligner/SKILL.md',
     // Skills live under `.agents/skills/` (mirrored to `.claude/skills/`), reachable from every CLI.
@@ -153,19 +213,16 @@ export const REPO_REVIEW_ASSETS = Object.freeze([
 /** Every surface (CLI) a review asset may declare in `REPO_REVIEW_ASSETS[].surfaces`. */
 export const REVIEW_SURFACES = Object.freeze(['claude', 'codex', 'antigravity']);
 
-/**
- * Operator-facing remedy advice, derived from `REPO_REVIEW_ASSETS` so it cannot name an absent tool.
- *
- * Call sites interpolate this instead of hand-writing tool names — that is the actual fix, since a
- * hand-written copy is unguarded by construction and three of them rotted at once.
- *
- * @param {{markup?: boolean}} [opts] markup=true backticks tool and label names (markdown sinks);
- *   false emits bare text for terminal sinks. It governs *all* backticks — a half-marked string reads
- *   as broken markdown in one sink and as stray punctuation in the other.
- */
 /** Project root of the running copy — this module lives at `<root>/.cli/lib/`. */
 const RUNNING_PROJECT_ROOT = fileURLToPath(new URL('../..', import.meta.url));
 
+/**
+ * Operator-facing advice for earning `verified`. Call sites interpolate this instead of hand-writing
+ * it — three hand-written copies rotted at once before (#1221).
+ *
+ * @param {{markup?: boolean, projectDir?: string, existsFn?: (p: string) => boolean}} [opts]
+ *   markup=true backticks names (markdown sinks); false emits bare text for terminal sinks.
+ */
 export function formatReviewRemedy({
   markup = false,
   projectDir = RUNNING_PROJECT_ROOT,
@@ -173,80 +230,90 @@ export function formatReviewRemedy({
 } = {}) {
   const tick = markup ? '`' : '';
   const present = REPO_REVIEW_ASSETS.filter((asset) => existsFn(join(projectDir, asset.path)));
-  // Always reachable: needs no shipped asset, only a reviewer that did not write the change.
-  const agnostic =
-    `an adversarial review by a separate agent or session, recorded as a gate named ` +
-    `${tick}${ADVERSARIAL_REVIEW_MARKER}${tick} (${tick}agent_go${tick} or ${tick}skill_review_pass${tick})`;
-  const shipped = present.map((asset, i) => {
-    // An asset only some CLIs can reach says so, instead of being filtered out: filtering would need
-    // to know which CLI is reading, and a wrong guess silently removes the stronger review path.
+  const sources = present.map((asset) => {
     const only =
-      asset.surfaces && asset.surfaces.length < REVIEW_SURFACES.length
-        ? `, ${asset.surfaces.join('/')} only`
-        : '';
-    return `${'①②③④'[i] ?? `(${i + 1})`} ${tick}${asset.tool}${tick} (${tick}${asset.label}${tick}${only})`;
+      asset.surfaces && asset.surfaces.length < REVIEW_SURFACES.length ? ` (${asset.surfaces.join('/')} only)` : '';
+    return `${tick}${asset.tool}${tick}${only}`;
   });
-  const n = shipped.length;
-  return [...shipped, `${'①②③④'[n] ?? `(${n + 1})`} ${agnostic}`].join(' or ');
+  const hypotheses = sources.length > 0 ? `; to find what to verify, optionally run ${sources.join(' or ')} as a hypothesis source` : '';
+  return (
+    `record PROOF gates with ${tick}method: "empirical"${tick} (a command that runs the changed code and names a changed path) ` +
+    `and ${tick}method: "formal"${tick} (a formal checker: ${FORMAL_CHECKERS.map((c) => c.id).join(', ')}), ` +
+    `which the ship gate re-runs before ${tick}--quality verified${tick}${hypotheses}`
+  );
 }
 
 /**
- * Gate statuses recognized as evidence — only those that **actually ran**.
- *
- * `skip` explicitly records "not run", while `fail` records failure to pass. Counting either
- * as evidence would allow claiming cross-review via a single line `{"name":"code-review --fix","status":"skip"}`,
- * reopening the bypass that evidence checks aim to close.
- * (While schemas prevent `verdict='go'` + `status='fail'` contradictions, `skip` is not blocked by schema — must filter here.)
+ * Gate statuses recognized as evidence — only those that **actually ran** and passed.
+ * `warn` stays accepted for formal composites that pass with warnings; the re-run decides anyway.
  */
 export const EVIDENCE_GATE_STATUSES = Object.freeze(['pass', 'warn']);
 
-/** A path or file name once quotes, brackets and a `:line` suffix are peeled off (`"(/code-review"` is not). */
-function isPathWord(word) {
-  const bare = word.replace(/^[("'`[]+/, '').replace(/(?::\d+)*[)"'`,;:\]]*$/, '');
-  return /.\/|\.[a-z0-9]+$/i.test(bare);
-}
-
-/** Extracts search target fields from 1 gate as lowercase string (name required / command optional). */
-function gateSearchText(gate) {
-  if (!gate || typeof gate !== 'object') return '';
-  if (!EVIDENCE_GATE_STATUSES.includes(gate.status)) return '';
-  const name = typeof gate.name === 'string' ? gate.name : '';
-  const command = typeof gate.command === 'string' ? gate.command : '';
-  // File paths name what a gate read or ran, not a review: `vitest run tests/unit/final-review-skill-budget.test.mjs`
-  // or `cat .claude/agents/code-reviewer.md` would otherwise match a marker. A leading `/` is a slash command.
-  const words = `${name} ${command}`.split(/\s+/).filter((w) => !isPathWord(w));
-  // Spaces/underscores fold to '-' so `adversarial review` and `code_reviewer` read like the markers.
-  return words.join(' ').trim().toLowerCase().replace(/[\s_]+/g, '-');
+/**
+ * Structural check of a PROOF's verification obligations (pure — no fs, no exec).
+ *
+ * Satisfied when gates[] holds ≥1 `empirical` and ≥1 `formal` gate, each with status pass/warn and a
+ * `command`, the formal command matching `FORMAL_CHECKERS`, and the empirical command differing from
+ * every formal one (one run cannot count as both methods). Whether the commands *pass now* is decided
+ * by the caller re-running them (`mark-pre-ship-confirmed.mjs#checkVerificationRerun`).
+ *
+ * @param {unknown} gates
+ * @returns {{empirical: object[], formal: object[], missing: string[], problems: string[], satisfied: boolean}}
+ */
+export function checkVerificationObligations(gates) {
+  const list = Array.isArray(gates) ? gates : [];
+  const problems = [];
+  const formal = [];
+  const empiricalCandidates = [];
+  list.forEach((gate, i) => {
+    if (!gate || typeof gate !== 'object' || !VERIFICATION_METHODS.includes(gate.method)) return;
+    const at = `gates[${i}] (${gate.name ?? '?'})`;
+    if (!EVIDENCE_GATE_STATUSES.includes(gate.status)) return;
+    const command = typeof gate.command === 'string' ? gate.command.trim() : '';
+    if (!command) {
+      problems.push(`${at}: method=${gate.method} needs the command that ran — the gate re-runs it`);
+      return;
+    }
+    const dishonest = commandHonestyProblem(command);
+    if (dishonest) {
+      problems.push(`${at}: "${command}" ${dishonest}`);
+      return;
+    }
+    if (gate.method === 'formal') {
+      if (matchFormalChecker(command)) formal.push(gate);
+      else problems.push(`${at}: "${command}" is not a formal checker (${FORMAL_CHECKERS.map((c) => c.id).join(', ')})`);
+      return;
+    }
+    if (runnerSegments(command).length === 0) {
+      problems.push(`${at}: "${command}" does not start with a program that runs code (${[...RUNNERS].join(', ')}, ./script)`);
+      return;
+    }
+    empiricalCandidates.push(gate);
+  });
+  const formalCommands = new Set(formal.map((g) => g.command.trim()));
+  const empirical = empiricalCandidates.filter((g) => !formalCommands.has(g.command.trim()));
+  if (empirical.length < empiricalCandidates.length) {
+    problems.push('an empirical gate reuses a formal gate\'s command — one run cannot count as both methods');
+  }
+  const missing = VERIFICATION_METHODS.filter((m) => (m === 'formal' ? formal : empirical).length === 0);
+  return { empirical, formal, missing, problems, satisfied: missing.length === 0 };
 }
 
 /**
- * Determines whether PROOF evidence required by label exists in `gates[]` (pure — no fs access).
+ * Determines whether the PROOF evidence a label requires exists in `gates[]` (pure).
  *
- * `detail` / `finding` are excluded from search — descriptive fields may contain sentences like "did not run code-review",
- * which could be misidentified as evidence. Inspects only `name`/`command` containing *what was executed*.
- * Evaluates only gates where `status` is `pass`/`warn` (`EVIDENCE_GATE_STATUSES`).
+ * `verified` requires the structural obligations above. Legacy labels are never satisfied for a new
+ * claim. `self_review_pass` / `trivial_skip` require no evidence — they declare that no verification
+ * ran, and the ledger aggregates them as skips.
  *
- * @param {string|null|undefined} label
- * @param {unknown} gates — Gates array from PROOF record (non-array/absence allowed)
- * @returns {{required: boolean, satisfied: boolean, markers: string[], matchedGate: string|null}}
+ * @returns {{required: boolean, satisfied: boolean, legacy?: boolean, missing: string[], problems: string[]}}
  *   If `required=false`, satisfied is always true (simplifying caller branching).
  */
 export function checkLabelEvidence(label, gates) {
-  const markers = LABEL_EVIDENCE_MARKERS[label];
-  if (!markers) return { required: false, satisfied: true, markers: [], matchedGate: null };
-
-  const list = Array.isArray(gates) ? gates : [];
-  for (const gate of list) {
-    const text = gateSearchText(gate);
-    if (!text.trim()) continue;
-    if (markers.some((m) => text.includes(m))) {
-      return {
-        required: true,
-        satisfied: true,
-        markers: [...markers],
-        matchedGate: typeof gate.name === 'string' ? gate.name : null,
-      };
-    }
+  if (LEGACY_QUALITY_LABELS.has(label)) {
+    return { required: true, satisfied: false, legacy: true, missing: [...VERIFICATION_METHODS], problems: [] };
   }
-  return { required: true, satisfied: false, markers: [...markers], matchedGate: null };
+  if (label !== 'verified') return { required: false, satisfied: true, missing: [], problems: [] };
+  const { missing, problems, satisfied } = checkVerificationObligations(gates);
+  return { required: true, satisfied, missing, problems };
 }

@@ -321,9 +321,9 @@ function impactBadge(impact) {
 function matrixCell(cell, rowLabel, colLabel, maxCell) {
   if (!cell.files) return '<td class="mx-0">·</td>';
   const ratio = maxCell ? Math.min(1, cell.files / maxCell) : 0;
-  const alpha = (0.14 + ratio * 0.5).toFixed(2);
+  const pct = Math.round((0.14 + ratio * 0.5) * 100);
   const title = `${rowLabel} · ${colLabel} — ${cell.files} files, ${cell.churn.toLocaleString('en-US')} lines`;
-  return `<td class="mx-c" style="background:rgba(88,166,255,${alpha})" title="${escapeHtml(title)}">${cell.files}</td>`;
+  return `<td class="mx-c" style="background:color-mix(in srgb, #58a6ff ${pct}%, transparent)" title="${escapeHtml(title)}">${cell.files}</td>`;
 }
 
 /**

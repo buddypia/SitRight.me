@@ -25,6 +25,7 @@
  */
 
 import { escapeHtml } from './ship-deck-core.mjs';
+import { applyDeckTheme } from './deck-theme.mjs';
 import {
   DECK_VISUAL_CSS,
   renderImpactMapSection,
@@ -106,7 +107,7 @@ h3.grp { margin: 18px 0 8px; color: #58a6ff; font-size: 12px; text-transform: no
 `;
 
 function deckShell({ pageTitle, headerHtml, sectionsHtml, deckData }) {
-  return `<!doctype html>
+  return applyDeckTheme(`<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -123,7 +124,7 @@ ${sectionsHtml}
 <script>${DECK_JS}</script>
 </body>
 </html>
-`;
+`);
 }
 
 const NARRATIVE_MISSING_HTML = `<p class="narrative-missing">AI explanation (--narrative-json) not provided — a deck without what/why/how lacks review substance. Fails gate presentation requirements (feature-pilot "Stage Review Checkpoints" contract).</p>`;

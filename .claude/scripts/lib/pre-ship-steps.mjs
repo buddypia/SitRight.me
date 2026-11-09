@@ -81,7 +81,7 @@ export function readAnswerStore(path, { existsFn = existsSync, readFn = readFile
  *
  * The census (`unrecorded`, `unrecordedTotal`) is computed even when the current scale is not counted
  * and before the projected entry is appended — a bypass is a fact about the repository, and a
- * projected `agent_go` would otherwise bury every bypass behind itself.
+ * projected `verified` would otherwise bury every bypass behind itself.
  *
  * @param {{ledger: Array<object>|null, landings?: Array<object>|null, scale: string|null,
  *          qualityLabel: string|null, refMovedAge?: number|null, baseBranch?: string|null}} input

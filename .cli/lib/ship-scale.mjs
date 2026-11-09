@@ -65,6 +65,26 @@ export function measureShipScale(worktreeAbsPath, gitFn = defaultGit, io = undef
 }
 
 /**
+ * Paths the worktree's `<base>...HEAD` diff touches — same base resolution as `measureShipScale`, so
+ * "the change" means one thing to the size gate and to the empirical-evidence check
+ * (`quality-gate-labels.mjs#namesChangedPath`).
+ * @returns {string[]|null} null = unevaluable via git (fail-open)
+ */
+export function listShipChangedFiles(worktreeAbsPath, gitFn = defaultGit, io = undefined) {
+  for (const base of resolveShipBaseRefs(worktreeAbsPath, { gitFn, ...io })) {
+    try {
+      return String(gitFn(worktreeAbsPath, ['diff', `${base}...HEAD`, '--name-only']))
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean);
+    } catch {
+      // Unevaluable for this base ref — try next candidate
+    }
+  }
+  return null;
+}
+
+/**
  * Checks for presence of CP-MILESTONE review deck traces (.tmp/review-deck/<safeKey>/milestone-<slug>/index.html).
  * Path structure SSOT: review-deck.mjs output convention.
  * @returns {boolean} true if 1+ traces exist

@@ -4,26 +4,27 @@
  * Input contract: Model returned by `ship-deck-core.mjs#buildDeckModel`.
  * Output: Single index.html string — inline CSS/JS, fully functional offline.
  *
- * Screen structure (2026-09-18, second rewrite — impact first, file lists gone from the first view):
- *   Brief:  reach banner (how far the change goes, computed from git paths — data · product ·
- *           pipeline · local — with a four-segment bar) → what · for whom · why · how →
- *           [exposure tiles when the change reaches users or contracts] → [data change block when
- *           stored data or an external contract moves] → what breaks if this is wrong (scenario ·
- *           who notices · how we would know · what we do) → [structured diagram the renderer
- *           draws] → chosen vs rejected with cost → where to review → gaps · rollback · next.
+ * Screen structure (2026-10-28, third rewrite: a reading column with the key points on top):
+ *   Header: branch, size and reach on one line → the change in one sentence → who it is for.
+ *   Brief:  three points (why · how · the one thing to check) → the diagram when written →
+ *           the trade-off as chosen / gave up / the cost → review checklist → risks with a status
+ *           → rollback, then one-line folds: reach and exposure (computed from git paths),
+ *           what was not verified, what was left out, risk details.
  *   Below:  machine warnings (only when any) → <details> folds: original request · changed files
- *           (tree; per-file notes only if authored) · requirements trace (only if authored) ·
- *           legacy impact notes (only if authored) · impact map · AI SVG · glossary · sources.
+ *           · requirements trace · impact notes · impact map · glossary · sources.
  *
- *   Why this order (user feedback 2026-09-18): "People do not read file lists however long they are. What
- *   matters is where the change lands, how much, and what can go wrong if it is big." A harness fix and a data migration used to
- *   open with the same file tree. Now the first line says which one this is, and the gate asks
- *   for more when it is the latter.
+ *   Why (user feedback 2026-10-28): the previous deck opened with four tables at the same weight,
+ *   internal vocabulary and flows spelled out in prose, and read as generated filler. An engineer
+ *   who was not part of the work should see in one look what changed, why, which trade-off to
+ *   judge and where to look. The words matter as much as the layout: narrative-quality.mjs rejects
+ *   file paths and code identifiers in first-screen prose, and plain-language.mjs no longer skips
+ *   its term check when a repository has no glossary file.
  *
  * Boundary (R-CM-028): perspective1-only. Not deployed to scaffold targets.
  */
 
 import { escapeHtml } from './ship-deck-core.mjs';
+import { applyDeckTheme } from './deck-theme.mjs';
 import { splitPathMention } from './narrative-quality.mjs';
 import { escapeRegExp } from './plain-language.mjs';
 import { PASSPORT_RELPATH } from './review-origin.mjs';
@@ -260,30 +261,6 @@ details > summary { cursor: pointer; font-size: 13px; color: #58a6ff; margin: 6p
 @media (max-width: 720px) { .hm-row { grid-template-columns: 120px 1fr 110px; } }
 @media (max-width: 720px) { .trace-grid { grid-template-columns: 1fr; } .trace-arrow { transform: rotate(90deg); }
   .risk-grid { grid-template-columns: 1fr; } .review-intro dl { grid-template-columns: 1fr; gap: 2px; } }
-.brief { border-left: 4px solid #3fb950; padding: 18px 20px; }
-.brief-headline { font-size: 18px; font-weight: 700; line-height: 1.45; margin: 0 0 12px; }
-.brief-grid { display: grid; grid-template-columns: 96px 1fr; gap: 8px 14px; margin: 0 0 14px; }
-.brief-grid dt { color: #9da7b3; font-size: 13px; padding-top: 1px; }
-.brief-grid dd { margin: 0; line-height: 1.6; font-size: 14px; }
-.brief h3 { margin: 16px 0 8px; font-size: 13px; color: #9da7b3; letter-spacing: 0.02em; }
-.brief-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.brief-table th, .brief-table td { border: 1px solid #30363d; padding: 7px 9px; text-align: left;
-  vertical-align: top; line-height: 1.5; }
-.brief-table th { color: #9da7b3; background: #11161d; font-weight: 600; white-space: nowrap; }
-.brief-table td.cost { color: #d4a72c; }
-.brief-focus { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.brief-focus li { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 9px 12px;
-  display: grid; grid-template-columns: 24px 1fr; gap: 4px 10px; font-size: 13px; line-height: 1.5; }
-.brief-focus .no { color: #58a6ff; font-weight: 700; grid-row: span 3; }
-.brief-focus .where { color: #e6edf3; }
-.brief-focus .where code { font-size: 12.5px; }
-.brief-focus .check { color: #e6edf3; }
-.brief-focus .risk { color: #ff7b72; font-size: 12.5px; }
-.brief-gaps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.brief-gaps ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.6; }
-.brief-gaps .gap-title { color: #9da7b3; font-size: 12px; margin: 0 0 4px; }
-.brief-rollback { margin: 14px 0 0; font-size: 12.5px; color: #9da7b3; }
-.brief-rollback code { color: #e6edf3; }
 .evidence { border: 1px solid #30363d; border-radius: 10px; background: #161b22; }
 .evidence > summary { padding: 12px 18px; font-size: 14px; color: #e6edf3; cursor: pointer;
   list-style: none; display: flex; justify-content: space-between; align-items: center; }
@@ -292,66 +269,6 @@ details > summary { cursor: pointer; font-size: 13px; color: #58a6ff; margin: 6p
 .evidence[open] > summary::after { content: '▾'; }
 .evidence > .card { border: 0; border-top: 1px solid #30363d; border-radius: 0; }
 .evidence .muted-count { color: #8b949e; font-size: 12px; font-weight: normal; }
-@media (max-width: 720px) { .brief-grid { grid-template-columns: 1fr; gap: 2px; } .brief-gaps { grid-template-columns: 1fr; } }
-/* ---- impact-first brief (2026-09-18) ---- */
-.brief.tone-red { border-left-color: #f85149; }
-.brief.tone-orange { border-left-color: #db6d28; }
-.brief.tone-yellow { border-left-color: #d4a72c; }
-.brief.tone-green { border-left-color: #3fb950; }
-.reach { margin: -4px 0 16px; }
-.reach-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 10px; font-size: 14px; }
-.reach-head b { font-size: 16px; }
-.reach-means { color: #9da7b3; font-size: 13px; }
-.reach-dot { width: 12px; height: 12px; border-radius: 999px; background: #3fb950; box-shadow: 0 0 0 4px rgba(63,185,80,.18); }
-.tone-red .reach-dot { background: #f85149; box-shadow: 0 0 0 4px rgba(248,81,73,.2); }
-.tone-orange .reach-dot { background: #db6d28; box-shadow: 0 0 0 4px rgba(219,109,40,.2); }
-.tone-yellow .reach-dot { background: #d4a72c; box-shadow: 0 0 0 4px rgba(212,167,44,.2); }
-.reach-bar { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-.reach-bar .seg { border: 1px solid #30363d; border-radius: 8px; padding: 8px 10px; background: #0d1117; display: grid; gap: 3px; opacity: .55; min-height: 58px; }
-.reach-bar .seg.on { opacity: 1; }
-.reach-bar .seg.top { box-shadow: inset 0 0 0 1px currentColor; }
-.reach-bar .seg.tone-red.on { color: #ff7b72; background: #2d1416; }
-.reach-bar .seg.tone-orange.on { color: #f0883e; background: #2b1a10; }
-.reach-bar .seg.tone-yellow.on { color: #e3b341; background: #2b2111; }
-.reach-bar .seg.tone-green.on { color: #3fb950; background: #12261e; }
-.seg-label { font-size: 12px; font-weight: 700; letter-spacing: .02em; }
-.seg-count { font-size: 13px; color: #e6edf3; }
-.seg:not(.on) .seg-count { color: #8b949e; }
-.seg-paths { font-size: 11px; color: #9da7b3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.seg-paths code { font-size: 11px; color: #c9d1d9; }
-.reach-caveat { margin: 8px 0 0; font-size: 12px; color: #d4a72c; }
-.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.tile { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 9px 11px; display: grid; gap: 4px; }
-.tile-k { font-size: 11px; color: #9da7b3; letter-spacing: .02em; }
-.tile-v { font-size: 13px; line-height: 1.5; }
-.data-change { border: 1px solid #5a2a2a; background: #1a0f10; border-radius: 8px; padding: 10px 12px; }
-.brief-table.failures td.scenario { font-weight: 600; }
-.brief-table.failures td:nth-child(2) { color: #f0883e; }
-.brief-table.failures td:nth-child(4) { color: #9da7b3; }
-.diagram-flow, .diagram-ba { margin: 14px 0 0; }
-.diagram-flow figcaption, .diagram-ba figcaption { font-size: 12px; color: #9da7b3; margin: 0 0 8px; }
-.flow-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 0; align-items: stretch; }
-.flow-steps .step { position: relative; background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 8px 12px 8px 12px; margin-right: 26px; display: grid; gap: 2px; min-width: 120px; max-width: 220px; font-size: 13px; }
-.flow-steps .step small { color: #9da7b3; font-size: 11.5px; line-height: 1.4; }
-.flow-steps .step:not(:last-child)::after { content: '→'; position: absolute; right: -21px; top: 50%; transform: translateY(-50%); color: #58a6ff; font-size: 16px; }
-.flow-steps .step:has(+ .state-removed)::after { content: ''; }
-.flow-steps .step.state-removed { margin-left: 8px; }
-.flow-steps .step.state-changed { border-color: #d4a72c; background: #2b2111; }
-.flow-steps .step.state-new { border-color: #3fb950; background: #12261e; }
-.flow-steps .step.state-removed { border-color: #f85149; background: #2d1416; text-decoration: line-through; opacity: .8; }
-.flow-legend { margin: 8px 0 0; font-size: 11px; color: #9da7b3; display: flex; gap: 12px; }
-.flow-legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; border: 1px solid #30363d; background: #0d1117; }
-.flow-legend .state-changed::before { border-color: #d4a72c; background: #2b2111; }
-.flow-legend .state-new::before { border-color: #3fb950; background: #12261e; }
-.flow-legend .state-removed::before { border-color: #f85149; background: #2d1416; }
-.ba-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.ba-table th, .ba-table td { border: 1px solid #30363d; padding: 7px 9px; text-align: left; vertical-align: top; line-height: 1.5; }
-.ba-table thead th { color: #9da7b3; background: #11161d; font-weight: 600; }
-.ba-table tbody th { color: #9da7b3; font-weight: 600; white-space: nowrap; }
-.ba-table td.before { color: #9da7b3; }
-.ba-table td.arrow { color: #58a6ff; text-align: center; width: 28px; }
-.ba-table td.after { color: #e6edf3; }
-@media (max-width: 720px) { .reach-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); } .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 `;
 
 export const DECK_JS = `
@@ -469,6 +386,98 @@ export const DECK_JS = `
 `;
 
 /**
+ * Ship deck page styles — a reading column, not a dashboard. One accent, no cards, no chips; the
+ * only boxes are the diagram steps, the trade-off and the "please check" row. Colours follow the
+ * shared dark palette above so the folded evidence below the brief sits in the same page.
+ */
+export const SHIP_DECK_CSS = `
+main.ship { max-width: 760px; display: block; padding: 24px 0 72px; }
+.ship { --ink: #e6edf3; --sub: #9da7b3; --faint: #6e7681; --line: #30363d; --accent: #58a6ff;
+  --accent-soft: #11233f; --warn: #e3b341; --warn-soft: #2b2111; --ok: #3fb950; line-height: 1.7; font-size: 16px; }
+.ship code { font-size: 13.5px; }
+.ship-head .meta { font-size: 13px; color: var(--faint); margin: 0 0 12px; }
+.ship-head h1 { font-size: 27px; line-height: 1.38; letter-spacing: -0.02em; margin: 0 0 10px; }
+.ship-head .for { margin: 0 0 34px; color: var(--sub); font-size: 15px; }
+.undo .origin-note { font-size: 13px; color: var(--faint); }
+.brief h2 { font-size: 18px; margin: 60px 0 16px; letter-spacing: -0.01em; color: var(--ink); }
+.points { list-style: none; margin: 0; padding: 0; display: grid; gap: 24px; }
+.points li { display: grid; grid-template-columns: 96px 1fr; gap: 20px; }
+.points .k { font-size: 14px; font-weight: 700; color: var(--sub); padding-top: 2px; }
+.points p { margin: 0; }
+.points .lead { font-size: 17px; font-weight: 600; }
+.points .rest { color: var(--sub); margin-top: 4px; }
+.points li.look { background: var(--accent-soft); margin: 0 -20px; padding: 18px 20px; border-radius: 10px; }
+.points li.look .k { color: var(--accent); }
+.flow { list-style: none; margin: 0; padding: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+.flow li { position: relative; padding-right: 22px; }
+.flow li:last-child { padding-right: 0; }
+.flow .box { border: 1.5px solid var(--line); border-radius: 10px; padding: 12px 14px; height: 100%; }
+.flow .tag { display: block; font-size: 12px; font-weight: 700; color: var(--faint); }
+.flow b { display: block; font-size: 15px; overflow-wrap: anywhere; }
+.flow small { display: block; font-size: 13px; color: var(--sub); line-height: 1.5; margin-top: 2px; }
+.flow .state-new .box, .flow .state-changed .box { border-color: var(--accent); }
+.flow .state-new .tag, .flow .state-changed .tag { color: var(--accent); }
+.flow .state-removed .box { border-style: dashed; } .flow .state-removed b { text-decoration: line-through; color: var(--sub); }
+.flow .cond { display: block; font-size: 12px; font-weight: 700; color: var(--sub); margin-bottom: 6px; }
+.flow .alts { display: grid; gap: 8px; border-left: 1.5px dashed var(--faint); padding-left: 8px; }
+.flow .alts .box { height: auto; }
+.flow li:not(:last-child)::after { content: ''; position: absolute; right: 7px; top: 50%; width: 8px; height: 8px;
+  border-top: 1.5px solid var(--faint); border-right: 1.5px solid var(--faint); transform: translateY(-50%) rotate(45deg); }
+.caption { font-size: 14px; color: var(--sub); margin: 12px 0 0; }
+.ba { width: 100%; border-collapse: collapse; font-size: 15px; }
+.ba th, .ba td { text-align: left; vertical-align: top; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); }
+.ba thead th { font-size: 13px; color: var(--faint); font-weight: 700; }
+.ba tbody th { color: var(--sub); font-weight: 600; white-space: nowrap; }
+.ba td.before { color: var(--sub); }
+.q { font-weight: 600; margin: 0 0 12px; }
+.trade { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid var(--line); border-radius: 10px; overflow: hidden; }
+.trade > div { padding: 16px 20px; }
+.trade > div + div { border-left: 1.5px solid var(--line); }
+.trade h3 { font-size: 13px; margin: 0 0 6px; color: var(--sub); font-weight: 700; }
+.trade p { margin: 0; }
+.trade .why { color: var(--sub); font-size: 15px; }
+.trade .cost { grid-column: 1 / -1; border-left: 0; border-top: 1.5px solid var(--line); background: var(--warn-soft); }
+.trade .cost h3 { color: var(--warn); }
+.minor { margin: 16px 0 0; color: var(--sub); font-size: 15px; }
+.minor b { color: var(--ink); }
+.check { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
+.check li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; }
+.check li::before { content: ''; width: 18px; height: 18px; margin-top: 4px; border: 1.5px solid var(--faint); border-radius: 4px; }
+.check p { margin: 0; }
+.check .where { color: var(--sub); font-size: 14px; }
+.check .where a { color: var(--accent); }
+.check .risk { color: var(--sub); font-size: 14.5px; }
+.risks { display: grid; gap: 14px; margin: 0; }
+.risks div { display: grid; grid-template-columns: 96px 1fr; gap: 20px; }
+.risks dt { font-size: 14px; font-weight: 700; color: var(--sub); }
+.risks dt.s-fixed { color: var(--ok); } .risks dt.s-open { color: var(--warn); } .risks dt.s-out_of_scope { color: var(--faint); }
+.risks dd { margin: 0; }
+.risks small { display: block; color: var(--sub); font-size: 14px; }
+.undo { margin-top: 60px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--sub); font-size: 15px; }
+.undo p { margin: 0 0 6px; }
+.more { margin-top: 10px; }
+.more > summary { cursor: pointer; color: var(--sub); }
+.more ul { margin: 10px 0 0; padding-left: 20px; font-size: 14.5px; }
+.more .more-body { margin: 12px 0 4px; font-size: 14.5px; }
+.facts { display: grid; grid-template-columns: 140px 1fr; gap: 6px 16px; margin: 12px 0 0; }
+.facts dt { color: var(--faint); } .facts dd { margin: 0; color: var(--ink); }
+.reach-line { margin: 0; color: var(--ink); }
+.reach-line .reach-means { color: var(--sub); }
+.reach-bar { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 2px 16px; font-size: 13.5px; color: var(--faint); }
+.reach-bar .seg.on { color: var(--ink); } .reach-bar .seg.top { font-weight: 700; }
+.reach-caveat { margin: 6px 0 0; font-size: 13px; color: var(--warn); }
+.ship > .evidence, .ship > .card { margin-top: 12px; font-size: 14px; line-height: 1.55; }
+.ship > .card.scorecard { margin-top: 48px; }
+@media (max-width: 720px) {
+  .ship-head h1 { font-size: 22px; }
+  .points li, .risks div, .facts { grid-template-columns: 1fr; gap: 2px; }
+  .flow { grid-auto-flow: row; gap: 20px; } .flow li { padding: 0; }
+  .flow li:not(:last-child)::after { right: auto; left: 50%; top: auto; bottom: -14px; transform: rotate(135deg); }
+  .trade { grid-template-columns: 1fr; } .trade > div + div { border-left: 0; border-top: 1.5px solid var(--line); }
+}
+`;
+
+/**
  * Human-facing deck labels per locale. The locale comes from `.claude/reach-map.json#locale`
  * (carried on `model.reach.locale`); an unknown or absent locale renders English, which is the
  * pre-extension-point output byte for byte. `ko` is design-lookbook's shipped Korean copy, so a
@@ -477,103 +486,107 @@ export const DECK_JS = `
 export const DECK_LABELS = Object.freeze({
   en: {
     lang: 'en',
-    more: (n) => `+${n} more`,
-    builtinCaveat: 'Classified by builtin conventions (no <code>.claude/reach-map.json</code>) — production paths may look local.',
-    computedFromGit: 'computed from git paths',
-    reachAria: 'Change reach',
-    exposureTitle: 'Who is exposed, and how many',
-    exposureWho: 'Who',
+    files: (n) => `${n} file${n === 1 ? '' : 's'}`,
+    builtinCaveat: 'Classified by builtin conventions (no <code>.claude/reach-map.json</code>), so production paths may look local.',
+    reachTitle: 'Reach and exposure',
+    reachLabel: 'Reach',
+    exposureWho: 'Who sees it',
     exposureHowMany: 'How many',
     exposureWhen: 'From when',
-    exposureReversible: 'Reversible?',
-    dataChangeTitle: 'Data / contract movement',
-    dataWhatMoves: 'What moves',
-    dataCount: 'Count',
+    exposureReversible: 'Can it be undone',
+    dataWhatMoves: 'Data that changes',
+    dataCount: 'How much',
     dataIrreversible: 'Not undone by a revert',
-    dataOrder: 'Order · safe stopping points',
+    dataOrder: 'Order',
     dataConsumers: 'Who reads it',
-    failuresTitle: 'What breaks if this is wrong',
-    failuresScenario: 'Scenario',
+    failuresTitle: 'Risks',
+    failuresDetailTitle: 'Risk details',
     failuresWho: 'Who notices first',
     failuresDetect: 'How we find out',
-    failuresMitigation: 'What we do then',
-    flowChanged: 'Changed step',
-    flowNew: 'New step',
-    flowRemoved: 'Removed step',
-    flowSame: 'Unchanged',
+    statusFixed: 'Fixed',
+    statusOpen: 'Open',
+    statusOutOfScope: 'Out of scope',
+    statusWatch: 'Watch',
+    flowTitle: 'How it works',
+    flowChanged: 'Changed',
+    flowNew: 'New',
+    flowRemoved: 'Removed',
+    flowSame: 'Existing',
     before: 'Before',
     after: 'After',
-    ifWrong: 'If wrong',
-    forWhom: 'For whom',
+    ifWrong: 'If not',
+    forWhom: 'For',
     why: 'Why',
     how: 'How',
-    tradeoffsTitle: 'Chosen vs rejected',
-    tradeoffDecision: 'Decision',
-    tradeoffChosen: 'Chosen · why',
-    tradeoffRejected: 'Rejected alternative',
-    tradeoffCost: 'Cost of the choice',
-    reviewFocusTitle: 'Where to review',
-    gapsTitle: 'Not done · known gaps',
-    outOfScopeTitle: 'Deliberately out of scope',
+    lookFirst: 'Please check',
+    tradeoffsTitle: 'Trade-off',
+    chosen: 'Chosen',
+    rejected: 'Gave up',
+    tradeoffCost: 'The cost',
+    reviewFocusTitle: 'Review checklist',
+    gapsTitle: 'Not verified',
+    outOfScopeTitle: 'Left out on purpose',
     rollback: 'Rollback',
     next: 'Next',
     scorecardTitle: 'Machine-detected warnings',
-    foldOrigin: 'Original request <span class="muted-count">verbatim · check against the AI interpretation</span>',
+    foldOrigin: 'Original request <span class="muted-count">verbatim, check against the AI interpretation</span>',
     foldChangedFiles: 'Changed files',
     foldRequirements: 'Requirements → implementation trace',
-    foldImpact: 'Impact · regression notes <span class="muted-count">author notes</span>',
-    foldImpactMap: 'Machine-measured impact map <span class="muted-count">feature ownership · contract surfaces</span>',
+    foldImpact: 'Impact and regression notes <span class="muted-count">author notes</span>',
+    foldImpactMap: 'Machine-measured impact map <span class="muted-count">feature ownership, contract surfaces</span>',
     foldGlossary: 'Glossary',
     foldSources: 'Source documents',
   },
   ko: {
     lang: 'ko',
-    more: (n) => `외 ${n}`,
-    builtinCaveat: '내장 규칙으로 분류했다 (<code>.claude/reach-map.json</code> 없음) — 프로덕션 경로가 로컬로 보일 수 있다.',
-    computedFromGit: 'git 경로로 계산',
-    reachAria: '도달 범위',
-    exposureTitle: '누가 · 얼마나 노출되나',
-    exposureWho: '누가',
+    files: (n) => `파일 ${n}개`,
+    builtinCaveat: '내장 규칙으로 분류했습니다(<code>.claude/reach-map.json</code> 없음). 프로덕션 경로가 로컬로 보일 수 있습니다.',
+    reachTitle: '영향 범위',
+    reachLabel: '도달 범위',
+    exposureWho: '누가 보나',
     exposureHowMany: '얼마나',
     exposureWhen: '언제부터',
     exposureReversible: '되돌릴 수 있나',
-    dataChangeTitle: '데이터 · 계약 이동',
-    dataWhatMoves: '무엇이 어떻게',
-    dataCount: '건수',
-    dataIrreversible: 'revert 로 안 돌아오는 것',
-    dataOrder: '순서 · 멈출 수 있는 지점',
+    dataWhatMoves: '바뀌는 데이터',
+    dataCount: '규모',
+    dataIrreversible: '되돌려도 남는 것',
+    dataOrder: '순서',
     dataConsumers: '읽는 쪽',
-    failuresTitle: '잘못되면 무슨 일이 생기나',
-    failuresScenario: '시나리오',
-    failuresWho: '누가 먼저 알아채나',
-    failuresDetect: '어떻게 알아내나',
-    failuresMitigation: '그때 무엇을 하나',
-    flowChanged: '바뀐 단계',
-    flowNew: '새 단계',
-    flowRemoved: '없어진 단계',
-    flowSame: '그대로',
+    failuresTitle: '위험 요소',
+    failuresDetailTitle: '위험 상세',
+    failuresWho: '먼저 알아채는 사람',
+    failuresDetect: '알아내는 방법',
+    statusFixed: '해결됨',
+    statusOpen: '남아 있음',
+    statusOutOfScope: '범위 밖',
+    statusWatch: '주의',
+    flowTitle: '어떻게 동작하나',
+    flowChanged: '바뀜',
+    flowNew: '새로 추가',
+    flowRemoved: '없앰',
+    flowSame: '기존',
     before: '전',
     after: '후',
-    ifWrong: '틀리면',
-    forWhom: '누구를 위해',
+    ifWrong: '안 되면',
+    forWhom: '대상',
     why: '왜',
     how: '어떻게',
-    tradeoffsTitle: '고른 것과 버린 것',
-    tradeoffDecision: '결정',
-    tradeoffChosen: '고른 것 · 이유',
-    tradeoffRejected: '버린 대안',
-    tradeoffCost: '치른 비용',
-    reviewFocusTitle: '리뷰어가 볼 곳',
-    gapsTitle: '안 한 것 · 알려진 한계',
-    outOfScopeTitle: '의도적으로 제외',
+    lookFirst: '꼭 봐 주세요',
+    tradeoffsTitle: '트레이드오프',
+    chosen: '선택',
+    rejected: '포기',
+    tradeoffCost: '그 대가',
+    reviewFocusTitle: '리뷰 체크리스트',
+    gapsTitle: '확인하지 못한 것',
+    outOfScopeTitle: '일부러 하지 않은 것',
     rollback: '되돌리기',
     next: '다음',
-    scorecardTitle: '경고',
-    foldOrigin: '원문 요청 <span class="muted-count">그대로 · AI 해석 대조</span>',
+    scorecardTitle: '자동 검사 경고',
+    foldOrigin: '원문 요청 <span class="muted-count">AI 해석과 대조</span>',
     foldChangedFiles: '변경 파일',
     foldRequirements: '요구사항 → 구현 추적',
-    foldImpact: '영향 · 회귀 메모 <span class="muted-count">작성자 메모</span>',
-    foldImpactMap: '기계 측정 영향 지도 <span class="muted-count">feature ownership · contract surfaces</span>',
+    foldImpact: '영향과 회귀 메모 <span class="muted-count">작성자 메모</span>',
+    foldImpactMap: '기계 측정 영향 지도 <span class="muted-count">기능 소유, 계약 표면</span>',
     foldGlossary: '용어',
     foldSources: '원본 문서',
   },
@@ -585,150 +598,190 @@ export function deckLabelsFor(model) {
   return typeof locale === 'string' && Object.hasOwn(DECK_LABELS, locale) ? DECK_LABELS[locale] : DECK_LABELS.en;
 }
 
+/** First sentence as the lead, the rest underneath. A text with one sentence is all lead. */
+export function splitLead(text) {
+  const t = String(text ?? '').trim();
+  const m = t.match(/^(.+?[.!?。])\s+(\S[\s\S]*)$/);
+  return m ? { lead: m[1], rest: m[2] } : { lead: t, rest: '' };
+}
+
+function point(key, text, g, cls = '') {
+  const { lead, rest } = splitLead(text);
+  return `<li${cls ? ` class="${cls}"` : ''}><span class="k">${key}</span><div><p class="lead">${proseHtml(lead, g)}</p>${rest ? `<p class="rest">${proseHtml(rest, g)}</p>` : ''}</div></li>`;
+}
+
 /**
- * Reach banner — the first thing on the page. Machine-computed from git paths (change-reach.mjs),
- * so it cannot be talked up or down by the author. Four segments, highest stakes first; touched
- * segments are filled, the top touched one names the tier.
+ * Reach, machine-computed from git paths (change-reach.mjs) so the author cannot talk it up or
+ * down: the top tier in words, then all four tiers with their file counts. Paths sit in a tooltip.
  */
 function renderReachBanner(reach, L = DECK_LABELS.en) {
   if (!reach) return '';
   const segs = reach.tiers
     .map((t) => {
-      const paths = t.paths.slice(0, 2).map((p) => `<code>${escapeHtml(p)}</code>`).join(' ');
-      const more = t.paths.length > 2 ? ` <span class="muted">${L.more(t.paths.length - 2)}</span>` : '';
-      return `<li class="seg tone-${t.tone}${t.touched ? ' on' : ''}${t.id === reach.tier ? ' top' : ''}">
-  <span class="seg-label">${escapeHtml(t.short)}</span>
-  <span class="seg-count">${t.touched ? `${t.files} file${t.files === 1 ? '' : 's'}` : '—'}</span>
-  ${t.touched ? `<span class="seg-paths">${paths}${more}</span>` : ''}
-</li>`;
+      const title = t.touched ? ` title="${escapeHtml(t.paths.slice(0, 12).join('\n'))}"` : '';
+      return `<li class="seg tone-${t.tone}${t.touched ? ' on' : ''}${t.id === reach.tier ? ' top' : ''}"${title}>${escapeHtml(t.short)} ${t.touched ? t.files : 0}</li>`;
     })
-    .join('\n');
-  const caveat =
-    reach.source === 'builtin'
-      ? `<p class="reach-caveat">${L.builtinCaveat}</p>`
-      : '';
-  return `<div class="reach tone-${reach.tone}" id="reach">
-  <p class="reach-head"><span class="reach-dot" aria-hidden="true"></span><b>${escapeHtml(reach.label)}</b><span class="reach-means">${escapeHtml(reach.means)}</span><span class="gen machine">${L.computedFromGit}</span></p>
-  <ol class="reach-bar" aria-label="${L.reachAria}">${segs}</ol>
+    .join('');
+  const caveat = reach.source === 'builtin' ? `<p class="reach-caveat">${L.builtinCaveat}</p>` : '';
+  return `<div class="reach" id="reach">
+  <p class="reach-line"><b>${escapeHtml(reach.label)}</b> <span class="reach-means">${escapeHtml(reach.means)}</span></p>
+  <ol class="reach-bar" aria-label="${L.reachLabel}">${segs}</ol>
   ${caveat}
 </div>`;
 }
 
-/** Who · how many · from when · reversible — four tiles, only when the narrative carries them. */
+function factList(id, rows, g) {
+  const items = rows
+    .filter(([, v]) => v)
+    .map(([k, v]) => `<dt>${k}</dt><dd>${proseHtml(v, g)}</dd>`)
+    .join('');
+  return items ? `<dl class="facts" id="${id}">${items}</dl>` : '';
+}
+
+/** Who sees it, how many, from when, can it be undone. Only when the narrative carries it. */
 function renderExposure(exposure, g, L = DECK_LABELS.en) {
   if (!exposure) return '';
-  const tiles = [
+  return factList('exposure', [
     [L.exposureWho, exposure.who],
     [L.exposureHowMany, exposure.howMany],
     [L.exposureWhen, exposure.when],
     [L.exposureReversible, exposure.reversible],
-  ]
-    .filter(([, v]) => v)
-    .map(([k, v]) => `<div class="tile"><span class="tile-k">${k}</span><span class="tile-v">${proseHtml(v, g)}</span></div>`)
-    .join('');
-  return `<h3>${L.exposureTitle}</h3><div class="tiles" id="exposure">${tiles}</div>`;
+  ], g);
 }
 
-/** Data / contract movement — only when stored data or an external contract moves. */
+/** Data or contract movement. Only when stored data or an external contract moves. */
 function renderDataChange(dataChange, g, L = DECK_LABELS.en) {
   if (!dataChange) return '';
-  const rows = [
+  return factList('data-change', [
     [L.dataWhatMoves, dataChange.whatMoves],
     [L.dataCount, dataChange.count],
     [L.dataIrreversible, dataChange.irreversible],
     [L.dataOrder, dataChange.order],
     [L.dataConsumers, dataChange.consumers],
-  ]
-    .filter(([, v]) => v)
-    .map(([k, v]) => `<dt>${k}</dt><dd>${proseHtml(v, g)}</dd>`)
-    .join('');
-  return `<h3>${L.dataChangeTitle}</h3><dl class="brief-grid data-change" id="data-change">${rows}</dl>`;
-}
-
-/** What breaks if this is wrong — the table every tier carries. */
-function renderFailureModes(failureModes, g, L = DECK_LABELS.en) {
-  if (!failureModes?.length) return '';
-  const rows = failureModes
-    .map(
-      (f) => `<tr><td class="scenario">${proseHtml(f.scenario, g)}</td><td>${proseHtml(f.whoNotices, g)}</td><td>${proseHtml(f.detect, g)}</td><td>${proseHtml(f.mitigation, g)}</td></tr>`,
-    )
-    .join('\n');
-  return `<h3>${L.failuresTitle}</h3>
-  <table class="brief-table failures" id="failures"><thead><tr><th>${L.failuresScenario}</th><th>${L.failuresWho}</th><th>${L.failuresDetect}</th><th>${L.failuresMitigation}</th></tr></thead><tbody>${rows}</tbody></table>`;
+  ], g);
 }
 
 /**
  * Structured diagram, drawn by the renderer from narrative data (no library, no author SVG):
- *   flow          — steps left to right; changed / new / removed steps are colour-coded
- *   before_after  — aspect · before → after rows
+ *   flow          steps left to right; new / changed steps get the accent border and a tag. A step
+ *                 with `branches` is a split: its alternatives stack in one column under the
+ *                 question that decides between them, so a flow that goes one of two ways still
+ *                 reads left to right.
+ *   before_after  aspect, before, after rows
  */
 function renderNarrativeDiagram(diagram, g, L = DECK_LABELS.en) {
   if (!diagram) return '';
-  const title = diagram.title ? `<figcaption>${proseHtml(diagram.title, g)}</figcaption>` : '';
+  const caption = diagram.title ? `<p class="caption">${proseHtml(diagram.title, g)}</p>` : '';
   if (diagram.kind === 'flow') {
+    const tags = { changed: L.flowChanged, new: L.flowNew, removed: L.flowRemoved, same: L.flowSame };
+    const stateOf = (st) => (tags[st.state] ? st.state : 'same');
+    const box = (st) =>
+      `<div class="box"><span class="tag">${tags[stateOf(st)]}</span><b>${proseHtml(st.label, g)}</b>${st.note ? `<small>${proseHtml(st.note, g)}</small>` : ''}</div>`;
     const steps = (diagram.steps ?? [])
       .map((st) => {
-        const state = st.state || 'same';
-        return `<li class="step state-${escapeHtml(state)}"><b>${proseHtml(st.label, g)}</b>${st.note ? `<small>${proseHtml(st.note, g)}</small>` : ''}</li>`;
+        if (!st.branches) return `<li class="state-${stateOf(st)}">${box(st)}</li>`;
+        const cond = st.label ? `<span class="cond">${proseHtml(st.label, g)}</span>` : '';
+        const alts = st.branches.map((b) => `<div class="state-${stateOf(b)}">${box(b)}</div>`).join('');
+        return `<li class="fork">${cond}<div class="alts">${alts}</div></li>`;
       })
-      .join('\n');
-    return `<figure class="diagram-flow" id="diagram-flow">${title}<ol class="flow-steps">${steps}</ol>
-  <p class="flow-legend"><span class="state-changed">${L.flowChanged}</span><span class="state-new">${L.flowNew}</span><span class="state-removed">${L.flowRemoved}</span><span class="state-same">${L.flowSame}</span></p></figure>`;
+      .join('');
+    return `<h2>${L.flowTitle}</h2><figure class="diagram-flow" id="diagram-flow" style="margin:0"><ol class="flow">${steps}</ol>${caption}</figure>`;
   }
   if (diagram.kind === 'before_after') {
     const rows = (diagram.rows ?? [])
-      .map((r) => `<tr><th>${proseHtml(r.aspect, g)}</th><td class="before">${proseHtml(r.before, g)}</td><td class="arrow" aria-hidden="true">→</td><td class="after">${proseHtml(r.after, g)}</td></tr>`)
-      .join('\n');
-    return `<figure class="diagram-ba" id="diagram-before-after">${title}<table class="ba-table"><thead><tr><th></th><th>${L.before}</th><th></th><th>${L.after}</th></tr></thead><tbody>${rows}</tbody></table></figure>`;
+      .map((r) => `<tr><th>${proseHtml(r.aspect, g)}</th><td class="before">${proseHtml(r.before, g)}</td><td class="after">${proseHtml(r.after, g)}</td></tr>`)
+      .join('');
+    return `<h2>${L.flowTitle}</h2><figure class="diagram-ba" id="diagram-before-after" style="margin:0"><table class="ba"><thead><tr><th></th><th>${L.before}</th><th>${L.after}</th></tr></thead><tbody>${rows}</tbody></table>${caption}</figure>`;
   }
   return '';
 }
 
+/** The first trade-off in full (question, chosen, gave up, the cost); any others as one line each. */
+function renderTradeoffs(tradeoffs, g, L = DECK_LABELS.en) {
+  const [main, ...others] = tradeoffs;
+  if (!main) return '';
+  const minor = others
+    .map((t) => `<p class="minor"><b>${proseHtml(t.topic, g)}: ${proseHtml(t.chosen, g)}.</b> ${L.tradeoffCost}: ${proseHtml(t.cost, g)}</p>`)
+    .join('');
+  return `<h2>${L.tradeoffsTitle}</h2>
+<div id="tradeoffs">
+  <p class="q">${proseHtml(main.topic, g)}</p>
+  <div class="trade">
+    <div><h3>${L.chosen}</h3><p><b>${proseHtml(main.chosen, g)}</b></p>${main.why ? `<p class="why">${proseHtml(main.why, g)}</p>` : ''}</div>
+    <div><h3>${L.rejected}</h3><p>${proseHtml(main.rejected, g)}</p></div>
+    <div class="cost"><h3>${L.tradeoffCost}</h3><p>${proseHtml(main.cost, g)}</p></div>
+  </div>
+  ${minor}
+</div>`;
+}
+
+const STATUS_LABEL = { fixed: 'statusFixed', open: 'statusOpen', out_of_scope: 'statusOutOfScope' };
+
+/** Risks: a status word, the scenario, what we do. Who notices and how we find out are folded. */
+function renderFailureModes(failureModes, g, L = DECK_LABELS.en) {
+  if (!failureModes?.length) return '';
+  const rows = failureModes
+    .map((f) => {
+      const status = STATUS_LABEL[f.status] ? f.status : 'watch';
+      const label = L[STATUS_LABEL[f.status] ?? 'statusWatch'];
+      return `<div><dt class="s-${status}">${label}</dt><dd>${proseHtml(f.scenario, g)}${f.mitigation ? `<small>${proseHtml(f.mitigation, g)}</small>` : ''}</dd></div>`;
+    })
+    .join('');
+  return `<h2>${L.failuresTitle}</h2><dl class="risks" id="failures">${rows}</dl>`;
+}
+
+function renderFailureDetails(failureModes, g, L = DECK_LABELS.en) {
+  const items = (failureModes ?? [])
+    .filter((f) => f.whoNotices || f.detect)
+    .map((f) => `<li>${proseHtml(f.scenario, g)}<br/>${L.failuresWho}: ${proseHtml(f.whoNotices, g)}. ${L.failuresDetect}: ${proseHtml(f.detect, g)}</li>`)
+    .join('');
+  return items ? `<details class="more"><summary>${L.failuresDetailTitle}</summary><ul>${items}</ul></details>` : '';
+}
+
+function moreList(title, items, g) {
+  if (!items?.length) return '';
+  return `<details class="more"><summary>${title}</summary><ul>${items.map((x) => `<li>${proseHtml(x, g)}</li>`).join('')}</ul></details>`;
+}
+
 /**
- * Human brief — the first screen. Every line answers a question a reviewer asks before reading
- * code: how far does this reach, what changed, who feels it, why now, how, what breaks if it is
- * wrong, what was given up, where to look, what is missing, how to undo. Labels follow the deck
- * locale (`DECK_LABELS`, English by default); the prose is in whatever language the author wrote.
+ * Human brief, the first screen. Ordered for a reviewer who reads only the top: three points (why,
+ * how, the one thing to check), the picture, the trade-off and its cost, the checklist, the risks.
+ * Reach, exposure, data movement, gaps and risk details sit in one-line folds at the end.
+ * Labels follow the deck locale (`DECK_LABELS`, English by default); prose is as the author wrote it.
  */
 export function renderBriefSection(model) {
   const L = deckLabelsFor(model);
   const n = model.narrative;
   const g = model.glossary;
-  const tradeoffRows = n.tradeoffs
-    .map(
-      (t) => `<tr><td>${proseHtml(t.topic, g)}</td><td><b>${proseHtml(t.chosen, g)}</b><br/><span class="muted">${proseHtml(t.why, g)}</span></td><td>${proseHtml(t.rejected, g)}</td><td class="cost">${proseHtml(t.cost, g)}</td></tr>`,
-    )
-    .join('\n');
   const changedPaths = new Set((model.nameStatusRows ?? []).map((row) => row?.path));
-  const focusItems = n.reviewFocus
-    .map((f, i) => {
-      const where = linkChangedPaths(f.where, changedPaths, g);
-      return `<li><span class="no">${i + 1}</span><span class="where">${where}</span><span class="check">${proseHtml(f.check, g)}</span><span class="risk">${L.ifWrong} · ${proseHtml(f.riskIfWrong, g)}</span></li>`;
-    })
-    .join('\n');
-  const gaps = n.knownGaps.map((x) => `<li>${proseHtml(x, g)}</li>`).join('');
-  const scope = n.outOfScope.map((x) => `<li>${proseHtml(x, g)}</li>`).join('');
-  return `<section class="card brief tone-${escapeHtml(model.reach?.tone ?? 'green')}" id="brief">
-  ${renderReachBanner(model.reach, L)}
-  <p class="brief-headline">${proseHtml(n.what, g)}</p>
-  <dl class="brief-grid">
-    <dt>${L.forWhom}</dt><dd>${proseHtml(n.forWhom, g)}</dd>
-    <dt>${L.why}</dt><dd>${proseHtml(n.why, g)}</dd>
-    <dt>${L.how}</dt><dd>${proseHtml(n.how, g)}</dd>
-  </dl>
-  ${renderExposure(n.exposure, g, L)}
-  ${renderDataChange(n.dataChange, g, L)}
-  ${renderFailureModes(n.failureModes, g, L)}
+  const first = n.reviewFocus[0];
+  const lookFirst = first
+    ? `<li class="look"><span class="k">${L.lookFirst}</span><div><p class="lead">${proseHtml(first.check, g)}</p><p class="rest">${L.ifWrong}: ${proseHtml(first.riskIfWrong, g)}</p></div></li>`
+    : '';
+  const checklist = n.reviewFocus
+    .map((f) => `<li><div><p>${proseHtml(f.check, g)}</p><p class="where">${linkChangedPaths(f.where, changedPaths, g)}</p><p class="risk">${L.ifWrong}: ${proseHtml(f.riskIfWrong, g)}</p></div></li>`)
+    .join('');
+  const reachBody = [renderReachBanner(model.reach, L), renderExposure(n.exposure, g, L), renderDataChange(n.dataChange, g, L)].join('');
+  return `<section class="brief" id="brief">
+  <ol class="points">
+    ${point(L.why, n.why, g)}
+    ${point(L.how, n.how, g)}
+    ${lookFirst}
+  </ol>
   ${renderNarrativeDiagram(n.diagram, g, L)}
-  <h3>${L.tradeoffsTitle}</h3>
-  <table class="brief-table" id="tradeoffs"><thead><tr><th>${L.tradeoffDecision}</th><th>${L.tradeoffChosen}</th><th>${L.tradeoffRejected}</th><th>${L.tradeoffCost}</th></tr></thead><tbody>${tradeoffRows}</tbody></table>
-  <h3>${L.reviewFocusTitle}</h3>
-  <ol class="brief-focus">${focusItems}</ol>
-  <div class="brief-gaps" style="margin-top:14px">
-    <div><p class="gap-title">${L.gapsTitle}</p><ul>${gaps}</ul></div>
-    ${scope ? `<div><p class="gap-title">${L.outOfScopeTitle}</p><ul>${scope}</ul></div>` : ''}
+  ${renderTradeoffs(n.tradeoffs, g, L)}
+  <h2>${L.reviewFocusTitle}</h2>
+  <ul class="check" id="review-focus">${checklist}</ul>
+  ${renderFailureModes(n.failureModes, g, L)}
+  <div class="undo brief-rollback">
+    <p>${L.rollback}: <code>${escapeHtml(n.rollback)}</code></p>
+    ${n.next ? `<p>${L.next}: ${proseHtml(n.next, g)}</p>` : ''}
+    ${model.origin ? '' : `<p class="origin-note">original request not recorded (no <code>## Original Request</code> in worktree PLAN.md and no <code>${escapeHtml(PASSPORT_RELPATH)}</code>), check request ↔ result by hand</p>`}
+    <details class="more"><summary>${L.reachTitle}</summary><div class="more-body">${reachBody}</div></details>
+    ${moreList(L.gapsTitle, n.knownGaps, g)}
+    ${moreList(L.outOfScopeTitle, n.outOfScope, g)}
+    ${renderFailureDetails(n.failureModes, g, L)}
   </div>
-  <p class="brief-rollback">${L.rollback} · <code>${escapeHtml(n.rollback)}</code>${n.next ? `<br/>${L.next} · ${proseHtml(n.next, g)}` : ''}</p>
 </section>`;
 }
 
@@ -881,15 +934,15 @@ function renderEvidenceFolds(model, stats, L = DECK_LABELS.en) {
   ].join('\n');
 }
 
-/** Title line: branch, base, time, size — and, when no original request was recorded, where to put it. */
+/** Title: one meta line (branch, size, reach), the change in one sentence, who it is for. */
 function renderDeckHeader(model, stats) {
-  const generated = model.generatedAt ? `Generated ${escapeHtml(model.generatedAt)}` : 'Generation timestamp unavailable';
-  const originNote = model.origin
-    ? ''
-    : ` · original request not recorded (no <code>## Original Request</code> in worktree PLAN.md and no <code>${escapeHtml(PASSPORT_RELPATH)}</code>) — check request ↔ result by hand`;
-  return `  <header>
-    <h1>Pre-Ship Review</h1>
-    <p class="muted small"><code>${escapeHtml(model.branch)}</code> · Base <code>${escapeHtml(model.baseRef)}</code> · ${generated} · ${escapeHtml(String(stats.files ?? 0))} files · ${escapeHtml(String(stats.commits ?? 0))} commits${originNote}</p>
+  const L = deckLabelsFor(model);
+  const n = model.narrative;
+  const reach = model.reach ? ` · ${escapeHtml(model.reach.label)}` : '';
+  return `  <header class="ship-head">
+    <p class="meta"><code>${escapeHtml(model.branch)}</code> → <code>${escapeHtml(model.baseRef)}</code> · ${L.files(stats.files ?? 0)}, +${escapeHtml(String(stats.added ?? 0))} / −${escapeHtml(String(stats.deleted ?? 0))}${reach}</p>
+    <h1>${proseHtml(n.what, model.glossary)}</h1>
+    ${n.forWhom ? `<p class="for">${L.forWhom}: ${proseHtml(n.forWhom, model.glossary)}</p>` : ''}
   </header>`;
 }
 
@@ -903,16 +956,16 @@ export function renderDeckHtml(model) {
   const hasSignals = Boolean(model.signals?.risks?.length || model.signals?.coverage?.missing?.length);
   const stats = model.stats ?? {};
   const L = deckLabelsFor(model);
-  return `<!doctype html>
+  return applyDeckTheme(`<!doctype html>
 <html lang="${L.lang}">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Pre-Ship Review — ${escapeHtml(model.branch)}</title>
-<style>${DECK_CSS}${DECK_VISUAL_CSS}</style>
+<style>${DECK_CSS}${DECK_VISUAL_CSS}${SHIP_DECK_CSS}</style>
 </head>
 <body>
-<main>
+<main class="ship">
 ${renderDeckHeader(model, stats)}
 ${renderBriefSection(model)}
 ${hasSignals ? renderScorecardSection(model.signals, { title: L.scorecardTitle }) : ''}
@@ -921,5 +974,5 @@ ${renderEvidenceFolds(model, stats, L)}
 <script>${REVEAL_JS}</script>
 </body>
 </html>
-`;
+`);
 }

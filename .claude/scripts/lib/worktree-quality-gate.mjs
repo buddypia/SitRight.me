@@ -19,12 +19,14 @@
  *     "recorded_at": "ISO8601",         // Stamped by publishing CLI
  *     "head_sha": "abc123...",          // Stamped by publishing CLI (optional — omitted if git lookup fails)
  *     "verdict": "go" | "no_go",        // Required
- *     "quality_label": "agent_go",      // Optional — populated via marker CLI's --quality if omitted
+ *     "quality_label": "verified",      // Optional — populated via marker CLI's --quality if omitted
  *     "gates": [                         // Required, 1+ items
  *       {
- *         "name": "code-review --fix",  // Required — Gate/tool name
+ *         "name": "unit tests (changed module)", // Required — Gate/tool name
  *         "status": "pass|warn|fail|skip", // Required — Matches ship-deck signal enum
- *         "command": "npx vitest run ...", // Optional — Executed command (PROOF command)
+ *         "method": "empirical|formal|review", // Optional — verification method (quality-gate-labels.mjs#GATE_METHODS);
+ *                                          //   empirical/formal commands are re-run by the ship gate
+ *         "command": "npx vitest run ...", // Optional (required for empirical/formal) — Executed command
  *         "detail": "31 passed",           // Optional — Actual result (PROOF actual result)
  *         "finding": "LOW 1 item fixed"    // Optional — Findings (PROOF finding)
  *       }
@@ -42,7 +44,11 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { resolveWorktreeQualityGatePath } from '../../../.cli/lib/worktree-plan-path.mjs';
-import { VALID_QUALITY_LABELS } from '../../../.cli/lib/quality-gate-labels.mjs';
+import {
+  GATE_METHODS,
+  LEGACY_QUALITY_LABELS,
+  VALID_QUALITY_LABELS,
+} from '../../../.cli/lib/quality-gate-labels.mjs';
 import { writeJsonAtomicSync } from './atomic-fs.mjs';
 
 /** Final verdict enum — Machine representation for R-CM-030 Rule 9 (No-Go enforcement) */
@@ -73,7 +79,7 @@ export const RECORD_KEYS = new Set([
 ]);
 
 /** Legal `gates[i]` keys. `command` / `detail` / `finding` carry the PROOF body itself. */
-export const GATE_ENTRY_KEYS = new Set(['name', 'status', 'command', 'detail', 'finding']);
+export const GATE_ENTRY_KEYS = new Set(['name', 'status', 'method', 'command', 'detail', 'finding']);
 
 function isNonEmptyString(v) {
   return typeof v === 'string' && v.trim() !== '';
@@ -110,6 +116,9 @@ function validateGateEntry(gate, i, rejectUnknownKeys) {
       errors.push(`gates[${i}].${key} must be a string`);
     }
   }
+  if (gate.method !== undefined && !GATE_METHODS.includes(gate.method)) {
+    errors.push(`gates[${i}].method must be one of ${GATE_METHODS.join(' | ')} (got: ${JSON.stringify(gate.method)})`);
+  }
   if (rejectUnknownKeys) {
     errors.push(...unknownKeyErrors(gate, GATE_ENTRY_KEYS, `gates[${i}]`));
   }
@@ -121,12 +130,15 @@ function validateGateEntry(gate, i, rejectUnknownKeys) {
  * `head_sha` — grouped the way the record reads: scalars first, then the `gates[]` body. Keeping
  * them out of `validateQualityGateRecord` is also what holds that function under the A3 CC ratchet.
  */
-function validateScalarFields(record) {
+function validateScalarFields(record, writing) {
   const errors = [];
   if (!VALID_VERDICTS.has(record.verdict)) {
     errors.push(`verdict is required — must be one of ${[...VALID_VERDICTS].join(' | ')} (got: ${JSON.stringify(record.verdict)})`);
   }
-  if (record.quality_label !== undefined && !VALID_QUALITY_LABELS.has(record.quality_label)) {
+  // Readers accept legacy labels so a historic PROOF still blocks on no_go instead of turning
+  // schema-invalid (= no record = passes silently); only the writer refuses to mint a new one.
+  const legacyReadable = !writing && LEGACY_QUALITY_LABELS.has(record.quality_label);
+  if (record.quality_label !== undefined && !VALID_QUALITY_LABELS.has(record.quality_label) && !legacyReadable) {
     errors.push(`quality_label must be one of ${[...VALID_QUALITY_LABELS].join(' | ')} (got: ${JSON.stringify(record.quality_label)})`);
   }
   if (record.head_sha !== undefined && !isNonEmptyString(record.head_sha)) {
@@ -141,7 +153,8 @@ function validateScalarFields(record) {
  * Contradiction check: verdict='go' but gates contain status='fail' is a violation —
  * if fail was judged non-blocking, it must be recorded as 'warn' (prevents false metric reporting).
  *
- * `rejectUnknownKeys` is **opt-in, and only the write path opts in.** Turning it on for readers
+ * `rejectUnknownKeys` is **opt-in, and only the write path opts in.** It also marks the write path
+ * for labels: legacy labels (`LEGACY_QUALITY_LABELS`) are readable but not writable. Turning it on for readers
  * would invert the very gate it is meant to protect: both consumers treat a schema-invalid record
  * as no record at all (`ops.mjs#assertQualityGateNotNoGo` `if (!record) return`,
  * `mark-pre-ship-confirmed.mjs#checkQualityGateVerdict` `skipped: 'proof_invalid'`), so a
@@ -161,7 +174,7 @@ export function validateQualityGateRecord(record, { rejectUnknownKeys = false } 
   if (rejectUnknownKeys) {
     errors.push(...unknownKeyErrors(record, RECORD_KEYS, 'record'));
   }
-  errors.push(...validateScalarFields(record));
+  errors.push(...validateScalarFields(record, rejectUnknownKeys));
   if (!Array.isArray(record.gates) || record.gates.length === 0) {
     errors.push('gates is required — array with 1+ items (verdicts without PROOF have no recording value)');
   } else {

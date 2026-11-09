@@ -16,7 +16,7 @@ Automates the process of turning parallel AI modifications into Feature PRs and 
 
 **Invariant**: Unstaged and untracked files remain strictly identical before and after execution.
 - Mode A Phase 1: Worktree isolation → Original `HEAD` remains unchanged.
-- Mode A Phase 2: A dirty base branch checkout is not auto-stashed; synchronization halts (`sync_status: local_changes`). The original working tree is untouched, prompting manual user commit/stash before retrying.
+- Mode A Phase 2: A dirty base branch checkout is never auto-stashed. Uncommitted edits that the incoming commits do not touch ride through the fast-forward; when an incoming commit changes a dirty path (or the checkout is dirty on another branch) synchronization halts before touching anything (`sync_status: local_changes`, the overlapping paths are named), prompting a manual commit/stash before retrying.
 
 **Worktree Commit Requirement**: Mode B `ship-worktree` will not deploy a dirty worktree.
 - Before PR creation / merge, `git status --porcelain --untracked-files=all` must be clean.
@@ -43,7 +43,7 @@ Automates the process of turning parallel AI modifications into Feature PRs and 
 }
 ```
 
-**Fail-Loud Semantics** (Aligned with R-CM-010): Failures in `finalize` or `cleanup-worktree` (fetch, local_changes, ff failure) return `ok: false` + `sync_status`. They are never treated as silent warnings. A dirty base branch checkout halts with `sync_status: local_changes` without modifying the working tree.
+**Fail-Loud Semantics** (Aligned with R-CM-010): Failures in `finalize` or `cleanup-worktree` (fetch, local_changes, ff failure) return `ok: false` + `sync_status`. They are never treated as silent warnings. A base branch checkout whose uncommitted edits overlap the incoming commits halts with `sync_status: local_changes` without modifying the working tree; unrelated edits are kept and the sync completes.
 
 **Post-Merge Tree Reporting Obligation (`changed_files_tree`)**: When `ship-feature` or `ship-worktree` returns `merged: true`, it includes `changed_files` (path array) and `changed_files_tree` (markdown box-drawing tree). The AI must print the `changed_files_tree` directly to the user.
 
@@ -85,7 +85,7 @@ $OPS commit --message "$MSG"                          # Step 3 (use --files mult
 $OPS ship-feature --title "$FT" --body "$FB"          # Step 4 (waits up to 5 mins for CI completion)
 $OPS finalize                                         # Step 5
 # → If finalize returns sync_status !== 'synced', follow recovery guidance
-#   (local_changes: dirty base branch checkout → manually commit/stash and retry)
+#   (local_changes: uncommitted edits overlap the incoming commits → commit/stash those files and retry)
 ```
 
 ### AI Execution Sequence — Mode B (Worktree, feature-pilot Integration)

@@ -42,13 +42,16 @@ import {
   safeBranchKey,
 } from '../../.cli/lib/worktree-plan-path.mjs';
 import {
+  LEGACY_QUALITY_LABELS,
   TRIVIAL_SKIP_LIMITS,
   VALID_QUALITY_LABELS,
   checkLabelEvidence,
   checkTrivialClaim,
+  checkVerificationObligations,
   formatReviewRemedy,
+  namesChangedPath,
 } from '../../.cli/lib/quality-gate-labels.mjs';
-import { measureShipScale } from '../../.cli/lib/ship-scale.mjs';
+import { listShipChangedFiles, measureShipScale } from '../../.cli/lib/ship-scale.mjs';
 import { resolveMainRepoRoot } from '../../.cli/lib/worktree-path.mjs';
 import { parseUncheckedPlanItems } from '../../.cli/lib/worktree-plan-status.mjs';
 import {
@@ -175,7 +178,7 @@ export function parseQualityLabel(raw) {
  * branch the stamp and the comparison measured different diffs and every ship reported a stale
  * approval that was not stale. See `.cli/lib/ship-base-branch.mjs`.
  */
-export function buildMarkerPayload(mainRoot, branch, quality, acceptance = null, approval = null) {
+export function buildMarkerPayload(mainRoot, branch, quality, acceptance = null, approval = null, verification = null) {
   const wtDir = resolveWorktreeDir(mainRoot, branch);
   return {
     quality_gate: quality,
@@ -189,6 +192,11 @@ export function buildMarkerPayload(mainRoot, branch, quality, acceptance = null,
     // Read by ops.mjs into the ledger row, where approval-trust.mjs finds auto-approved ships.
     approval_mode: approval?.mode ?? 'human',
     risk_tier: approval?.tier ?? null,
+    // What the gate itself re-ran for `verified` — the label's evidence, not the author's record of it.
+    verification:
+      verification && !verification.skipped
+        ? { empirical: verification.empirical, formal: verification.formal, rerun_ok: verification.ok }
+        : null,
   };
 }
 
@@ -351,14 +359,58 @@ function checkQualityGateLabelVerdict(record, path, cliLabel) {
   if (evidence.required && !evidence.satisfied) {
     return {
       ok: false,
-      reason: 'label_evidence_missing',
+      reason: evidence.legacy ? 'legacy_label' : 'label_evidence_missing',
       verdict: record.verdict,
       proofLabel: claimedLabel,
-      evidenceMarkers: evidence.markers,
+      missingMethods: evidence.missing,
+      evidenceProblems: evidence.problems,
       proofPath: path,
     };
   }
   return null;
+}
+
+/**
+ * Re-runs the PROOF's verification obligations at the worktree — the step that makes `verified` a
+ * measurement instead of a record. A PROOF `command` is text the author wrote; until this ran, no code
+ * executed it, so a green PROOF said only that someone typed "pass".
+ *
+ * Every empirical and formal gate is re-run (cwd = worktree, budget shared with task acceptance's
+ * evaluator); one failure rejects the marker. Each empirical command must also name a path the branch
+ * changed — a green suite that never touches the change is not evidence about it. Fail-open only
+ * where nothing can be measured (no worktree / no PROOF); `--force` bypasses like every check here.
+ *
+ * @param {{exec?: Function, changedFilesFn?: (wt: string) => string[]|null, readFn?: Function}} [deps]
+ * @returns {{ok: boolean, skipped?: string, reason?: string, report?: object, unrelated?: string[], empirical?: number, formal?: number}}
+ */
+export function checkVerificationRerun(mainRoot, branch, force, quality, deps = {}) {
+  if (quality !== 'verified') return { ok: true, skipped: 'not_verified_label' };
+  if (!branch) return { ok: true, skipped: 'staged_mode' };
+  // --force skips the re-run, so nothing was verified: the label would let the ledger and T1
+  // auto-approval count an unverified ship as verified (code-reviewer hypothesis #7).
+  if (force) return { ok: false, reason: 'force_cannot_verify' };
+  const wtPath = resolveWorktreeDir(mainRoot, branch);
+  if (!wtPath) return { ok: true, skipped: 'worktree_absent' };
+  const { record } = (deps.readFn ?? readQualityGateRecord)(wtPath, branch);
+  if (!record) return { ok: true, skipped: 'proof_absent' };
+  const { empirical, formal, satisfied } = checkVerificationObligations(record.gates);
+  // Structure is checkQualityGateLabelVerdict's job; this only re-runs what it accepted.
+  if (!satisfied) return { ok: true, skipped: 'obligations_unsatisfied' };
+  const changed = (deps.changedFilesFn ?? listShipChangedFiles)(wtPath);
+  const unrelated = empirical.filter((g) => !namesChangedPath(g.command, changed)).map((g) => g.command);
+  if (unrelated.length === empirical.length) {
+    return { ok: false, reason: 'empirical_unrelated', unrelated, empirical: empirical.length, formal: formal.length };
+  }
+  const criteria = [...empirical, ...formal].map((g) => ({ kind: 'command', target: g.command }));
+  const report = evaluateAcceptance(criteria, { root: wtPath, exec: deps.exec });
+  return {
+    ok: report.ok,
+    ...(report.ok ? {} : { reason: 'rerun_failed' }),
+    report,
+    unrelated,
+    empirical: empirical.length,
+    formal: formal.length,
+  };
 }
 
 export function checkQualityGateVerdict(
@@ -503,17 +555,34 @@ export function validateUnknownFlags(args) {
  * @returns {string}
  */
 function describeGateFailure(gate, quality) {
+  return describeVerificationFailure(gate) ?? describeVerdictFailure(gate, quality);
+}
+
+/** Rejections owned by the verification obligation (ADR empirical-formal-verification); null otherwise. */
+function describeVerificationFailure(gate) {
+  if (gate.reason === 'legacy_label') {
+    return (
+      `${gate.proofLabel} is retired — its evidence was a reviewer's gate name, which no code re-ran.\n` +
+      `  Resolution: ${formatReviewRemedy()}.\n` +
+      `  Then re-record PROOF with quality_label "verified" (record-quality-gate.mjs) and pass --quality verified,\n` +
+      `  or declare --quality self_review_pass with the reason in Panel Decisions.\n`
+    );
+  }
   if (gate.reason === 'label_evidence_missing') {
     return (
-      `PROOF gates[] lacks execution evidence for ${gate.proofLabel} (required markers: ${gate.evidenceMarkers?.join(' | ') ?? '?'}).\n` +
-      `  ${gate.proofLabel} asserts secondary review was executed, resetting skip counter on ship-quality-ledger — declarations alone are insufficient.\n` +
-      `  Resolution A: Run ${formatReviewRemedy()} and record it in gates[]\n` +
-      `               (e.g. {"name":"adversarial-review (subagent)","status":"pass","detail":"..."}).\n` +
-      `               Markers above are wider than that list on purpose — they also accept tools this repo\n` +
-      `               does not ship (e.g. /code-review), which count if you have them but cannot be advised.\n` +
+      `PROOF gates[] lacks verification obligations for ${gate.proofLabel} (missing: ${gate.missingMethods?.join(', ') || '-'}).\n` +
+      (gate.evidenceProblems?.length ? gate.evidenceProblems.map((p) => `  - ${p}\n`).join('') : '') +
+      `  verified resets the skip counter on ship-quality-ledger, so it must rest on what the gate can re-run.\n` +
+      `  Resolution A: ${formatReviewRemedy()}\n` +
+      `               (e.g. {"name":"unit","method":"empirical","status":"pass","command":"npx vitest run tests/unit/x.test.mjs"},\n` +
+      `                     {"name":"types","method":"formal","status":"pass","command":"make q.typecheck"}).\n` +
       `  Resolution B: If not run, downgrade to --quality self_review_pass and document reason in Panel Decisions.\n`
     );
   }
+  return null;
+}
+
+function describeVerdictFailure(gate, quality) {
   if (gate.reason === 'label_mismatch') {
     return (
       `PROOF quality_label=${gate.proofLabel} ≠ --quality ${quality} — preventing label inflation.\n` +
@@ -592,7 +661,32 @@ function reportGateWarnings(gate) {
   }
 }
 
-function main(argv) {
+/** Prints why the verification re-run failed; returns whether marker creation may continue. */
+const VERIFICATION_FAILURE_DETAIL = {
+  empirical_unrelated: (v) =>
+    `  No empirical gate names a path this branch changed: ${v.unrelated.join(' | ')}\n` +
+    '  Run the code you changed (its test file, or the script with its path) and record that command.\n' +
+    '  Explicit user bypass: --force with --quality self_review_pass (reason in Panel Decisions).\n',
+  force_cannot_verify: () =>
+    '  --force skips the re-run, so it cannot claim verified.\n' +
+    '  Bypass with --force --quality self_review_pass (reason in Panel Decisions section).\n',
+  rerun_failed: (v) =>
+    `${formatAcceptanceReport(v.report)}\n` +
+    '  Fix the change (or the PROOF command if it was recorded wrong), re-record PROOF, retry.\n' +
+    '  Explicit user bypass: --force with --quality self_review_pass (reason in Panel Decisions).\n',
+};
+
+function reportVerification(verification) {
+  if (verification.ok) return true;
+  process.stderr.write(
+    '[mark-pre-ship-confirmed] Marker creation rejected — verification obligations did not re-run green at HEAD.\n' +
+      VERIFICATION_FAILURE_DETAIL[verification.reason](verification),
+  );
+  return false;
+}
+
+/** Validates flags, target and --quality; exits with usage on any error. */
+function parseInvocation(argv) {
   const args = argv.slice(2);
 
   const unknown = validateUnknownFlags(args);
@@ -619,16 +713,21 @@ function main(argv) {
     process.stderr.write(
       '[mark-pre-ship-confirmed] --quality <label> is required.\n' +
         '  Labels:\n' +
-        '    agent_go          : code-reviewer agent gives Go\n' +
-        '    skill_review_pass : Independent secondary review via a review skill (no agent) gives Go\n' +
-        '    self_review_pass  : Pure self-inspection with no secondary review tools (reason must be specified in Panel Decisions)\n' +
+        '    verified          : empirical + formal gates in PROOF, re-run green by this CLI at HEAD\n' +
+        '    self_review_pass  : No verification obligations recorded (reason must be specified in Panel Decisions)\n' +
         '    trivial_skip      : R-CM-030 Rule 10 trivial exemption (≤2 files + ≤20 LOC + non-substantive)\n' +
+        `    (retired: ${[...LEGACY_QUALITY_LABELS].join(', ')} — evidence was a gate name nobody re-ran)\n` +
         '\n' +
-        `  To earn one of the first two, run: ${formatReviewRemedy()}\n` +
-        '  Both require execution evidence in PROOF gates[] before marker creation.\n',
+        `  To earn verified: ${formatReviewRemedy()}\n`,
     );
     process.exit(1);
   }
+
+  return { force, quality, arg };
+}
+
+function main(argv) {
+  const { force, quality, arg } = parseInvocation(argv);
 
   const mainRoot = resolveMarkerRoot(arg);
   if (!mainRoot) {
@@ -677,6 +776,9 @@ function main(argv) {
     process.exit(1);
   }
 
+  const verification = checkVerificationRerun(mainRoot, branch, force, quality);
+  if (!reportVerification(verification)) process.exit(1);
+
   const steps = checkPreShipSteps(mainRoot, branch, force, quality);
   if (steps.warning) {
     process.stderr.write(`[mark-pre-ship-confirmed] Warning: ${steps.warning} — proceeding fail-open\n`);
@@ -698,7 +800,7 @@ function main(argv) {
   if (backfillWarning) process.stderr.write(backfillWarning);
 
   const path = markerPath(mainRoot, branch);
-  const payload = JSON.stringify(buildMarkerPayload(mainRoot, branch, quality, acceptance, steps.approval));
+  const payload = JSON.stringify(buildMarkerPayload(mainRoot, branch, quality, acceptance, steps.approval, verification));
   try {
     createMarker(path, payload);
   } catch (e) {
