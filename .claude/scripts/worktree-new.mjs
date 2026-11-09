@@ -15,7 +15,9 @@
  *      (idempotent SKIP if same
  *      path/branch registered; STOP on conflicting branch/path)
  *   4) Chain `node .claude/scripts/worktree-init.mjs --worktree <path>` (symlink + PLAN.md)
- *   5) JSON report: { ok, branch, base, base_sha, worktree_path, plan_path,
+ *   5) Toolchain sync (lib/toolchain.mjs): `npm ci` inside the worktree when the tree it resolves
+ *      drifts from its lockfile. Non-fatal — a failure is a warning; gates re-run the sync.
+ *   6) JSON report: { ok, branch, base, base_sha, worktree_path, plan_path,
  *                   actions: [...], warnings: [...] }
  *
  * Usage:
@@ -38,6 +40,7 @@ import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readConfiguredShipBaseBranch, resolveShipBaseBranchStrict } from '../../.cli/lib/ship-base-branch.mjs';
 import { INHERITED_REPOSITORY_POINTERS, withoutInheritedRepository } from '../../.cli/lib/utils.mjs';
+import { syncToolchain } from './lib/toolchain.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -478,6 +481,7 @@ export function runWorktreeNew(opts) {
     gitFn = defaultGitFn,
     nodeFn = defaultNodeFn,
     existsFn = defaultExistsFn,
+    toolchainFn = (wt) => syncToolchain(wt),
   } = opts;
 
   const result = {
@@ -688,8 +692,24 @@ export function runWorktreeNew(opts) {
     }
   }
 
+  if (!dryRun) syncNewWorktreeToolchain(result, wtPathAbs, toolchainFn);
+
   result.ok = true;
   return result;
+}
+
+/**
+ * Step 5: toolchain sync. The worktree is already usable, so nothing here fails the run: a missed
+ * sync costs one `npm ci` at the next gate (q.critical / ci-local-status run the same sync).
+ */
+function syncNewWorktreeToolchain(result, wtPathAbs, toolchainFn) {
+  try {
+    const tc = toolchainFn(wtPathAbs);
+    result.actions.push(`toolchain: ${tc.status}`);
+    if (!tc.ok) result.warnings.push(`toolchain sync ${tc.status}: ${tc.detail || tc.remedy || ''}`);
+  } catch (e) {
+    result.warnings.push(`toolchain sync failed: ${e?.message || e}`);
+  }
 }
 
 /**

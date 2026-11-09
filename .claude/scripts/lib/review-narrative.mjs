@@ -46,17 +46,38 @@ function normalizeObject(input, fields) {
 
 /**
  * Structured diagram the renderer draws itself (no external library, no AI-drawn SVG to trust):
- *   { kind: 'flow', title, steps: [{ label, note?, state?: 'same'|'changed'|'new'|'removed' }] }
+ *   { kind: 'flow', title, steps: [{ label, note?, state?: 'same'|'changed'|'new'|'removed' }
+ *                                 | { label?, branches: [{ label, note?, state? }, …] }] }
  *   { kind: 'before_after', title, rows: [{ aspect, before, after }] }
  * Kept as authored (validation happens in narrative-quality.mjs); only strings are trimmed.
  */
+const STEP_FIELDS = ['label', 'note', 'state'];
+
+/** One flow step; a step whose `branches` is a list is a split (the flow goes one of several ways). */
+function normalizeStep(step) {
+  if (!step || typeof step !== 'object') return null;
+  if (!('branches' in step)) return normalizeEntryList([step], 'label', STEP_FIELDS, PARTIAL)[0] ?? null;
+  // A split keeps what the validator must report instead of dropping it: a non-list `branches`,
+  // a branch that splits again, and note / state written on the split itself.
+  const list = Array.isArray(step.branches) ? step.branches : null;
+  return {
+    label: trimField(step.label),
+    branches: (list ?? []).map((b) => ({
+      ...(normalizeEntryList([b], 'label', STEP_FIELDS, PARTIAL)[0] ?? { label: '', note: '', state: '' }),
+      ...(b && typeof b === 'object' && 'branches' in b ? { nested: true } : {}),
+    })),
+    ...(list ? {} : { malformed: true }),
+    ...(trimField(step.note) || trimField(step.state) ? { stray: true } : {}),
+  };
+}
+
 function normalizeDiagram(input) {
   if (!input || typeof input !== 'object') return null;
   const kind = trimField(input.kind);
   const out = {
     kind,
     title: trimField(input.title),
-    steps: normalizeEntryList(input.steps, 'label', ['label', 'note', 'state'], PARTIAL),
+    steps: (Array.isArray(input.steps) ? input.steps : []).map(normalizeStep).filter(Boolean),
     rows: normalizeEntryList(input.rows, 'aspect', ['aspect', 'before', 'after'], PARTIAL),
   };
   return kind || out.title || out.steps.length || out.rows.length ? out : null;
@@ -101,9 +122,15 @@ export function normalizeNarrative(input) {
     failureModes: normalizeEntryList(
       input.failure_modes,
       'scenario',
-      ['scenario', 'who_notices', 'detect', 'mitigation'],
+      ['scenario', 'who_notices', 'detect', 'mitigation', 'status'],
       PARTIAL,
-    ).map((e) => ({ scenario: e.scenario, whoNotices: e.who_notices, detect: e.detect, mitigation: e.mitigation })),
+    ).map((e) => ({
+      scenario: e.scenario,
+      whoNotices: e.who_notices,
+      detect: e.detect,
+      mitigation: e.mitigation,
+      status: e.status,
+    })),
     exposure: normalizeObject(input.exposure, [
       ['who', 'who'],
       ['how_many', 'howMany'],

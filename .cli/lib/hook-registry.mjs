@@ -787,6 +787,16 @@ export const MANAGED_HOOK_REGISTRY = {
       "matcher": "*",
       "hooks": [
         {
+          "id": "review-answer-ingest",
+          "module": ".cli/hooks/review-answer-ingest.mjs",
+          "priority": 10,
+          "profile": "standard",
+          "description": "Apply a pasted ```brief2dev-answer v1``` block (Loom / decision-cli answer-block) before the AI reads the turn: hash + supersede + conflict checks, pending → answered → consumed via decision-mutator, then inject the interpreted answer as context. Every block failing blocks the prompt with a Korean fix; partial success injects context and lists the failures. Fail-open with a decision-cli answer fallback hint (PADR-013 Review Packet v2)",
+          "orchestrated": true,
+          "timeout": 5,
+          "cliTargets": ["codex"]
+        },
+        {
           "id": "context-alert-guard",
           "module": ".cli/hooks/context-alert-guard.mjs",
           "priority": 12,

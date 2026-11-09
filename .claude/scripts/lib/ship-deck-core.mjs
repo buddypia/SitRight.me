@@ -411,8 +411,9 @@ function validatePlainLanguage(narrative, lexicon) {
  * @param {object} rawNarrative snake_case narrative JSON
  * @param {Array} nameStatusRows git name-status rows
  * @param {object|null} lexicon plain-language lexicon (null = skip)
- * @param {{reach?: object, reachMap?: object}} [options] reach summary (or a map to derive it) — decides
- *   which impact fields are mandatory. Omitted = local tier rules.
+ * @param {{reach?: object, reachMap?: object, codeNames?: string[]}} [options] reach summary (or a map to
+ *   derive it) — decides which impact fields are mandatory. Omitted = local tier rules. codeNames: identifiers
+ *   this diff declares (extractDeclaredNames), rejected in first-screen prose.
  */
 export function validateShipReviewNarrative(rawNarrative, nameStatusRows, lexicon = null, options = {}) {
   const narrative = normalizeNarrative(rawNarrative);
@@ -425,9 +426,36 @@ export function validateShipReviewNarrative(rawNarrative, nameStatusRows, lexico
     ...validateFileNotes(narrative, changed),
     ...validateRequirements(narrative, changed),
     ...validateChoices(narrative),
-    ...validateShipBrief(narrative, changed, reach),
+    ...validateShipBrief(narrative, changed, reach, { codeNames: options.codeNames }),
     ...validatePlainLanguage(narrative, lexicon),
   ];
+}
+
+/** Declarations on added diff lines: `function x`, `class X`, `const x`, `def x`, `type X`, … */
+// The assigned-name branch starts only at a name boundary, so a long run of word characters is
+// tried once rather than from every offset (quadratic on minified lines).
+const DECLARATION =
+  /\b(?:function\*?|class|interface|type|enum|struct|def|fn|func|const|let|var)\s+([A-Za-z_$][\w$]*)|(?<![\w$])([A-Za-z_$][\w$]*)\s*[:=]\s*(?:async\s*)?(?:function\b|\([^)]*\)\s*=>)/g;
+/** camelCase, PascalCase with two humps, snake_case or SCREAMING_CASE — a plain word ("data", "run") is not a name. */
+const IDENTIFIER_SHAPED = /^(?=.{4,})(?:[a-z]+[A-Z]|[A-Z][a-z0-9]+[A-Z]|[A-Za-z0-9]*_[A-Za-z0-9])/;
+
+/**
+ * Identifiers this change declares, read from `git diff -U0` text. They are the author's own
+ * vocabulary, so the first screen may not use them (narrative-quality.mjs#findCodeTokens). Names
+ * from removed or context lines are not declared by the change.
+ * @param {string} diffText
+ * @returns {string[]}
+ */
+export function extractDeclaredNames(diffText) {
+  const names = new Set();
+  for (const line of String(diffText ?? '').split(/\r?\n/)) {
+    if (!line.startsWith('+') || line.startsWith('+++')) continue;
+    for (const [, keyword, assigned] of line.matchAll(DECLARATION)) {
+      const name = keyword ?? assigned;
+      if (IDENTIFIER_SHAPED.test(name)) names.add(name);
+    }
+  }
+  return [...names];
 }
 
 /**
@@ -464,7 +492,7 @@ export function buildDeckModel(input = {}) {
     narrative,
     reach,
     narrativeErrors: [
-      ...validateShipReviewNarrative(input.narrative, nameStatusRows, null, { reach }),
+      ...validateShipReviewNarrative(input.narrative, nameStatusRows, null, { reach, codeNames: input.codeNames }),
       ...formatPlainLanguageViolations(plainLanguage.violations),
       ...(lexicon && narrative
         ? formatRedundantGlossaryEntries(findRedundantNarrativeGlossary(narrative, lexicon))

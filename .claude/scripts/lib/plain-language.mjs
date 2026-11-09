@@ -283,6 +283,10 @@ function pushImpactFields(narrative, push) {
     (narrative.diagram.steps ?? []).forEach((st, i) => {
       push(`diagram.steps[${i}].label`, st.label);
       push(`diagram.steps[${i}].note`, st.note);
+      (st.branches ?? []).forEach((b, j) => {
+        push(`diagram.steps[${i}].branches[${j}].label`, b.label);
+        push(`diagram.steps[${i}].branches[${j}].note`, b.note);
+      });
     });
     (narrative.diagram.rows ?? []).forEach((r, i) => {
       push(`diagram.rows[${i}].aspect`, r.aspect);
@@ -356,12 +360,16 @@ export function evaluatePlainLanguage(fields, lexicon) {
   const matches = new Map();
   const violations = [];
   const aliasList = flattenAliasesLongestFirst(lexicon.entries);
-  for (const { field, text } of Array.isArray(fields) ? fields : []) {
+  const list = Array.isArray(fields) ? fields : [];
+  // The language is the document's: one all-English diagram label in a Korean narrative is still
+  // read by a Korean reader (2026-10-28 review).
+  const latinProse = !list.some(({ text }) => typeof text === 'string' && NON_LATIN_PROSE_RE.test(text));
+  for (const { field, text } of list) {
     if (!text || typeof text !== 'string') continue;
     let stripped = text.replace(PATH_LIKE_RE, ' ').replace(FILE_NAME_RE, ' ');
     stripped = stripLexiconEntries(stripped, aliasList, matches);
     stripped = stripPatternRefs(stripped, lexicon, matches);
-    collectFieldViolations({ field, text, stripped, lexicon, violations });
+    collectFieldViolations({ field, text, stripped, lexicon, violations, latinProse });
   }
   return {
     matches: [...matches.values()].sort((a, b) => a.label.localeCompare(b.label, 'en')),
@@ -453,8 +461,15 @@ export function formatPlainLanguageViolations(violations) {
   );
 }
 
-function collectFieldViolations({ field, text, stripped, lexicon, violations }) {
+/** Hangul, kana or CJK ideographs — prose written in a language where a Latin word stands out. */
+const NON_LATIN_PROSE_RE = /[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]/;
+/** In Latin-script prose only these shapes are jargon: acronyms, camelCase, snake_case, dotted names. */
+const LATIN_JARGON_RE = /^(?:(?=[A-Z0-9]*[A-Z])[A-Z0-9]{2,6}s?|.*[a-z][A-Z].*|.*_.*|.*\w\.\w.*)$/;
+
+function collectFieldViolations({ field, text, stripped, lexicon, violations, latinProse }) {
   const seen = new Set();
+  // Korean or Japanese prose flags every unexplained Latin word. English prose would then flag
+  // "The" and "uses" (2026-10-28 review), so there only jargon-shaped words count.
   for (const raw of stripped.match(LATIN_WORD_RE) ?? []) {
     const word = raw.replace(/[.-]+$/, '');
     if (word.length < 2) continue;
@@ -462,13 +477,14 @@ function collectFieldViolations({ field, text, stripped, lexicon, violations }) 
     if (seen.has(lower)) continue;
     seen.add(lower);
     if (lexicon.allow.has(lower)) continue;
+    if (latinProse && !LATIN_JARGON_RE.test(word)) continue;
     if (isInlineGlossed(text, word)) continue;
     violations.push({ field, token: word });
   }
 }
 
 /**
- * Loads glossary registry (glossary.json). Fail-open.
+ * Loads glossary registry (glossary.json). A missing file is an empty glossary; a broken one fails open.
  */
 export function loadGlossaryRegistry(rootDir, readFn = readFileSync) {
   const errors = [];
@@ -476,6 +492,10 @@ export function loadGlossaryRegistry(rootDir, readFn = readFileSync) {
   try {
     glossary = JSON.parse(readFn(join(rootDir, GLOSSARY_REGISTRY_RELPATH), 'utf8'));
   } catch (err) {
+    // No glossary file is a repository without registered terms, not a broken one: check against
+    // an empty glossary. Skipping instead let every unexplained term through in such repos
+    // (design-lookbook ship decks, 2026-10-28).
+    if (err?.code === 'ENOENT') return { glossary: { terms: [] }, errors };
     errors.push(`Failed to load glossary lexicon (${GLOSSARY_REGISTRY_RELPATH}): ${err.message}`);
   }
   return { glossary, errors };

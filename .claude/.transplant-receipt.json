@@ -8,9 +8,9 @@
       "bundle_version": "1.5",
       "source": {
         "repo": "brief2dev",
-        "commit": "93404760757cf63d86c0478a3cc99244213ee7bf"
+        "commit": "ddaf1a3e42c379abba9b1468ade7ef95889091c5"
       },
-      "transplanted_at": "2026-10-27T15:58:02.905Z",
+      "transplanted_at": "2026-11-09T17:56:19.696Z",
       "reapply_command": "node <brief2dev-checkout>/.claude/scripts/transplant-bundle.mjs --bundle git-worktree-isolation --target <this-project-root> --json",
       "files": [
         {
@@ -47,7 +47,7 @@
         {
           "path": ".claude/scripts/create-pr/ops.mjs",
           "role": "managed",
-          "sha256": "bd03dd9d3d517b9d69c2e9a1c9ee6c8511ab68377906679c00f1dea647e484c2"
+          "sha256": "e41c8f64dcd676bc0473b0d9af7dd8fe5fc27680c6c6ad96449a51cea23fb7dc"
         },
         {
           "path": ".claude/scripts/followup-debt-tracker.mjs",
@@ -102,12 +102,17 @@
         {
           "path": ".claude/scripts/lib/deck-signals.mjs",
           "role": "managed",
-          "sha256": "de8434ddee2729dbcf17df15d49ed0503c93bd8b13122260539f538003bee82b"
+          "sha256": "63ad3c57894110ff0587cabbb7a4bd66d8060decbb9809530c19ca7ac8a3a660"
+        },
+        {
+          "path": ".claude/scripts/lib/deck-theme.mjs",
+          "role": "managed",
+          "sha256": "1e4a032233c1fcac0ec484a70b0140100cdfa342b5f24d460a29b6c4af818ea9"
         },
         {
           "path": ".claude/scripts/lib/deck-visuals.mjs",
           "role": "managed",
-          "sha256": "9aabbdce3afe9b48c3a2bd80a7e38d0778408f2df8f499755a956aa10f3eeef9"
+          "sha256": "d69aedaef422be6cd30963aa64eb1f8b11c25c9c4feb1bd46c81ba0d8f2e6bf3"
         },
         {
           "path": ".claude/scripts/lib/doc-outline.mjs",
@@ -130,19 +135,24 @@
           "sha256": "77d16b2354eea74199d36be2f8330085549a63b88ec87f6dbd76353a5902eb4a"
         },
         {
+          "path": ".claude/scripts/lib/installed-tree-drift.mjs",
+          "role": "managed",
+          "sha256": "406fc31ea84a93855510ce52ad08e28e495b6eebddb98b9eeb0eb55f54a6855f"
+        },
+        {
           "path": ".claude/scripts/lib/narrative-quality.mjs",
           "role": "managed",
-          "sha256": "565fd8628e48d4762705ef92a27e0e5ffef44c53cece889e3c97c6b9ea3e90ee"
+          "sha256": "d0a97abef514f4cb85bb863e41296f72ee6d0e03ea9f85b97d268491144c0e64"
         },
         {
           "path": ".claude/scripts/lib/plain-language.mjs",
           "role": "managed",
-          "sha256": "ec236205eebf46387c29cfcd7a6d9453402da11c208e1f770fe7eb0e43a0f68f"
+          "sha256": "57c7fbc33cef093a11b45faf050052bf15f6c3c16175d9170ca133ab6be45c88"
         },
         {
           "path": ".claude/scripts/lib/pre-ship-steps.mjs",
           "role": "managed",
-          "sha256": "8df9c871889bcc8b8e6a016788c18e377b1f6bb409c67b5f797ad16216b028a4"
+          "sha256": "f28cb5c3cac5de56058d4ee14beba1f4da094ae9330ecbafde1d5e7e4c6a6cc7"
         },
         {
           "path": ".claude/scripts/lib/review-deck-core.mjs",
@@ -152,12 +162,12 @@
         {
           "path": ".claude/scripts/lib/review-deck-render.mjs",
           "role": "managed",
-          "sha256": "c5e42eb49480be691451c602bc6a3183ec7b2585035b78e5f1b532dd3b8d8c42"
+          "sha256": "8368dcc7cdf014dc21b3c64b75911bce5300ed86e159b8e94104e6dbc4ee7b15"
         },
         {
           "path": ".claude/scripts/lib/review-narrative.mjs",
           "role": "managed",
-          "sha256": "2473b993d92109eb078fc85d686a7b7823fadbc5a486c262a8c0747b988b9f4e"
+          "sha256": "fc51423bb60ac4f32f2eb3d11ac1d307dbd7ec717dfddf8f91884b89ffbbde2f"
         },
         {
           "path": ".claude/scripts/lib/review-origin.mjs",
@@ -167,12 +177,12 @@
         {
           "path": ".claude/scripts/lib/ship-deck-core.mjs",
           "role": "managed",
-          "sha256": "96e8196fc0b7c3735f25c0ec88bd433f653923692d4823d5a85aeb426698f834"
+          "sha256": "1fda1d63a38f019ea2ebf68430db2d40befd395781ce582ac6fba927214bd4f6"
         },
         {
           "path": ".claude/scripts/lib/ship-deck-render.mjs",
           "role": "managed",
-          "sha256": "66110c30afa52e80ee80c384789cb01dd233de0de08078e143b5d888daac0011"
+          "sha256": "cc2c81efc249aa6a6d91d6dcf429b126f9aad12d720eec6273b89c9991107dc4"
         },
         {
           "path": ".claude/scripts/lib/task-acceptance.mjs",
@@ -183,6 +193,11 @@
           "path": ".claude/scripts/lib/task-passport.mjs",
           "role": "managed",
           "sha256": "8530d5f415444acb8e88d23d056d29f15a8c4a5c1c5e5aa6952699f02dd26a24"
+        },
+        {
+          "path": ".claude/scripts/lib/toolchain.mjs",
+          "role": "managed",
+          "sha256": "15a1a5d9ad8de697a7f3cffd433a7580637b283c3004f1a02e8d609607b35217"
         },
         {
           "path": ".claude/scripts/lib/vitest-spawn-latency-reporter.mjs",
@@ -197,7 +212,7 @@
         {
           "path": ".claude/scripts/lib/worktree-quality-gate.mjs",
           "role": "managed",
-          "sha256": "5ec9e56e4987a81f6858f919fb0750744c638a379a6bdb935832ef7ea4825369"
+          "sha256": "d008efe457cc5b1df339f82ade9f26fc11cc122310e5bee7acc8cc38596bc385"
         },
         {
           "path": ".claude/scripts/lib/wt-run-guards.mjs",
@@ -207,7 +222,7 @@
         {
           "path": ".claude/scripts/mark-pre-ship-confirmed.mjs",
           "role": "managed",
-          "sha256": "5670d20aecf650dfa4233a490d40f288abac305a95737038835dffef31735beb"
+          "sha256": "dc94b338227e08b94c77d21942681fc53f17677de71c9c7e9b65f4df1d5cbd3a"
         },
         {
           "path": ".claude/scripts/pre-ship-steps.mjs",
@@ -217,7 +232,7 @@
         {
           "path": ".claude/scripts/record-quality-gate.mjs",
           "role": "managed",
-          "sha256": "650c65b9d98b301867fcf2c27a3d59f80153f30e25bbb5d4f6adbefe657ca354"
+          "sha256": "2ec432cb1838c0b054489b8b53812b4d2fc72279f6da73a050d5354aa21ee330"
         },
         {
           "path": ".claude/scripts/regression-test-lock.mjs",
@@ -232,7 +247,7 @@
         {
           "path": ".claude/scripts/ship-deck.mjs",
           "role": "managed",
-          "sha256": "441791403cc11519dec49984e7f49297ef9a4cf4699b9914e38e8af2efc50ba5"
+          "sha256": "6cb50a36309cad69e3cd8c7187436c925ac21618b1fe275b3fac78fbde8c2c41"
         },
         {
           "path": ".claude/scripts/task-interpretation.mjs",
@@ -252,7 +267,7 @@
         {
           "path": ".claude/scripts/worktree-new.mjs",
           "role": "managed",
-          "sha256": "16d5fccac658a0b82fc050b73d74934f6f3ff7df5a3e4c18d2d9a43516e56f47"
+          "sha256": "8a5ffbc653558994943b407c4afb08d1d16b1752a0ce7b6edb3b50b5ec0e99ca"
         },
         {
           "path": ".claude/scripts/wt-run.mjs",
@@ -276,7 +291,7 @@
         {
           "path": ".claude/skills/create-pr/SKILL.md",
           "role": "managed",
-          "sha256": "b967135401d626ff3faf6325b426f9e02740d00d4e7026807b6fe821025f5e00"
+          "sha256": "da9da717eb1e0f854e153e432636d920cc69a05aa7beb531c067fc25050638b7"
         },
         {
           "path": ".cli/_cli-dispatch.mjs",
@@ -296,7 +311,7 @@
         {
           "path": ".cli/hooks/pre-ship-review-guard.mjs",
           "role": "managed",
-          "sha256": "70e609aba6f1267407bfe52b701823b6edccf5f4f6e4e27ff6058d02e8a93a33"
+          "sha256": "8291b0a54ee9b3b1f20ffa7ca7d02c952fee200239f80ecfbc7073eda6c8c1a0"
         },
         {
           "path": ".cli/hooks/trunk-start-warning.mjs",
@@ -321,7 +336,7 @@
         {
           "path": ".cli/hooks/worktree-shipping-guard.mjs",
           "role": "managed",
-          "sha256": "44d071d7599d6ac5b235196c0e8b1f064cbb357489d2d3bcb1121e4b0915b01d"
+          "sha256": "f5ed2fdb02bed58279a76149943c78a111b67711308a538d6a96f0620ef2b0cf"
         },
         {
           "path": ".cli/lib/apply-patch-paths.mjs",
@@ -381,17 +396,17 @@
         {
           "path": ".cli/lib/hook-registry.mjs",
           "role": "managed",
-          "sha256": "0f9b3a758de2b4c1261a3222fbb0af7b731a0e5ef256eeb2aca6a2db79f5de8b"
+          "sha256": "6689845c7c3834681666582405b5af7ad87a8b0ff416d0d812a46a4df02ab7a7"
         },
         {
           "path": ".cli/lib/layout-resolver.mjs",
           "role": "managed",
-          "sha256": "7d7c150474b0b413224ecab4a0622524c0c07f8aa28c49e9a20b1cf1140aca7f"
+          "sha256": "5837e3c0094925c168c75ae93534d64aab16db8f6164b1b26dd763671c63c143"
         },
         {
           "path": ".cli/lib/quality-gate-labels.mjs",
           "role": "managed",
-          "sha256": "f659f2c6e86c2f7b704d598499f330d5e6514e489ae4539eb4ba4e1e8e873be0"
+          "sha256": "8fd23bf4953cb4447ee75b9a005d23ddef7da5f8e4bde769e53a1e93a9dd9d11"
         },
         {
           "path": ".cli/lib/section-template-renderer.mjs",
@@ -411,12 +426,12 @@
         {
           "path": ".cli/lib/ship-quality-ledger.mjs",
           "role": "managed",
-          "sha256": "96abea3dd04cc1db10cdba6ea45ff75b290f51ce1caf88fa4dfd8f6fbc6f2202"
+          "sha256": "65fbdc6eec9250da4fb4d4eeb4ffe561261721dc36401cf9cfab9fe6233378f7"
         },
         {
           "path": ".cli/lib/ship-scale.mjs",
           "role": "managed",
-          "sha256": "e05f0316e83d46a2cd9004724ee43605c805d24775faf51f00458a5fced227b2"
+          "sha256": "d16123e1ad603db2547ca871cb5a1a415641c661e8e04a4b7c85a4bdb24156fe"
         },
         {
           "path": ".cli/lib/test-lock.mjs",

@@ -2,7 +2,7 @@
  * ship-quality-ledger.mjs — Ship-time quality label cumulative ledger + consecutive cross-review skip detection
  *
  * Root problem (empirical): R-CM-030 Rule 8 requires both `/code-review --fix` + `code-reviewer` agent
- *   for substantial changes, allowing `pre-quality-gate` fallback + label downgrade (`agent_go` → `self_review_pass`)
+ *   for substantial changes, allowing `pre-quality-gate` fallback + label downgrade (`verified` → `self_review_pass`)
  *   when agents cannot be used. However, that downgrade is recorded **only within that PR**.
  *   Nowhere could answer "how many consecutive PRs were merged without secondary review".
  *
@@ -34,27 +34,22 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolveSystemFile } from './layout-resolver.mjs';
 import {
-  ADVERSARIAL_REVIEW_MARKER,
   TRIVIAL_SKIP_LIMITS,
+  VERIFIED_LABELS,
   formatReviewRemedy,
 } from './quality-gate-labels.mjs';
 
 export const LEDGER_FILENAME = 'ship-quality-ledger.jsonl';
 
 /**
- * Labels recognized as actually performing secondary review. Others aggregated as skips.
+ * Labels recognized as verified. Others aggregated as skips.
  *
- * Rationale for including `skill_review_pass`: While this set contained `agent_go` only,
- *   the metric was measuring tool type (is tool an agent) rather than whether secondary review occurred.
- *   Because hooks cannot invoke subagents (R-CM-006 Rule 1) and some sessions lack Agent invocation permissions,
- *   proper reviews via `/code-review` / `code-standards-aligner` **skills** were downgraded to `self_review_pass`,
- *   indistinguishable from doing nothing.
- *
- *   Forgery prevention is handled on the PROOF evidence side rather than label vocabulary —
- *   `quality-gate-labels.mjs#checkLabelEvidence` refuses marker creation during `mark-pre-ship-confirmed`
- *   if gates[] lacks execution records.
+ * SSOT is `quality-gate-labels.mjs#VERIFIED_LABELS`: `verified` (obligations the marker CLI re-ran
+ * green) plus the retired `agent_go` / `skill_review_pass`, which only history rows carry. History is
+ * read as it was recorded — re-scoring old rows would falsify what the ledger said at the time.
+ * Forgery prevention is on the PROOF side: `mark-pre-ship-confirmed.mjs#checkVerificationRerun`.
  */
-export const CROSS_REVIEWED_LABELS = new Set(['agent_go', 'skill_review_pass']);
+export const CROSS_REVIEWED_LABELS = VERIFIED_LABELS;
 
 /**
  * Streak threshold — warns when secondary review is skipped for this many consecutive PRs. Default 3.
@@ -399,11 +394,11 @@ export function assessTrunk({ ledger, landings }) {
 
 /** Describes streak risks — tense-independent. */
 const STREAK_RATIONALE =
-  `R-CM-030 Rule 8 label downgrade is an allowed path, but consecutive occurrences normalize lowered standards as the default — ` +
-  `empirical evidence: in #1050 and #1057, code-reviewer caught 1 HIGH finding each that self-review missed. `;
+  `R-CM-030 Rule 8 label downgrade is an allowed path, but consecutive occurrences normalize unverified ships as the default — ` +
+  `a self_review_pass label is a claim no gate re-ran, so a streak of them is a streak of unmeasured changes. `;
 
 /**
- * Paths to break streaks — tense-independent, derived from `REPO_REVIEW_ASSETS`.
+ * Paths to break streaks — tense-independent, derived from `formatReviewRemedy`.
  *
  * Derived rather than written out because this string fires at the exact moment someone decides *how* to
  * break a streak. It previously offered `/code-review --fix`, a plugin absent from this environment, and
@@ -419,7 +414,7 @@ const streakRemedyTools = () => formatReviewRemedy({ markup: true });
  *   **After** merge (`ops.mjs`, immediately after ledger append: already occurred) and
  *   **Before** ship (`pre-ship-steps`, projection including current ship: not yet occurred).
  *   If phrasing is identical across different timings, pre-ship warnings read as "already too late", failing to prompt action.
- *   Tense branches while sharing risk explanation (STREAK_RATIONALE) and remedies (STREAK_REMEDY_TOOLS).
+ *   Tense branches while sharing risk explanation (STREAK_RATIONALE) and remedies (streakRemedyTools).
  *
  * A landing with no ledger row is reported on its **first** occurrence, unlike the streak: the threshold
  * measures whether an *allowed* path (label downgrade) has become the default, and a rowless landing
@@ -440,15 +435,12 @@ export function formatStreakWarning(
     .map((p) => `#${p}`)
     .join(', ');
   const opening = projected
-    ? `Merging this ship will result in ${streak} consecutive secondary review skips${list ? ` (previous: ${list})` : ''}. `
-    : `Secondary review has been skipped for ${streak} consecutive PRs${list ? ` (${list})` : ''}. `;
+    ? `Merging this ship will result in ${streak} consecutive unverified ships${list ? ` (previous: ${list})` : ''}. `
+    : `Verification has been skipped for ${streak} consecutive PRs${list ? ` (${list})` : ''}. `;
   const tools = streakRemedyTools();
   const remedy = projected
-    ? `Running ${tools} now and re-recording PROOF will break this streak here. ` +
-      `The skill path is available even in sessions without Agent invocation permissions.`
-    : `On the next substantial change, actually run ${tools}. ` +
-      `The skill path is available even in sessions without Agent invocation permissions, ` +
-      `and leaving execution records in PROOF gates[] will reset this streak.`;
+    ? `To break this streak here: ${tools}. Every CLI can run these — they need a shell, not an agent.`
+    : `On the next substantial change: ${tools}. Every CLI can run these, and the re-run result resets this streak.`;
   return opening + bypassNote + STREAK_RATIONALE + remedy;
 }
 
@@ -457,8 +449,8 @@ export function formatStreakWarning(
  * next to the count instead of being inferred from it.
  *
  * Why: the ledger reads the label from PROOF only. A ship with no PROOF label is recorded as a skip
- * even when a review really ran — observed 2026-09-24 in a transplant target, whose session ran an
- * adversarial review through a subagent, never wrote it to PROOF, and was told "35 consecutive
+ * even when a review really ran — observed 2026-09-24 in a transplant target, whose session ran a
+ * review through a subagent, never wrote it to PROOF, and was told "35 consecutive
  * skips" with no hint that the missing record, not the missing review, was the cause. A
  * `trivial_skip` on a measured medium/large diff is the other silent case (a label that bypassed the
  * marker-time scale check, e.g. `--force`).
@@ -472,9 +464,8 @@ export function formatCurrentShipNote(record, { proofPath = null } = {}) {
     return (
       `This ship was recorded with quality_label=null: no label was found in the PROOF` +
       `${proofPath ? ` (${proofPath})` : ''}, so it counts as a skipped secondary review whether or not ` +
-      `one ran. Before the next ship, record the review in PROOF gates[] via ` +
-      `\`node .claude/scripts/record-quality-gate.mjs\` (a review by any agent counts when its gate is ` +
-      `named \`${ADVERSARIAL_REVIEW_MARKER}\`) and confirm with \`mark-pre-ship-confirmed.mjs --quality <label>\`.`
+      `one ran. Before the next ship, ${formatReviewRemedy({ markup: true })} — record them via ` +
+      `\`node .claude/scripts/record-quality-gate.mjs\` and confirm with \`mark-pre-ship-confirmed.mjs --quality verified\`.`
     );
   }
   if (record.quality_label === 'trivial_skip') {

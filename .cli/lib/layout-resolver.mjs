@@ -17,11 +17,34 @@
  *   - Deterministic — identical input + identical filesystem state → always identical path
  */
 
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, relative, resolve, dirname, basename } from 'node:path';
 import { resolveMainRepoRoot } from './worktree-path.mjs';
 import { withoutInheritedRepository } from './utils.mjs';
+
+/**
+ * Worktree root when `cwd` sits inside `<projectDir>/.worktrees/...`, else null.
+ *
+ * Why: hooks receive CLAUDE_PROJECT_DIR = the main checkout even when the session works in a
+ * worktree, so worktree-local state (`run/active.json`, `runs/<id>/`, R-CM-034 Rule 5) written by
+ * the worktree session was read from the main checkout and Stage 4 entry saw "Missing
+ * business-context.json". The root is the nearest ancestor holding a `.git` *file* (a worktree's
+ * `.git` is a file; a nested repo's is a directory and must not be mistaken for it; branch names
+ * such as `feature/x` make the path depth ambiguous).
+ */
+function nestedWorktreeRoot(projectDir, cwd) {
+  const prefix = join(projectDir, '.worktrees') + '/';
+  if (!cwd.startsWith(prefix)) return null;
+  for (let dir = cwd; dir.startsWith(prefix); dir = dirname(dir)) {
+    try {
+      if (statSync(join(dir, '.git')).isFile()) return dir;
+    } catch {
+      // no .git at this level — keep walking up
+    }
+  }
+  return null;
+}
 
 /**
  * Project root (CLAUDE_PROJECT_DIR prioritized) — process actual root (immutable baseline for system/governance/scan).
@@ -35,6 +58,9 @@ let PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR
 while (basename(PROJECT_DIR) === '.claude') {
   PROJECT_DIR = dirname(PROJECT_DIR);
 }
+// Main checkout root — cross-worktree scans (listAllActiveRunPaths) must start here, not in a worktree.
+const MAIN_PROJECT_DIR = PROJECT_DIR;
+PROJECT_DIR = nestedWorktreeRoot(PROJECT_DIR, process.cwd()) ?? PROJECT_DIR;
 
 /**
  * Synchronous scope override for worktree_local resolution base (R-CM-035 Exception 5 — loom cross-worktree run mutation).
@@ -381,7 +407,7 @@ export function getActiveRunPath() {
  * @param {string} [projectDir=PROJECT_DIR] Project root
  * @returns {string[]} List of active-run.json absolute paths (main 1 + worktree N)
  */
-export function listAllActiveRunPaths(projectDir = PROJECT_DIR) {
+export function listAllActiveRunPaths(projectDir = MAIN_PROJECT_DIR) {
   // Worktree-local isolated scan: inspects each worktree's .brief2dev/run/active.json directly.
   const paths = [join(projectDir, '.brief2dev', 'run', 'active.json')];
   const worktreesRoot = join(projectDir, '.worktrees');

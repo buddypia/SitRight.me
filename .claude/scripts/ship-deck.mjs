@@ -45,7 +45,7 @@ import {
 import { parseNameStatusRows } from '../../.cli/lib/worktree-ship-report.mjs';
 import { resolveMainRepoRoot } from '../../.cli/lib/worktree-path.mjs';
 import { resolveMainRoot } from './mark-pre-ship-confirmed.mjs';
-import { buildDeckModel, extractPlanGoal } from './lib/ship-deck-core.mjs';
+import { buildDeckModel, extractDeclaredNames, extractPlanGoal } from './lib/ship-deck-core.mjs';
 import { resolveReviewOrigin } from './lib/review-origin.mjs';
 import { resolveShipBaseRefs } from '../../.cli/lib/ship-base-branch.mjs';
 import { loadFeatureIndexSafe } from './lib/deck-impact.mjs';
@@ -120,7 +120,9 @@ export function collectGitData({ worktreePath, baseRef, execFn }) {
   const log = run('log', '--oneline', `${baseRef}..HEAD`);
   const numstatText = run('diff', `${baseRef}...HEAD`, '--numstat');
   const nameStatusText = run('diff', `${baseRef}...HEAD`, '--name-status');
+  const addedText = run('diff', `${baseRef}...HEAD`, '-U0', '--no-color');
   return {
+    codeNames: extractDeclaredNames(addedText),
     commits: log
       .split(/\r?\n/)
       .map((l) => l.trim())
@@ -289,6 +291,7 @@ function main() {
     commits: gitData.commits,
     numstatText: gitData.numstatText,
     nameStatusRows: gitData.nameStatusRows,
+    codeNames: gitData.codeNames,
     planGoal: readPlanGoal(worktreePath, branch),
     lexicon,
     origin: resolveReviewOrigin({

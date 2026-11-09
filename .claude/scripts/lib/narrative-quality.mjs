@@ -23,6 +23,8 @@
  *   6. Non-answers ("none", "n/a", "-", "없음") in the self-critique fields — the field exists so the
  *      author has to think; a placeholder is the same as leaving it out.
  *   7. review_focus.where that names a path must name one in the changeset.
+ *   8. First-screen prose (what, why, how, trade-offs, checklist, risks, diagram) names no file
+ *      path or code identifier — the reader was not in the code. Paths go in review_focus.where.
  *
  * One traversal: word-level rules run over `collectProseFields()` from plain-language.mjs, the
  * same enumeration the glossary check uses, so a field cannot be covered by one gate and missed
@@ -96,6 +98,7 @@ export const SHIP_BRIEF_COUNTS = Object.freeze({
   // min is raised by reach (change-reach.mjs#reachRequirements): 2 when the change reaches production.
   failure_modes: { min: 1, max: 5 },
   'diagram.steps': { min: 2, max: 8 },
+  'diagram.steps.branches': { min: 2, max: 3 },
   'diagram.rows': { min: 1, max: 6 },
 });
 
@@ -222,6 +225,28 @@ export const INTERNAL_LOCATOR_PATTERNS = Object.freeze([
   /\bPOF-\d+\b/,
 ]);
 
+/**
+ * Prose the ship deck shows on its first screen. A file path or code identifier there means the
+ * author described the code instead of the change (user feedback 2026-10-28: "do not explain with
+ * words only you know"). review_focus.where and rollback are where paths belong.
+ */
+const FIRST_SCREEN_FIELDS =
+  /^(what|for_whom|why|how|next|tradeoffs\.(topic|chosen|rejected|why|cost)|review_focus\.(check|risk_if_wrong)|failure_modes\.(scenario|mitigation)|diagram\.(title|steps\.(label|note)|steps\.branches\.(label|note)|rows\.(aspect|before|after)))$/;
+
+const FILE_EXTENSION = /[A-Za-z][\w-]*\.(m?js|cjs|tsx?|jsx|json|md|py|sh|ya?ml|css|html|toml|sql)$/i;
+
+/**
+ * camelCase, snake_case, `--flag`, `call()` and back-quoted code. camelCase needs a lowercase letter
+ * after the hump, so iOS / macOS read as prose; the few brand names shaped like code are listed.
+ */
+const CODE_TOKEN_PATTERNS = Object.freeze([
+  /`[^`]+`/,
+  /\b(?!(?:iPhone|iPad|iPod|iCloud|iMac|eBay|iTunes)\b)[a-z][a-z0-9]*[A-Z][a-z][A-Za-z0-9]*\b/,
+  /\b[a-z0-9]+_[a-z0-9_]+\b/i,
+  /(?:^|\s)--[a-z][\w-]*/,
+  /\b\w+\(\)/,
+]);
+
 /** Fields where a pointer *is* the content — locators are allowed there. */
 const LOCATOR_ALLOWED = /^(rollback|requirements\.validation)$/;
 
@@ -319,6 +344,35 @@ function findLocators(text) {
   return INTERNAL_LOCATOR_PATTERNS.map((re) => flat.match(re)?.[0]).filter(Boolean);
 }
 
+// "A / B", "CI/CD", "and/or", "1/2", "2026/10/28" and "Node.js" are prose;
+// "scripts/build-gallery", "a/b/c" and "craft.mjs" are paths.
+// The shape alone cannot tell "src/lib" from "client/server"; the changeset can, so a folder this
+// change touches is a path whatever its shape.
+function isCodePath(tok, changed = new Set()) {
+  if (FILE_EXTENSION.test(tok)) return tok.includes('/') || !/^[A-Z][a-z]/.test(tok);
+  const dir = tok.replace(/\/+$/, '');
+  // "app/" (a trailing slash) or "src/lib" names a folder; a bare word without a slash does not.
+  const folderLike = dir.includes('/') || tok.endsWith('/');
+  if (folderLike && [...changed].some((p) => p === dir || p.startsWith(`${dir}/`))) return true;
+  if (/^~\/[\w.-]/.test(tok)) return true;
+  return /^\.?[a-z][\w.-]*(\/[\w.-]+)+$/.test(tok) && (/\/.*\//.test(tok) || /[-_.]/.test(tok));
+}
+
+/**
+ * @param {string} text
+ * @param {{changed?: Set<string>, codeNames?: Iterable<string>}} [ctx] changed paths and the
+ *   identifiers this diff declares (ship-deck-core.mjs#extractDeclaredNames) — a name the change
+ *   itself introduced is author vocabulary whatever its casing (PascalCase included).
+ */
+function findCodeTokens(text, ctx = {}) {
+  const flat = collapse(text);
+  const paths = extractPathTokens(flat).filter((tok) => isCodePath(tok, ctx.changed));
+  const code = CODE_TOKEN_PATTERNS.map((re) => flat.match(re)?.[0]?.trim()).filter(Boolean);
+  const words = new Set(flat.match(/[A-Za-z_$][\w$]*/g) ?? []);
+  const declared = [...(ctx.codeNames ?? [])].filter((name) => words.has(name));
+  return [...new Set([...paths, ...code, ...declared])];
+}
+
 function hasUnbackedMeasurement(text) {
   const flat = collapse(text);
   if (anyLocale(MEASUREMENT_EVIDENCE, flat)) return false;
@@ -334,7 +388,7 @@ function isNonAnswer(text) {
 const list = (items) => items.map((x) => `"${x}"`).join(', ');
 
 /**
- * Word-level rules, each `(key, text) => message | null`. `key` is the field with indices
+ * Word-level rules, each `(key, text, ctx) => message | null`. `key` is the field with indices
  * stripped (`tradeoffs.cost`); the caller prefixes `narrative.<field>: `.
  */
 const PROSE_RULES = [
@@ -359,6 +413,12 @@ const PROSE_RULES = [
       ? `internal locator(s) ${list(found)} — meaningless outside this session; describe the thing, not its label`
       : null;
   },
+  (key, text, ctx) => {
+    const found = FIRST_SCREEN_FIELDS.test(key) ? findCodeTokens(text, ctx) : [];
+    return found.length
+      ? `names code or files (${list(found)}) on the first screen — say what it does for the reader; file paths belong in review_focus.where`
+      : null;
+  },
   (key, text) =>
     hasUnbackedMeasurement(text)
       ? 'performance number without how it was measured — add "(measured: …)" / "(측정: …)" or drop the number'
@@ -370,11 +430,11 @@ const PROSE_RULES = [
 ];
 
 /** Word-level rules for one prose field (field label as produced by collectProseFields). */
-function proseErrors(field, text) {
+function proseErrors(field, text, ctx) {
   if (!text) return [];
   const key = limitKey(field);
   if (SHIP_HIDDEN_FIELDS.test(key)) return [];
-  return PROSE_RULES.map((rule) => rule(key, text))
+  return PROSE_RULES.map((rule) => rule(key, text, ctx))
     .filter(Boolean)
     .map((message) => `narrative.${field}: ${message}`);
 }
@@ -419,13 +479,30 @@ function diagramErrors(diagram) {
   }
   if (diagram.kind === 'flow') {
     errors.push(countErrors('diagram.steps', diagram.steps, SHIP_BRIEF_COUNTS['diagram.steps']));
+    const stepErrors = (st, at) => [
+      st.label ? null : `narrative.${at}.label: required`,
+      st.state && !DIAGRAM_STEP_STATES.includes(st.state)
+        ? `narrative.${at}.state: "${st.state}" — expected ${DIAGRAM_STEP_STATES.join(' | ')}`
+        : null,
+    ];
     (diagram.steps ?? []).forEach((st, i) => {
-      if (!st.label) errors.push(`narrative.diagram.steps[${i}].label: required`);
-      if (st.state && !DIAGRAM_STEP_STATES.includes(st.state)) {
-        errors.push(`narrative.diagram.steps[${i}].state: "${st.state}" — expected ${DIAGRAM_STEP_STATES.join(' | ')}`);
+      if (!st.branches) {
+        errors.push(...stepErrors(st, `diagram.steps[${i}]`));
+        return;
       }
+      if (st.malformed) {
+        errors.push(`narrative.diagram.steps[${i}].branches: expected a list of 2-3 steps`);
+        return;
+      }
+      if (st.stray) errors.push(`narrative.diagram.steps[${i}]: note / state belong on the branches — the split's label is the question that decides`);
+      errors.push(countErrors(`diagram.steps[${i}].branches`, st.branches, SHIP_BRIEF_COUNTS['diagram.steps.branches']));
+      st.branches.forEach((b, j) => {
+        errors.push(...stepErrors(b, `diagram.steps[${i}].branches[${j}]`));
+        if (b.nested) errors.push(`narrative.diagram.steps[${i}].branches[${j}].branches: a branch cannot split again — add the next split as its own step`);
+      });
     });
-    if ((diagram.steps ?? []).length && !(diagram.steps ?? []).some((st) => st.state && st.state !== 'same')) {
+    const states = (diagram.steps ?? []).flatMap((st) => (st.branches ?? [st]).map((s) => s.state));
+    if (states.length && !states.some((state) => state && state !== 'same')) {
       errors.push('narrative.diagram.steps: mark at least one step as changed | new | removed — a flow where nothing changed explains nothing');
     }
   } else {
@@ -444,6 +521,9 @@ function diagramErrors(diagram) {
 function missingFieldErrors(prefix, entry, spec) {
   return spec.filter(([key]) => !entry[key]).map(([, snake, hint]) => `narrative.${prefix}.${snake}: required${hint}`);
 }
+
+/** Optional `failure_modes[].status`: the deck labels the risk fixed, still open, or out of scope. */
+export const FAILURE_MODE_STATUSES = Object.freeze(['fixed', 'open', 'out_of_scope']);
 
 const FAILURE_MODE_FIELDS = [
   ['scenario', 'scenario', ' — what goes wrong?'],
@@ -485,7 +565,12 @@ function failureModeErrors(failureModes, requires, tierNote) {
   } else if (fm.length > max) {
     errors.push(`narrative.failure_modes: ${fm.length} items > ${max} — keep the ones a reviewer would act on`);
   }
-  fm.forEach((f, i) => errors.push(...missingFieldErrors(`failure_modes[${i}]`, f, FAILURE_MODE_FIELDS)));
+  fm.forEach((f, i) => {
+    errors.push(...missingFieldErrors(`failure_modes[${i}]`, f, FAILURE_MODE_FIELDS));
+    if (f.status && !FAILURE_MODE_STATUSES.includes(f.status)) {
+      errors.push(`narrative.failure_modes[${i}].status: "${f.status}" — expected ${FAILURE_MODE_STATUSES.join(' | ')}`);
+    }
+  });
   return errors;
 }
 
@@ -540,9 +625,10 @@ const BRIEF_LIST_KEYS = Object.freeze({
  * @param {object} narrative normalized narrative
  * @param {Set<string>} changed changed-path set from git
  * @param {object|null} reach change-reach.mjs#buildReach summary (null = local-tier rules)
+ * @param {{codeNames?: string[]}} [options] identifiers this diff declares
  * @returns {string[]} error messages (empty = pass)
  */
-export function validateShipBrief(narrative, changed = new Set(), reach = null) {
+export function validateShipBrief(narrative, changed = new Set(), reach = null, { codeNames = [] } = {}) {
   if (!narrative || typeof narrative !== 'object') return ['narrative: brief validation needs a narrative'];
   const requires = reach?.requires ?? reachRequirements('local');
   const tierNote = reach ? ` (change reaches ${reach.label})` : '';
@@ -563,7 +649,7 @@ export function validateShipBrief(narrative, changed = new Set(), reach = null) 
     ...tradeoffErrors(narrative.tradeoffs),
     ...reviewFocusErrors(narrative.reviewFocus, changed),
     // Word-level rules over every prose field, using the same enumeration as the glossary gate.
-    ...collectProseFields(narrative).flatMap(({ field, text }) => proseErrors(field, text)),
+    ...collectProseFields(narrative).flatMap(({ field, text }) => proseErrors(field, text, { changed, codeNames })),
   ];
   return errors.filter(Boolean);
 }
@@ -577,7 +663,9 @@ export function shipNarrativeTemplate() {
   const L = SHIP_BRIEF_LIMITS;
   return {
     $how_to_write: [
-      'The reader is an engineer who was not part of this work. The first screen must show how far the change reaches, what changed, for whom, why, what breaks if it is wrong, what was given up, and where to look.',
+      'The reader is a software engineer who was not part of this work and has never opened this repository. Write so they get it in one look: plain words, short sentences, the first sentence of why/how is the point and the rest is detail.',
+      'No file paths, function names, script names or internal tool names in what, why, how, trade-offs, the checklist (check, risk_if_wrong), risks or the diagram. Say what a thing does ("an automatic check that blocks banned patterns"), not what it is called. Paths go in review_focus.where.',
+      'The first screen shows: the change in one sentence, why, how, the one thing to check (review_focus[0]), the diagram, the first trade-off with its cost, the checklist and the risks. Put the most important trade-off first.',
       'First run `node .claude/scripts/ship-deck.mjs --reach --worktree <path>` to see how far the change reaches. Local tooling only: one failure_modes entry is enough. Production screens or data: at least two failure_modes plus exposure. Data or contracts: data_change as well.',
       'Argue against yourself before writing: if this is wrong, who notices first? How would we find out? What else could we have done? What does the chosen option cost? What did we not do?',
       'The file list is not on the first screen. file_notes and requirements are optional and render as folded evidence when written. Spend the time on failure scenarios and trade-offs.',
@@ -596,6 +684,7 @@ export function shipNarrativeTemplate() {
         who_notices: '<who notices first (user, operator, the next AI session)>',
         detect: '<how we find out: test, log, dashboard, report>',
         mitigation: '<what we do then>',
+        status: '<optional: fixed | open | out_of_scope>',
       },
     ],
     exposure: {
@@ -614,12 +703,20 @@ export function shipNarrativeTemplate() {
       consumers: '<who reads this data or contract>',
     },
     diagram: {
-      $optional: 'Optional. Use flow when a sequence changed, before_after when a state changed. The renderer draws it; do not hand-write SVG.',
+      $optional: 'Optional, but write it whenever a sequence or a state changed: a reviewer reads a picture before prose. Use flow when a sequence changed (mark new/changed steps), before_after when a state changed. Labels are plain words, not file or tool names. The renderer draws it; do not hand-write SVG.',
       kind: 'flow',
       title: '<diagram title>',
       steps: [
         { label: '<step>', note: '<one-line note>', state: 'same' },
         { label: '<changed step>', note: '<what is different>', state: 'changed' },
+        {
+          $optional: 'A split: the flow goes one of these ways. label is the question that decides; 2-3 branches.',
+          label: '<what decides>',
+          branches: [
+            { label: '<one way>', state: 'new' },
+            { label: '<the other way>', state: 'same' },
+          ],
+        },
       ],
     },
     tradeoffs: [

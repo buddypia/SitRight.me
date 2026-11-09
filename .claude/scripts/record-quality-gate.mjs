@@ -22,12 +22,14 @@
  *   Record example (branch / recorded_at are stamped by CLI and can be omitted):
  *   {
  *     "verdict": "go",
- *     "quality_label": "agent_go",
+ *     "quality_label": "verified",
  *     "gates": [
- *       { "name": "code-review --fix", "status": "pass",
- *         "command": "/code-review --fix", "detail": "0 correctness issues, applied 2 cleanups" },
- *       { "name": "code-reviewer agent", "status": "pass",
- *         "detail": "Go — 0 CRITICAL/HIGH", "finding": "LOW 1 item (fixed)" }
+ *       { "name": "unit tests", "method": "empirical", "status": "pass",
+ *         "command": "npx vitest run tests/unit/foo.test.mjs", "detail": "12 passed" },
+ *       { "name": "typecheck", "method": "formal", "status": "pass",
+ *         "command": "make q.typecheck", "detail": "0 errors" },
+ *       { "name": "code-reviewer agent", "method": "review", "status": "pass",
+ *         "detail": "hypotheses only — each finding became the vitest case above" }
  *     ]
  *   }
  *

@@ -30,7 +30,7 @@
  */
 
 import { execFileSync, spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, writeFileSync, readFileSync, realpathSync, rmSync, statSync, readdirSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, writeFileSync, readFileSync, realpathSync, rmSync, statSync, lstatSync, readdirSync } from 'node:fs';
 import { basename, join, resolve, dirname, isAbsolute, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -1123,27 +1123,12 @@ function cmdFinalize() {
     };
   }
 
-  const hasChanges = git(['status', '--porcelain']).trim().length > 0;
-  if (hasChanges) {
-    cleanupState();
-    return {
-      ok: false,
-      error: 'Cannot proceed with sync because local uncommitted changes exist.',
-      hint: 'Manually commit or stash changes before syncing again.',
-      worktree_cleaned: true,
-      sync_status: 'local_changes',
-    };
-  }
-
-  let ffFailed = null;
-  try {
-    git(['checkout', BASE_BRANCH]);
-    git(['merge', '--ff-only', `origin/${BASE_BRANCH}`]);
-  } catch (e) {
-    ffFailed = `${BASE_BRANCH} ff-only failed: ${e.message}`;
-  }
-
+  const blocked = fastForwardBase();
   cleanupState();
+  if (blocked?.status === 'local_changes') {
+    return { ok: false, error: blocked.error, hint: blocked.hint, worktree_cleaned: true, sync_status: 'local_changes' };
+  }
+  const ffFailed = blocked?.error ?? null;
 
   if (ffFailed) {
     return {
@@ -2660,7 +2645,7 @@ function clearWorktreeFromContext(wtPath, warnings) {
 }
 
 /**
- * Post-removal main sync: fetch → refuse on dirty main → ff-only.
+ * Post-removal main sync: fetch → ff-only that keeps unrelated local edits (fastForwardBase).
  * Returns the failing response (fail-loud, R-CM-010) or null once synced.
  */
 function syncMainAfterCleanup(worktreeCleaned, warnings) {
@@ -2679,24 +2664,81 @@ function syncMainAfterCleanup(worktreeCleaned, warnings) {
   } catch (e) {
     return fail(`${BASE_BRANCH} fetch failed: ${e.message}`, 'Check remote status and sync manually.', 'fetch_failed');
   }
-  if (git(['status', '--porcelain'], { cwd: PROJECT_DIR }).trim().length > 0) {
+  const blocked = fastForwardBase({ cwd: PROJECT_DIR });
+  if (blocked?.status === 'local_changes') return fail(blocked.error, blocked.hint, 'local_changes');
+  if (blocked) {
     return fail(
-      'Cannot proceed with sync because local uncommitted changes exist.',
-      'Manually commit or stash changes before syncing again.',
-      'local_changes',
-    );
-  }
-  try {
-    git(['checkout', BASE_BRANCH], { cwd: PROJECT_DIR });
-    git(['merge', '--ff-only', `origin/${BASE_BRANCH}`], { cwd: PROJECT_DIR });
-  } catch (e) {
-    return fail(
-      `${BASE_BRANCH} ff-only failed: ${e.message}`,
+      blocked.error,
       `origin/${BASE_BRANCH} is not an ancestor of local ${BASE_BRANCH}. Manual rebase required.`,
       'ff_failed',
     );
   }
   return null;
+}
+
+/**
+ * Uncommitted paths: tracked edits against HEAD (staged or not) and untracked files. `--no-renames`
+ * so a rename lists both of its paths; with rename detection only the new one is printed and an
+ * overlap on the old path reads as a failed fast-forward.
+ */
+// Paths as they sit on disk: with core.quotepath (git's default) a non-ASCII name prints quoted
+// and escaped, so it would never match a dirty path or exist on disk.
+const UNQUOTED = ['-c', 'core.quotepath=false'];
+
+function dirtyPaths(opts) {
+  return [
+    ...splitNonEmptyLines(git([...UNQUOTED, 'diff', '--name-only', '--no-renames', 'HEAD'], opts)),
+    ...splitNonEmptyLines(git([...UNQUOTED, 'ls-files', '--others', '--exclude-standard'], opts)),
+  ];
+}
+
+/**
+ * Fast-forwards the base branch in the main checkout without touching uncommitted work.
+ * Unrelated edits ride along (git keeps them through a fast-forward); refusing on any dirt left
+ * main behind after every merge while the user had unrelated files open (2026-10-28). It still
+ * refuses, before touching anything, when an incoming commit changes a dirty path, or when the
+ * checkout is dirty on another branch (switching would carry the edits over).
+ * @returns {null | {status: 'local_changes'|'ff_failed', error: string, hint?: string}}
+ */
+function fastForwardBase(opts = {}) {
+  const dirty = dirtyPaths(opts);
+  let current = null;
+  try { current = git(['symbolic-ref', '--quiet', '--short', 'HEAD'], opts).trim(); } catch {}
+  const hint = 'Commit or stash those changes, then run git merge --ff-only origin/' + BASE_BRANCH + '.';
+  if (dirty.length && current !== BASE_BRANCH) {
+    return { status: 'local_changes', hint,
+      error: `Cannot sync: the main checkout is on ${current ?? 'a detached HEAD'} with uncommitted changes, and switching to ${BASE_BRANCH} would carry them over.` };
+  }
+  const range = ['HEAD', `origin/${BASE_BRANCH}`];
+  const incoming = new Set(splitNonEmptyLines(git([...UNQUOTED, 'diff', '--name-only', '--no-renames', ...range], opts)));
+  // A file the incoming commits add may already sit here ignored (git status does not list it, and
+  // git overwrites it without asking), either at the added path or where the commit needs a folder
+  // (a symlink there counts too: git would replace the link with a folder).
+  const root = opts.cwd || PROJECT_DIR;
+  const added = splitNonEmptyLines(git([...UNQUOTED, 'diff', '--name-only', '--no-renames', '--diff-filter=A', ...range], opts));
+  const occupied = added.flatMap((path) => {
+    if (existsSync(join(root, path))) return [path];
+    const parts = path.split('/');
+    for (let i = 1; i < parts.length; i++) {
+      const parent = parts.slice(0, i).join('/');
+      try { if (!lstatSync(join(root, parent)).isDirectory()) return [parent]; } catch { return []; }
+    }
+    return [];
+  });
+  if (dirty.length || occupied.length) {
+    const overlap = [...new Set([...dirty.filter((path) => incoming.has(path)), ...occupied])];
+    if (overlap.length) {
+      return { status: 'local_changes', hint,
+        error: `Cannot sync: incoming commits change local files that are not committed (${overlap.join(', ')}).` };
+    }
+  }
+  try {
+    if (current !== BASE_BRANCH) git(['checkout', BASE_BRANCH], opts);
+    git(['merge', '--ff-only', `origin/${BASE_BRANCH}`], opts);
+    return null;
+  } catch (e) {
+    return { status: 'ff_failed', error: `${BASE_BRANCH} ff-only failed: ${e.message}` };
+  }
 }
 
 /**
